@@ -8,7 +8,7 @@ import warnings
 from datetime import datetime, timedelta
 from functools import cached_property, wraps
 from pathlib import Path
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from contextlib import contextmanager
 
 import pandas as pd
@@ -27,6 +27,7 @@ import io
 import tempfile
 import sys
 from dotenv import load_dotenv
+
 load_dotenv()   # loads variables from .env file into environment
 
 warnings.filterwarnings('ignore')
@@ -295,9 +296,10 @@ def execute_sql_file(sql_path):
 class DataLoader:
     def __init__(self):
         self.sql_folder = self._find_sql_folder()
-        self.sql_results = {}          # will store loaded DataFrames
-        self.sql_files = {}            # mapping friendly name -> file path
-        self._index_sql_files()        # builds the mapping without executing
+        self.sql_files = {}                     # mapping friendly name -> file path
+        self._cache = OrderedDict()             # LRU cache: key -> DataFrame
+        self._cache_maxsize = int(os.environ.get('DATAFRAME_CACHE_SIZE', 3))
+        self._index_sql_files()
 
     def _find_sql_folder(self):
         possible = [Path('sql/analytics'), Path('../sql/analytics'), Path('Retail_Analytics/sql/analytics')]
@@ -309,7 +311,6 @@ class DataLoader:
     def _index_sql_files(self):
         if not self.sql_folder:
             return
-        # Map friendly names (the keys you use later) to the actual file
         for sql_file in self.sql_folder.glob('*.sql'):
             name = re.sub(r'[^\w\-_]', '_', sql_file.stem)
             self.sql_files[name] = sql_file
@@ -327,11 +328,15 @@ class DataLoader:
             if result and isinstance(result, list) and len(result) > 0:
                 df = pd.DataFrame(result)
                 df = self._convert_decimal_to_float(df)
-                # Limit rows for large tables to save memory
                 max_rows = int(os.environ.get('MAX_ROWS_PER_DATASET', 10000))
                 if len(df) > max_rows:
                     logger.warning(f"Truncating {sql_path.name} from {len(df)} to {max_rows} rows")
                     df = df.head(max_rows)
+                # Downcast numeric columns to reduce memory
+                for col in df.select_dtypes(include=['float']).columns:
+                    df[col] = pd.to_numeric(df[col], downcast='float')
+                for col in df.select_dtypes(include=['integer']).columns:
+                    df[col] = pd.to_numeric(df[col], downcast='integer')
                 return df
             return None
         except Exception as e:
@@ -339,7 +344,6 @@ class DataLoader:
             return None
 
     def _convert_decimal_to_float(self, df):
-        # same as original
         for col in df.columns:
             try:
                 sample = df[col].dropna().iloc[0] if not df[col].dropna().empty else None
@@ -349,9 +353,28 @@ class DataLoader:
                 pass
         return df
 
+    def get_dataframe(self, sql_key):
+        """Load or retrieve from LRU cache."""
+        if sql_key in self._cache:
+            # Move to end (most recently used)
+            self._cache.move_to_end(sql_key)
+            return self._cache[sql_key]
+        sql_path = self.sql_files.get(sql_key)
+        if not sql_path:
+            return pd.DataFrame()
+        df = self._execute_sql_file(sql_path)
+        if df is None:
+            df = pd.DataFrame()
+        # Store in cache, evict oldest if over limit
+        self._cache[sql_key] = df
+        if len(self._cache) > self._cache_maxsize:
+            oldest_key = next(iter(self._cache))
+            logger.info(f"Evicting {oldest_key} from cache (size {len(self._cache)-1}/{self._cache_maxsize})")
+            del self._cache[oldest_key]
+        return df
+
     @cached_property
     def friendly_data(self):
-        # This is now a lazy dictionary that loads DataFrames on demand
         mapping = {
             '1a_Customer_Lifetime_Value__CLV_': 'Customer Lifetime Value',
             '1b_Daily_Revenue_Trends': 'Daily Revenue Trends',
@@ -375,21 +398,17 @@ class DataLoader:
             '9_Payment_Method_Analysis': 'Payment Method Analysis',
             '10_Order_Status_Analysis': 'Order Status Analysis'
         }
-        # Build a dict that loads the DataFrame only when accessed
         fd = {}
         for key, value in mapping.items():
-            # Find the SQL file name that matches this key
             for res_name in self.sql_files:
                 if key in res_name or res_name.startswith(key.split('_')[0]):
                     fd[value] = LazyDataFrame(self, res_name)
                     break
             if value not in fd:
-                # try a looser match
                 for res_name in self.sql_files:
                     if value.lower().replace(' ', '_') in res_name.lower():
                         fd[value] = LazyDataFrame(self, res_name)
                         break
-            # if still not found, default to empty list
             if value not in fd:
                 fd[value] = pd.DataFrame()
         return fd
@@ -399,33 +418,40 @@ class DataLoader:
             return []
         return df.replace({np.nan: None}).to_dict(orient='records')
 
+
 class LazyDataFrame:
-    """Wrapper that loads the DataFrame only when first needed."""
+    """Wrapper that loads DataFrame from the loader’s LRU cache."""
     def __init__(self, loader, sql_key):
         self.loader = loader
         self.sql_key = sql_key
-        self._df = None
 
-    def __call__(self):
-        if self._df is None:
-            sql_path = self.loader.sql_files.get(self.sql_key)
-            if sql_path:
-                self._df = self.loader._execute_sql_file(sql_path)
-            else:
-                self._df = pd.DataFrame()
-        return self._df
+    def _get_df(self):
+        return self.loader.get_dataframe(self.sql_key)
+
+    def __getitem__(self, key):
+        return self._get_df().__getitem__(key)
+
+    def __setitem__(self, key, value):
+        self._get_df()[key] = value
 
     def __getattr__(self, name):
-        # Delegate attribute access to the underlying DataFrame (once loaded)
-        return getattr(self(), name)
+        return getattr(self._get_df(), name)
 
     def __len__(self):
-        return len(self())
+        return len(self._get_df())
 
     def __bool__(self):
-        return bool(self())
-    
-    
+        return bool(self._get_df())
+
+    def __contains__(self, key):
+        return key in self._get_df()
+
+    def to_dict(self, orient='records'):
+        return self._get_df().to_dict(orient=orient)
+
+    def copy(self):
+        return self._get_df().copy()
+
 loader = DataLoader()
 friendly_data = loader.friendly_data
 
