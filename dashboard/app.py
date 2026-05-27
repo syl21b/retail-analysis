@@ -421,8 +421,12 @@ if Config.GEMINI_API_KEY and GENAI_AVAILABLE:
     genai_client = genai.Client(api_key=Config.GEMINI_API_KEY)
     logger.info("✅ Gemini AI ready.")
 if Config.GROQ_API_KEY and GROQ_AVAILABLE:
-    groq_client = Groq(api_key=Config.GROQ_API_KEY)
-    logger.info("✅ Groq AI ready.")
+    try:
+        groq_client = Groq(api_key=Config.GROQ_API_KEY)
+        logger.info("✅ Groq AI ready.")
+    except Exception as e:
+        logger.error(f"Failed to initialise Groq client: {e}")
+        groq_client = None
 
 def call_ai_provider(prompt):
     if genai_client:
