@@ -28,7 +28,7 @@ services:
         value: INFO
       - key: RATELIMIT_AI
         value: 20
-      - key: RATELIMIT_NLQ
+      - key: RATELIMIT_NLQåç
         value: 50
       - key: RATELIMIT_SIMULATE
         value: 30
