@@ -294,12 +294,10 @@ def execute_sql_file(sql_path):
 # ------------------------------
 class DataLoader:
     def __init__(self):
-        self.sql_results = {}
         self.sql_folder = self._find_sql_folder()
-        if self.sql_folder:
-            self._load_all_sql_queries()
-        else:
-            self._fallback_to_csv()
+        self.sql_results = {}          # will store loaded DataFrames
+        self.sql_files = {}            # mapping friendly name -> file path
+        self._index_sql_files()        # builds the mapping without executing
 
     def _find_sql_folder(self):
         possible = [Path('sql/analytics'), Path('../sql/analytics'), Path('Retail_Analytics/sql/analytics')]
@@ -308,7 +306,40 @@ class DataLoader:
                 return p
         return None
 
+    def _index_sql_files(self):
+        if not self.sql_folder:
+            return
+        # Map friendly names (the keys you use later) to the actual file
+        for sql_file in self.sql_folder.glob('*.sql'):
+            name = re.sub(r'[^\w\-_]', '_', sql_file.stem)
+            self.sql_files[name] = sql_file
+
+    def _execute_sql_file(self, sql_path):
+        try:
+            with open(sql_path, 'r', encoding='utf-8') as f:
+                sql_content = f.read()
+            sql_content = clean_sql(sql_content)
+            if not sql_content:
+                return None
+            sql_content = add_schema_prefix(sql_content)
+            sql_content = fix_date_extract(sql_content)
+            result = db.execute_query(sql_content)
+            if result and isinstance(result, list) and len(result) > 0:
+                df = pd.DataFrame(result)
+                df = self._convert_decimal_to_float(df)
+                # Limit rows for large tables to save memory
+                max_rows = int(os.environ.get('MAX_ROWS_PER_DATASET', 10000))
+                if len(df) > max_rows:
+                    logger.warning(f"Truncating {sql_path.name} from {len(df)} to {max_rows} rows")
+                    df = df.head(max_rows)
+                return df
+            return None
+        except Exception as e:
+            logger.error(f"Error in {sql_path.name}: {e}")
+            return None
+
     def _convert_decimal_to_float(self, df):
+        # same as original
         for col in df.columns:
             try:
                 sample = df[col].dropna().iloc[0] if not df[col].dropna().empty else None
@@ -318,37 +349,9 @@ class DataLoader:
                 pass
         return df
 
-    def _load_all_sql_queries(self):
-        sql_files = sorted(self.sql_folder.glob('*.sql'))
-        if not sql_files:
-            logger.warning(f"No SQL files in {self.sql_folder}")
-            return
-        logger.info(f"Executing {len(sql_files)} SQL files...")
-        for sql_file in sql_files:
-            logger.info(f"  Running {sql_file.name}...")
-            df = execute_sql_file(sql_file)
-            if df is not None and not df.empty:
-                df = self._convert_decimal_to_float(df)
-                name = re.sub(r'[^\w\-_]', '_', sql_file.stem)
-                self.sql_results[name] = df
-                logger.info(f"    -> {len(df):,} rows, {len(df.columns)} cols")
-            else:
-                logger.warning(f"    -> No data")
-
-    def _fallback_to_csv(self):
-        for folder in [Path("analytics_results"), Path("../analytics_results")]:
-            if folder.exists():
-                for file in folder.glob("*.csv"):
-                    try:
-                        df = pd.read_csv(file)
-                        self.sql_results[file.stem] = df
-                        logger.info(f"Loaded CSV: {file.name} ({len(df):,} rows)")
-                    except Exception as e:
-                        logger.error(f"Failed to load {file.name}: {e}")
-                break
-
     @cached_property
     def friendly_data(self):
+        # This is now a lazy dictionary that loads DataFrames on demand
         mapping = {
             '1a_Customer_Lifetime_Value__CLV_': 'Customer Lifetime Value',
             '1b_Daily_Revenue_Trends': 'Daily Revenue Trends',
@@ -372,17 +375,23 @@ class DataLoader:
             '9_Payment_Method_Analysis': 'Payment Method Analysis',
             '10_Order_Status_Analysis': 'Order Status Analysis'
         }
+        # Build a dict that loads the DataFrame only when accessed
         fd = {}
         for key, value in mapping.items():
-            for res_name, df in self.sql_results.items():
+            # Find the SQL file name that matches this key
+            for res_name in self.sql_files:
                 if key in res_name or res_name.startswith(key.split('_')[0]):
-                    fd[value] = df
+                    fd[value] = LazyDataFrame(self, res_name)
                     break
             if value not in fd:
-                for res_name, df in self.sql_results.items():
+                # try a looser match
+                for res_name in self.sql_files:
                     if value.lower().replace(' ', '_') in res_name.lower():
-                        fd[value] = df
+                        fd[value] = LazyDataFrame(self, res_name)
                         break
+            # if still not found, default to empty list
+            if value not in fd:
+                fd[value] = pd.DataFrame()
         return fd
 
     def to_dict(self, df):
@@ -390,6 +399,33 @@ class DataLoader:
             return []
         return df.replace({np.nan: None}).to_dict(orient='records')
 
+class LazyDataFrame:
+    """Wrapper that loads the DataFrame only when first needed."""
+    def __init__(self, loader, sql_key):
+        self.loader = loader
+        self.sql_key = sql_key
+        self._df = None
+
+    def __call__(self):
+        if self._df is None:
+            sql_path = self.loader.sql_files.get(self.sql_key)
+            if sql_path:
+                self._df = self.loader._execute_sql_file(sql_path)
+            else:
+                self._df = pd.DataFrame()
+        return self._df
+
+    def __getattr__(self, name):
+        # Delegate attribute access to the underlying DataFrame (once loaded)
+        return getattr(self(), name)
+
+    def __len__(self):
+        return len(self())
+
+    def __bool__(self):
+        return bool(self())
+    
+    
 loader = DataLoader()
 friendly_data = loader.friendly_data
 
