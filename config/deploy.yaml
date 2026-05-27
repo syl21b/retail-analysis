@@ -1,0 +1,39 @@
+# render.yaml
+services:
+  # FastAPI Backend Service
+  - type: web
+    name: retail-analytics-api
+    runtime: python
+    repo: https://github.com/yourusername/retail-analytics  # Replace with your repo
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        value: postgresql://neondb_owner:npg_4vjDeG0qHypE@ep-twilight-dawn-ankobhm8-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require
+      - key: PYTHON_VERSION
+        value: 3.11.0
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn dashboard.api:app --host 0.0.0.0 --port 10000
+
+  # Streamlit Dashboard
+  - type: web
+    name: retail-analytics-dashboard
+    runtime: python
+    repo: https://github.com/yourusername/retail-analytics
+    plan: free
+    envVars:
+      - key: API_URL
+        value: https://retail-analytics-api.onrender.com
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run dashboard/app.py --server.port 10000 --server.address 0.0.0.0
+
+  # Cron Job for Daily ETL (Runs at 2 AM every day)
+  - type: cron
+    name: retail-etl-cron
+    runtime: python
+    repo: https://github.com/yourusername/retail-analytics
+    schedule: "0 2 * * *"  # 2 AM daily
+    envVars:
+      - key: DATABASE_URL
+        value: postgresql://neondb_owner:npg_4vjDeG0qHypE@ep-twilight-dawn-ankobhm8-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require
+    buildCommand: pip install -r requirements.txt
+    startCommand: python run_etl_pipeline.py

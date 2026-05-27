@@ -1,0 +1,5 @@
+order_status,order_count,status_percentage
+Delivered,168237,84.24
+Cancelled,27484,13.76
+Returned,1999,1.00
+Nonupdated,1983,0.99

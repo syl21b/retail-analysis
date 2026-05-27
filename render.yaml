@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: enterprise-bi-dashboard
+    runtime: python
+    repo: https://github.com/syl21b/retail-analysis
+    rootDir: dashboard
+    plan: free
+    region: oregon
+    buildCommand: |
+      pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 4 --threads 2 --timeout 120
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        value: https://enterprise-bi-dashboard.onrender.com,http://localhost:5000
+      - key: DISABLE_AUTH
+        value: true
+      - key: FLASK_DEBUG
+        value: False
+      - key: LOG_LEVEL
+        value: INFO
+      - key: RATELIMIT_AI
+        value: 20
+      - key: RATELIMIT_NLQ
+        value: 50
+      - key: RATELIMIT_SIMULATE
+        value: 30

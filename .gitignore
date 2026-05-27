@@ -1,0 +1,68 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+logs/
+
+# Cache
+.pytest_cache/
+.mypy_cache/
+__pycache__/
+*.pyc
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Flask / Werkzeug
+instance/
+.webassets-cache
+
+# Exports
+exports/
+*.pdf
+*.pptx
+
+# Simulation cache
+simulation_cache.pkl
+
+# SQL files (if raw)
+sql/*.sql
+!sql/analytics/*.sql
+
+
+# Large data files (CSV)
+data/raw/*.csv
+data/cleaned/*.csv
+
+# Secrets
+dashboard/Gemini_api_key.txt
+*.key
+*.pem
+.env
