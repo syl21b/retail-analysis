@@ -16,6 +16,7 @@ import numpy as np
 import requests
 from flask import Flask, jsonify, request, render_template, send_file
 from flask_cors import CORS
+from flask_compress import Compress
 from werkzeug.middleware.proxy_fix import ProxyFix
 import jwt
 import psycopg2
@@ -28,8 +29,7 @@ import tempfile
 import sys
 from dotenv import load_dotenv
 
-load_dotenv()   # loads variables from .env file into environment
-
+load_dotenv()
 warnings.filterwarnings('ignore')
 
 # ------------------------------
@@ -67,24 +67,26 @@ class Config:
     CORS_ORIGINS = os.environ.get('CORS_ORIGINS', 'http://localhost:5000').split(',')
     LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO')
     
-    # NEW: Disable authentication for development (set to 'true' in .env for local testing)
     DISABLE_AUTH = os.environ.get('DISABLE_AUTH', 'true').lower() == 'true'
-
     DEBUG = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
+
+    # Performance tuning
+    DATAFRAME_CACHE_SIZE = int(os.environ.get('DATAFRAME_CACHE_SIZE', 1))
+    MAX_ROWS_PER_DATASET = int(os.environ.get('MAX_ROWS_PER_DATASET', 500))
 
 # ------------------------------
 #  Flask app initialization
 # ------------------------------
 app = Flask(__name__)
 app.config.from_object(Config)
-app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)   # trust proxy headers
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 app.secret_key = Config.SECRET_KEY
 
-# CORS – strict origins
 CORS(app, origins=Config.CORS_ORIGINS, supports_credentials=True)
+Compress(app)                                   # Enable gzip compression
 
 # ------------------------------
-#  Rate Limiter (in-memory, per IP/user)
+#  Rate Limiter
 # ------------------------------
 class RateLimiter:
     def __init__(self):
@@ -117,7 +119,7 @@ def rate_limit(limit, window=3600, by_ip=True):
 # ------------------------------
 class AuthManager:
     def __init__(self):
-        self.api_keys = {}   # In production, store in DB
+        self.api_keys = {}
     
     def generate_api_key(self, user_id, role='analyst'):
         key = secrets.token_urlsafe(32)
@@ -142,7 +144,6 @@ auth_manager = AuthManager()
 def require_auth(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        # If authentication is disabled, skip check and set dummy user
         if Config.DISABLE_AUTH:
             request.current_user = {'user_id': 'dev_user', 'role': 'admin'}
             return f(*args, **kwargs)
@@ -167,7 +168,6 @@ def require_role(roles):
     def decorator(f):
         @wraps(f)
         def decorated(*args, **kwargs):
-            # If authentication is disabled, allow all roles
             if Config.DISABLE_AUTH:
                 return f(*args, **kwargs)
             if not hasattr(request, 'current_user'):
@@ -218,10 +218,27 @@ class SecureDatabase:
 db = SecureDatabase(Config.DATABASE_URL)
 
 # ------------------------------
+#  Performance indexes (run at startup)
+# ------------------------------
+def create_performance_indexes():
+    """Create indexes on frequently queried columns if they don't exist."""
+    index_queries = [
+        "CREATE INDEX IF NOT EXISTS idx_fact_orders_order_date ON warehouse.fact_orders(order_date);",
+        "CREATE INDEX IF NOT EXISTS idx_fact_orders_customer_id ON warehouse.fact_orders(customer_id);",
+        "CREATE INDEX IF NOT EXISTS idx_dim_time_date ON warehouse.dim_time(date);",
+        "CREATE INDEX IF NOT EXISTS idx_fact_orders_net_amount ON warehouse.fact_orders(net_amount);"
+    ]
+    with db.get_cursor() as cur:
+        for sql in index_queries:
+            try:
+                cur.execute(sql)
+            except Exception as e:
+                logger.warning(f"Index creation failed (may already exist): {e}")
+
+# ------------------------------
 #  Input validation helpers
 # ------------------------------
 def sanitize_output(data):
-    """Remove potential XSS from output"""
     if isinstance(data, str):
         return re.sub(r'<[^>]*>', '', data)
     elif isinstance(data, dict):
@@ -231,7 +248,6 @@ def sanitize_output(data):
     return data
 
 def validate_nlq_input(question):
-    """Block dangerous SQL patterns"""
     if len(question) > 500:
         return False, "Query too long (max 500 characters)"
     dangerous = [
@@ -273,32 +289,15 @@ def clean_sql(sql_content):
             lines.append(line)
     return '\n'.join(lines)
 
-def execute_sql_file(sql_path):
-    try:
-        with open(sql_path, 'r', encoding='utf-8') as f:
-            sql_content = f.read()
-        sql_content = clean_sql(sql_content)
-        if not sql_content:
-            return None
-        sql_content = add_schema_prefix(sql_content)
-        sql_content = fix_date_extract(sql_content)
-        result = db.execute_query(sql_content)
-        if result and isinstance(result, list) and len(result) > 0:
-            return pd.DataFrame(result)
-        return None
-    except Exception as e:
-        logger.error(f"Error in {sql_path.name}: {e}")
-        return None
-
 # ------------------------------
-#  DataLoader
+#  DataLoader (with reduced cache and row limits)
 # ------------------------------
 class DataLoader:
     def __init__(self):
         self.sql_folder = self._find_sql_folder()
-        self.sql_files = {}                     # mapping friendly name -> file path
-        self._cache = OrderedDict()             # LRU cache: key -> DataFrame
-        self._cache_maxsize = int(os.environ.get('DATAFRAME_CACHE_SIZE', 3))
+        self.sql_files = {}
+        self._cache = OrderedDict()
+        self._cache_maxsize = Config.DATAFRAME_CACHE_SIZE
         self._index_sql_files()
 
     def _find_sql_folder(self):
@@ -324,14 +323,16 @@ class DataLoader:
                 return None
             sql_content = add_schema_prefix(sql_content)
             sql_content = fix_date_extract(sql_content)
+            # Force a LIMIT to avoid loading huge datasets
+            if not re.search(r'\bLIMIT\s+\d+', sql_content, re.IGNORECASE):
+                sql_content += f" LIMIT {Config.MAX_ROWS_PER_DATASET}"
             result = db.execute_query(sql_content)
             if result and isinstance(result, list) and len(result) > 0:
                 df = pd.DataFrame(result)
                 df = self._convert_decimal_to_float(df)
-                max_rows = int(os.environ.get('MAX_ROWS_PER_DATASET', 10000))
-                if len(df) > max_rows:
-                    logger.warning(f"Truncating {sql_path.name} from {len(df)} to {max_rows} rows")
-                    df = df.head(max_rows)
+                if len(df) > Config.MAX_ROWS_PER_DATASET:
+                    logger.warning(f"Truncating {sql_path.name} from {len(df)} to {Config.MAX_ROWS_PER_DATASET} rows")
+                    df = df.head(Config.MAX_ROWS_PER_DATASET)
                 # Downcast numeric columns to reduce memory
                 for col in df.select_dtypes(include=['float']).columns:
                     df[col] = pd.to_numeric(df[col], downcast='float')
@@ -354,9 +355,7 @@ class DataLoader:
         return df
 
     def get_dataframe(self, sql_key):
-        """Load or retrieve from LRU cache."""
         if sql_key in self._cache:
-            # Move to end (most recently used)
             self._cache.move_to_end(sql_key)
             return self._cache[sql_key]
         sql_path = self.sql_files.get(sql_key)
@@ -365,7 +364,6 @@ class DataLoader:
         df = self._execute_sql_file(sql_path)
         if df is None:
             df = pd.DataFrame()
-        # Store in cache, evict oldest if over limit
         self._cache[sql_key] = df
         if len(self._cache) > self._cache_maxsize:
             oldest_key = next(iter(self._cache))
@@ -420,7 +418,6 @@ class DataLoader:
 
 
 class LazyDataFrame:
-    """Wrapper that loads DataFrame from the loader’s LRU cache."""
     def __init__(self, loader, sql_key):
         self.loader = loader
         self.sql_key = sql_key
@@ -519,7 +516,7 @@ def call_ai_provider(prompt):
     return None
 
 # ------------------------------
-#  API Endpoints (secured)
+#  API Endpoints (with pagination and aggregation)
 # ------------------------------
 @app.route('/')
 def index():
@@ -545,7 +542,13 @@ def list_datasets():
 @app.route('/api/raw/<path:name>')
 @require_auth
 def raw_dataset(name):
-    return jsonify(sanitize_output(get_dataset(name)))
+    limit = request.args.get('limit', default=100, type=int)
+    offset = request.args.get('offset', default=0, type=int)
+    df = friendly_data.get(name)
+    if df is None or df.empty:
+        return jsonify([])
+    sliced = df.iloc[offset:offset+limit]
+    return jsonify(sanitize_output(loader.to_dict(sliced)))
 
 @app.route('/api/date_range')
 @require_auth
@@ -567,49 +570,112 @@ def value_range():
 @app.route('/api/kpis')
 @require_auth
 def kpis():
-    total_revenue = 0.0
-    if 'Revenue Contribution Analysis' in friendly_data:
-        total_revenue = float(friendly_data['Revenue Contribution Analysis']['total_revenue'].astype(float).sum())
-    total_orders = 0
-    if 'Order Status Distribution' in friendly_data:
-        total_orders = int(friendly_data['Order Status Distribution']['order_count'].sum())
-    total_customers = 0
-    if 'Customer Segmentation' in friendly_data:
-        total_customers = int(len(friendly_data['Customer Segmentation']['customer_id'].unique()))
+    """Direct SQL aggregation – no loading of full DataFrames."""
+    with db.get_cursor() as cur:
+        cur.execute("SELECT COALESCE(SUM(net_amount), 0) FROM warehouse.fact_orders")
+        total_revenue = cur.fetchone()['coalesce']
+        cur.execute("SELECT COUNT(DISTINCT order_id) FROM warehouse.fact_orders")
+        total_orders = cur.fetchone()['count']
+        cur.execute("SELECT COUNT(DISTINCT customer_id) FROM warehouse.fact_orders")
+        total_customers = cur.fetchone()['count']
     avg_order = total_revenue / total_orders if total_orders else 0
     return jsonify({
-        "total_revenue": total_revenue,
+        "total_revenue": float(total_revenue),
         "total_orders": total_orders,
         "total_customers": total_customers,
         "avg_order_value": round(avg_order, 2)
     })
 
+@app.route('/api/revenue_trend', methods=['GET'])
+@require_auth
+def revenue_trend():
+    """Aggregated revenue trend (day, week, month) to reduce payload."""
+    granularity = request.args.get('granularity', 'month')  # 'day', 'week', 'month'
+    if granularity == 'day':
+        sql = """
+            SELECT dt.date AS period, SUM(fo.net_amount) AS revenue
+            FROM warehouse.fact_orders fo
+            JOIN warehouse.dim_time dt ON fo.order_date = dt.date
+            GROUP BY dt.date
+            ORDER BY dt.date
+        """
+    elif granularity == 'week':
+        sql = """
+            SELECT DATE_TRUNC('week', dt.date) AS period, SUM(fo.net_amount) AS revenue
+            FROM warehouse.fact_orders fo
+            JOIN warehouse.dim_time dt ON fo.order_date = dt.date
+            GROUP BY DATE_TRUNC('week', dt.date)
+            ORDER BY period
+        """
+    else:  # month
+        sql = """
+            SELECT DATE_TRUNC('month', dt.date) AS period, SUM(fo.net_amount) AS revenue
+            FROM warehouse.fact_orders fo
+            JOIN warehouse.dim_time dt ON fo.order_date = dt.date
+            GROUP BY DATE_TRUNC('month', dt.date)
+            ORDER BY period
+        """
+    rows = db.execute_query(sql)
+    if not rows:
+        return jsonify([])
+    result = []
+    for row in rows:
+        period = row['period']
+        result.append({
+            'period': period.isoformat() if hasattr(period, 'isoformat') else str(period),
+            'revenue': float(row['revenue'])
+        })
+    return jsonify(sanitize_output(result))
+
 @app.route('/api/daily_revenue')
 @require_auth
 def daily_revenue():
-    return jsonify(sanitize_output(get_dataset('Daily Revenue Trends')))
+    limit = request.args.get('limit', default=90, type=int)   # last 90 days
+    offset = request.args.get('offset', default=0, type=int)
+    df = friendly_data.get('Daily Revenue Trends')
+    if df is None or df.empty:
+        return jsonify([])
+    sliced = df.iloc[offset:offset+limit]
+    return jsonify(sanitize_output(loader.to_dict(sliced)))
 
 @app.route('/api/monthly_revenue')
 @require_auth
 def monthly_revenue():
-    return jsonify(sanitize_output(get_dataset('Monthly Revenue Trends')))
+    limit = request.args.get('limit', default=24, type=int)   # last 24 months
+    offset = request.args.get('offset', default=0, type=int)
+    df = friendly_data.get('Monthly Revenue Trends')
+    if df is None or df.empty:
+        return jsonify([])
+    sliced = df.iloc[offset:offset+limit]
+    return jsonify(sanitize_output(loader.to_dict(sliced)))
 
 @app.route('/api/top_cities')
 @require_auth
 def top_cities():
+    limit = request.args.get('limit', default=10, type=int)
+    offset = request.args.get('offset', default=0, type=int)
     df = friendly_data.get('Top Cities by Revenue')
     if df is not None:
-        return jsonify(sanitize_output(loader.to_dict(df.head(10))))
+        sliced = df.iloc[offset:offset+limit]
+        return jsonify(sanitize_output(loader.to_dict(sliced)))
     return jsonify([])
 
 @app.route('/api/revenue_by_category')
 @require_auth
 def revenue_by_category():
-    return jsonify(sanitize_output(get_dataset('Revenue by Product Category')))
+    limit = request.args.get('limit', default=100, type=int)
+    offset = request.args.get('offset', default=0, type=int)
+    df = friendly_data.get('Revenue by Product Category')
+    if df is not None:
+        sliced = df.iloc[offset:offset+limit]
+        return jsonify(sanitize_output(loader.to_dict(sliced)))
+    return jsonify([])
 
 @app.route('/api/revenue_by_subcategory')
 @require_auth
 def revenue_by_subcategory():
+    limit = request.args.get('limit', default=100, type=int)
+    offset = request.args.get('offset', default=0, type=int)
     df = friendly_data.get('Revenue by Product SubCategory')
     if df is not None and not df.empty:
         df = df.copy()
@@ -625,24 +691,34 @@ def revenue_by_subcategory():
                 break
         if subcat_col and rev_col:
             df = df.rename(columns={subcat_col: 'subcategory', rev_col: 'revenue'})
-        return jsonify(sanitize_output(loader.to_dict(df)))
+        sliced = df.iloc[offset:offset+limit]
+        return jsonify(sanitize_output(loader.to_dict(sliced)))
     return jsonify([])
 
 @app.route('/api/revenue_contribution')
 @require_auth
 def revenue_contribution():
+    limit = request.args.get('limit', default=100, type=int)
+    offset = request.args.get('offset', default=0, type=int)
     df = friendly_data.get('Revenue Contribution Analysis')
     if df is not None:
-        df = df.sort_values('total_revenue', ascending=False).head(100)
+        df = df.sort_values('total_revenue', ascending=False)
         df['total_revenue'] = df['total_revenue'].astype(float)
         df['cumulative_percentage'] = (df['total_revenue'].cumsum() / df['total_revenue'].sum()) * 100
-        return jsonify(sanitize_output(loader.to_dict(df)))
+        sliced = df.iloc[offset:offset+limit]
+        return jsonify(sanitize_output(loader.to_dict(sliced)))
     return jsonify([])
 
 @app.route('/api/order_value_distribution')
 @require_auth
 def order_value_distribution():
-    return jsonify(sanitize_output(get_dataset('Order Value Distribution')))
+    limit = request.args.get('limit', default=100, type=int)
+    offset = request.args.get('offset', default=0, type=int)
+    df = friendly_data.get('Order Value Distribution')
+    if df is not None:
+        sliced = df.iloc[offset:offset+limit]
+        return jsonify(sanitize_output(loader.to_dict(sliced)))
+    return jsonify([])
 
 @app.route('/api/customer_clv')
 @require_auth
@@ -669,6 +745,8 @@ def repeat_vs_onetime():
 @app.route('/api/customer_segmentation')
 @require_auth
 def customer_segmentation():
+    limit = request.args.get('limit', default=100, type=int)
+    offset = request.args.get('offset', default=0, type=int)
     df = friendly_data.get('Customer Segmentation')
     if df is not None:
         df = df.copy()
@@ -684,13 +762,20 @@ def customer_segmentation():
             df.loc[df['total_revenue'] > revenue_low, 'segment'] = 'Silver'
             df.loc[df['total_revenue'] > revenue_median, 'segment'] = 'Gold'
             df.loc[df['total_revenue'] > revenue_high, 'segment'] = 'Platinum'
-        return jsonify(sanitize_output(loader.to_dict(df)))
+        sliced = df.iloc[offset:offset+limit]
+        return jsonify(sanitize_output(loader.to_dict(sliced)))
     return jsonify([])
 
 @app.route('/api/churn_detection')
 @require_auth
 def churn_detection():
-    return jsonify(sanitize_output(get_dataset('Churn Detection')))
+    limit = request.args.get('limit', default=100, type=int)
+    offset = request.args.get('offset', default=0, type=int)
+    df = friendly_data.get('Churn Detection')
+    if df is not None:
+        sliced = df.iloc[offset:offset+limit]
+        return jsonify(sanitize_output(loader.to_dict(sliced)))
+    return jsonify([])
 
 @app.route('/api/order_status')
 @require_auth
@@ -705,35 +790,59 @@ def payment_methods():
 @app.route('/api/fulfillment_performance')
 @require_auth
 def fulfillment_performance():
-    return jsonify(sanitize_output(get_dataset('Order Fulfillment Performance')))
+    limit = request.args.get('limit', default=100, type=int)
+    offset = request.args.get('offset', default=0, type=int)
+    df = friendly_data.get('Order Fulfillment Performance')
+    if df is not None:
+        sliced = df.iloc[offset:offset+limit]
+        return jsonify(sanitize_output(loader.to_dict(sliced)))
+    return jsonify([])
 
 @app.route('/api/time_to_purchase')
 @require_auth
 def time_to_purchase():
+    limit = request.args.get('limit', default=100, type=int)
+    offset = request.args.get('offset', default=0, type=int)
     df = friendly_data.get('Time to Purchase Behavior')
     if df is not None:
         df_filtered = df[df['days_between_orders'] > 7]
-        return jsonify(sanitize_output(loader.to_dict(df_filtered)))
+        sliced = df_filtered.iloc[offset:offset+limit]
+        return jsonify(sanitize_output(loader.to_dict(sliced)))
     return jsonify([])
 
 @app.route('/api/rfm_segmentation')
 @require_auth
 def rfm_segmentation():
-    return jsonify(sanitize_output(get_dataset('RFM Segmentation')))
+    limit = request.args.get('limit', default=500, type=int)
+    offset = request.args.get('offset', default=0, type=int)
+    df = friendly_data.get('RFM Segmentation')
+    if df is not None:
+        sliced = df.iloc[offset:offset+limit]
+        return jsonify(sanitize_output(loader.to_dict(sliced)))
+    return jsonify([])
 
 @app.route('/api/cohort_retention')
 @require_auth
 def cohort_retention():
+    limit = request.args.get('limit', default=200, type=int)
+    offset = request.args.get('offset', default=0, type=int)
     df = friendly_data.get('Cohort Retention Analysis')
     if df is not None:
         df = df[df['month_number'] > 0]
-        return jsonify(sanitize_output(loader.to_dict(df)))
+        sliced = df.iloc[offset:offset+limit]
+        return jsonify(sanitize_output(loader.to_dict(sliced)))
     return jsonify([])
 
 @app.route('/api/revenue_by_location')
 @require_auth
 def revenue_by_location():
-    return jsonify(sanitize_output(get_dataset('Revenue by Location')))
+    limit = request.args.get('limit', default=100, type=int)
+    offset = request.args.get('offset', default=0, type=int)
+    df = friendly_data.get('Revenue by Location')
+    if df is not None:
+        sliced = df.iloc[offset:offset+limit]
+        return jsonify(sanitize_output(loader.to_dict(sliced)))
+    return jsonify([])
 
 @app.route('/api/revenue_anomalies')
 @require_auth
@@ -768,6 +877,8 @@ def revenue_anomalies():
 @app.route('/api/high_risk_customers')
 @require_auth
 def high_risk_customers():
+    limit = request.args.get('limit', default=20, type=int)
+    offset = request.args.get('offset', default=0, type=int)
     rfm_df = friendly_data.get('RFM Segmentation')
     if rfm_df is None or rfm_df.empty:
         return jsonify([])
@@ -784,17 +895,14 @@ def high_risk_customers():
         rfm_df.loc[(rfm_df['recency_days'] > rec_median*1.5) & (rfm_df['monetary'] < mon_median), 'segment'] = 'At Risk'
     monetary_90th = rfm_df['monetary'].quantile(0.9)
     high_risk = rfm_df[(rfm_df['segment'] == 'At Risk') & (rfm_df['monetary'] > monetary_90th)]
-    high_risk = high_risk.sort_values('monetary', ascending=False).head(20).copy()
+    high_risk = high_risk.sort_values('monetary', ascending=False)
     if 'full_name' in high_risk.columns:
         high_risk['full_name'] = high_risk['full_name'].fillna(high_risk['customer_id'].apply(lambda x: f"Customer {x}"))
     else:
         high_risk['full_name'] = high_risk['customer_id'].apply(lambda x: f"Customer {x}")
     result_cols = ['customer_id', 'full_name', 'recency_days', 'frequency', 'monetary', 'segment']
-    for col in result_cols:
-        if col not in high_risk.columns:
-            return jsonify([])
-    result = high_risk[result_cols]
-    return jsonify(sanitize_output(loader.to_dict(result)))
+    sliced = high_risk[result_cols].iloc[offset:offset+limit]
+    return jsonify(sanitize_output(loader.to_dict(sliced)))
 
 @app.route('/api/aov_by_category')
 @require_auth
@@ -1093,11 +1201,9 @@ def simulate():
     delta = float(data.get('delta', 0))
 
     try:
-        kpi_resp = kpis()
-        # kpis returns a Response object, we need the data
-        kpis_data = kpi_resp.json if hasattr(kpi_resp, 'json') else {}
-        total_revenue = kpis_data.get('total_revenue', 0)
-        total_orders = kpis_data.get('total_orders', 0)
+        # Use the new kpis endpoint which is already fast
+        total_revenue = kpis().json.get('total_revenue', 0)
+        total_orders = kpis().json.get('total_orders', 0)
         aov_current = total_revenue / total_orders if total_orders else 0
 
         coeff = SIMULATION_COEFFS.get(metric, 1.0)
@@ -1480,7 +1586,7 @@ def ai_insights():
     return jsonify({"insights": insights, "persona": persona})
 
 # ------------------------------
-#  Alert, Export, Feedback (simplified for brevity, but fully functional)
+#  Alert, Export, Feedback
 # ------------------------------
 def send_slack_alert(message, webhook_url=None):
     logger.info(f"SIMULATED SLACK ALERT: {message}")
@@ -1633,7 +1739,6 @@ def add_security_headers(response):
     response.headers['X-Frame-Options'] = 'DENY'
     response.headers['X-XSS-Protection'] = '1; mode=block'
     response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
-    # Content-Security-Policy removed – no restrictions on CSS/JS/resources
     response.headers['Cache-Control'] = 'no-store, max-age=0'
     return response
 
@@ -1645,13 +1750,7 @@ def health():
 #  Run app
 # ------------------------------
 if __name__ == '__main__':
-    # Train simulation model at startup
+    create_performance_indexes()
     with app.app_context():
         train_simulation_model()
     app.run(host='0.0.0.0', port=5001, debug=Config.DEBUG)
-    
-#if __name__ == '__main__':
-    # Train simulation model once at startup
-#    with app.app_context():
-#        train_simulation_model()
-#    app.run(debug=True, port=5001)
