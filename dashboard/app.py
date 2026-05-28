@@ -222,18 +222,26 @@ db = SecureDatabase(Config.DATABASE_URL)
 # ------------------------------
 def create_performance_indexes():
     """Create indexes on frequently queried columns if they don't exist."""
-    index_queries = [
-        "CREATE INDEX IF NOT EXISTS idx_fact_orders_order_date ON warehouse.fact_orders(order_date);",
-        "CREATE INDEX IF NOT EXISTS idx_fact_orders_customer_id ON warehouse.fact_orders(customer_id);",
-        "CREATE INDEX IF NOT EXISTS idx_dim_time_date ON warehouse.dim_time(date);",
-        "CREATE INDEX IF NOT EXISTS idx_fact_orders_net_amount ON warehouse.fact_orders(net_amount);"
-    ]
-    with db.get_cursor() as cur:
-        for sql in index_queries:
-            try:
-                cur.execute(sql)
-            except Exception as e:
-                logger.warning(f"Index creation failed (may already exist): {e}")
+    try:
+        with db.get_cursor() as cur:
+            # Check if schema exists first
+            cur.execute("SELECT schema_name FROM information_schema.schemata WHERE schema_name = 'warehouse'")
+            if not cur.fetchone():
+                logger.warning("Schema 'warehouse' does not exist, skipping index creation")
+                return
+            index_queries = [
+                "CREATE INDEX IF NOT EXISTS idx_fact_orders_order_date ON warehouse.fact_orders(order_date);",
+                "CREATE INDEX IF NOT EXISTS idx_fact_orders_customer_id ON warehouse.fact_orders(customer_id);",
+                "CREATE INDEX IF NOT EXISTS idx_dim_time_date ON warehouse.dim_time(date);",
+                "CREATE INDEX IF NOT EXISTS idx_fact_orders_net_amount ON warehouse.fact_orders(net_amount);"
+            ]
+            for sql in index_queries:
+                try:
+                    cur.execute(sql)
+                except Exception as e:
+                    logger.warning(f"Index creation failed (may already exist): {e}")
+    except Exception as e:
+        logger.warning(f"Could not check/create indexes: {e}")
 
 # ------------------------------
 #  Input validation helpers
@@ -280,6 +288,7 @@ def fix_date_extract(sql_query):
     return sql_query
 
 def clean_sql(sql_content):
+    """Remove comments, trim, and remove trailing semicolon."""
     lines = []
     for line in sql_content.split('\n'):
         if '--' in line:
@@ -287,7 +296,12 @@ def clean_sql(sql_content):
         line = line.strip()
         if line:
             lines.append(line)
-    return '\n'.join(lines)
+    sql = '\n'.join(lines)
+    # Strip any trailing whitespace and then remove a trailing semicolon
+    sql = sql.strip()
+    if sql.endswith(';'):
+        sql = sql[:-1].strip()
+    return sql
 
 # ------------------------------
 #  DataLoader (with reduced cache and row limits)
@@ -323,8 +337,12 @@ class DataLoader:
                 return None
             sql_content = add_schema_prefix(sql_content)
             sql_content = fix_date_extract(sql_content)
-            # Force a LIMIT to avoid loading huge datasets
-            if not re.search(r'\bLIMIT\s+\d+', sql_content, re.IGNORECASE):
+            # Remove any existing LIMIT clause (case‑insensitive)
+            sql_content = re.sub(r'\s+LIMIT\s+\d+', '', sql_content, flags=re.IGNORECASE)
+            # Also remove any stray semicolon that might remain before LIMIT
+            sql_content = sql_content.rstrip(';').strip()
+            # Add our own LIMIT only for SELECT queries
+            if sql_content.strip().upper().startswith('SELECT'):
                 sql_content += f" LIMIT {Config.MAX_ROWS_PER_DATASET}"
             result = db.execute_query(sql_content)
             if result and isinstance(result, list) and len(result) > 0:
@@ -368,7 +386,11 @@ class DataLoader:
         if len(self._cache) > self._cache_maxsize:
             oldest_key = next(iter(self._cache))
             logger.info(f"Evicting {oldest_key} from cache (size {len(self._cache)-1}/{self._cache_maxsize})")
-            del self._cache[oldest_key]
+            # Use try/except to avoid KeyError if key disappears (race condition)
+            try:
+                del self._cache[oldest_key]
+            except KeyError:
+                pass
         return df
 
     @cached_property
@@ -554,7 +576,7 @@ def raw_dataset(name):
 @require_auth
 def date_range():
     df = friendly_data.get('Daily Revenue Trends')
-    if df is not None and 'order_day' in df.columns:
+    if df is not None and not df.empty and 'order_day' in df.columns:
         dates = pd.to_datetime(df['order_day'])
         return jsonify({'min_date': dates.min().strftime('%Y-%m-%d'), 'max_date': dates.max().strftime('%Y-%m-%d')})
     return jsonify({'min_date': None, 'max_date': None})
@@ -563,7 +585,7 @@ def date_range():
 @require_auth
 def value_range():
     df = friendly_data.get('Order Value Distribution')
-    if df is not None and len(df) > 0 and 'min_order_value' in df.columns:
+    if df is not None and not df.empty and 'min_order_value' in df.columns:
         return jsonify({'min_value': float(df['min_order_value'].iloc[0]), 'max_value': float(df['max_order_value'].iloc[0])})
     return jsonify({'min_value': 0, 'max_value': 10000})
 
@@ -590,7 +612,7 @@ def kpis():
 @require_auth
 def revenue_trend():
     """Aggregated revenue trend (day, week, month) to reduce payload."""
-    granularity = request.args.get('granularity', 'month')  # 'day', 'week', 'month'
+    granularity = request.args.get('granularity', 'month')
     if granularity == 'day':
         sql = """
             SELECT dt.date AS period, SUM(fo.net_amount) AS revenue
@@ -630,7 +652,7 @@ def revenue_trend():
 @app.route('/api/daily_revenue')
 @require_auth
 def daily_revenue():
-    limit = request.args.get('limit', default=90, type=int)   # last 90 days
+    limit = request.args.get('limit', default=90, type=int)
     offset = request.args.get('offset', default=0, type=int)
     df = friendly_data.get('Daily Revenue Trends')
     if df is None or df.empty:
@@ -641,7 +663,7 @@ def daily_revenue():
 @app.route('/api/monthly_revenue')
 @require_auth
 def monthly_revenue():
-    limit = request.args.get('limit', default=24, type=int)   # last 24 months
+    limit = request.args.get('limit', default=24, type=int)
     offset = request.args.get('offset', default=0, type=int)
     df = friendly_data.get('Monthly Revenue Trends')
     if df is None or df.empty:
@@ -655,7 +677,7 @@ def top_cities():
     limit = request.args.get('limit', default=10, type=int)
     offset = request.args.get('offset', default=0, type=int)
     df = friendly_data.get('Top Cities by Revenue')
-    if df is not None:
+    if df is not None and not df.empty:
         sliced = df.iloc[offset:offset+limit]
         return jsonify(sanitize_output(loader.to_dict(sliced)))
     return jsonify([])
@@ -666,7 +688,7 @@ def revenue_by_category():
     limit = request.args.get('limit', default=100, type=int)
     offset = request.args.get('offset', default=0, type=int)
     df = friendly_data.get('Revenue by Product Category')
-    if df is not None:
+    if df is not None and not df.empty:
         sliced = df.iloc[offset:offset+limit]
         return jsonify(sanitize_output(loader.to_dict(sliced)))
     return jsonify([])
@@ -701,13 +723,19 @@ def revenue_contribution():
     limit = request.args.get('limit', default=100, type=int)
     offset = request.args.get('offset', default=0, type=int)
     df = friendly_data.get('Revenue Contribution Analysis')
-    if df is not None:
-        df = df.sort_values('total_revenue', ascending=False)
-        df['total_revenue'] = df['total_revenue'].astype(float)
-        df['cumulative_percentage'] = (df['total_revenue'].cumsum() / df['total_revenue'].sum()) * 100
-        sliced = df.iloc[offset:offset+limit]
-        return jsonify(sanitize_output(loader.to_dict(sliced)))
-    return jsonify([])
+    if df is None or df.empty:
+        return jsonify([])
+    if 'total_revenue' not in df.columns:
+        logger.warning("Revenue Contribution Analysis missing 'total_revenue' column")
+        return jsonify([])
+    df = df.sort_values('total_revenue', ascending=False)
+    df['total_revenue'] = df['total_revenue'].astype(float)
+    total = df['total_revenue'].sum()
+    if total == 0:
+        return jsonify([])
+    df['cumulative_percentage'] = (df['total_revenue'].cumsum() / total) * 100
+    sliced = df.iloc[offset:offset+limit]
+    return jsonify(sanitize_output(loader.to_dict(sliced)))
 
 @app.route('/api/order_value_distribution')
 @require_auth
@@ -715,7 +743,7 @@ def order_value_distribution():
     limit = request.args.get('limit', default=100, type=int)
     offset = request.args.get('offset', default=0, type=int)
     df = friendly_data.get('Order Value Distribution')
-    if df is not None:
+    if df is not None and not df.empty:
         sliced = df.iloc[offset:offset+limit]
         return jsonify(sanitize_output(loader.to_dict(sliced)))
     return jsonify([])
@@ -724,13 +752,15 @@ def order_value_distribution():
 @require_auth
 def customer_clv():
     df = friendly_data.get('Customer Lifetime Value')
-    if df is not None and len(df) > 0:
+    if df is not None and not df.empty:
         if 'category' in df.columns:
             highest = df[df['category'] == 'Highest'].head(5)
             lowest = df[df['category'] == 'Lowest'].head(5)
         else:
             amount_col = 'total_net_amount' if 'total_net_amount' in df.columns else 'total_revenue'
-            df[amount_col] = df[amount_col].astype(float)
+            if amount_col not in df.columns:
+                return jsonify({'highest': [], 'lowest': []})
+            df[amount_col] = pd.to_numeric(df[amount_col], errors='coerce').fillna(0)
             sorted_df = df.sort_values(amount_col, ascending=False)
             highest = sorted_df.head(5)
             lowest = sorted_df.tail(5)
@@ -748,23 +778,29 @@ def customer_segmentation():
     limit = request.args.get('limit', default=100, type=int)
     offset = request.args.get('offset', default=0, type=int)
     df = friendly_data.get('Customer Segmentation')
-    if df is not None:
-        df = df.copy()
-        if 'total_revenue' in df.columns:
-            df['total_revenue'] = df['total_revenue'].astype(float)
-        try:
+    if df is None or df.empty:
+        return jsonify([])
+    df = df.copy()
+    if 'total_revenue' not in df.columns:
+        logger.warning("Customer Segmentation missing 'total_revenue' column")
+        return jsonify([])
+    df['total_revenue'] = pd.to_numeric(df['total_revenue'], errors='coerce').fillna(0)
+    try:
+        # qcut requires at least 4 unique values
+        if len(df['total_revenue'].unique()) >= 4:
             df['segment'] = pd.qcut(df['total_revenue'], q=4, labels=['Bronze', 'Silver', 'Gold', 'Platinum'])
-        except Exception:
-            revenue_median = df['total_revenue'].median()
-            revenue_high = df['total_revenue'].quantile(0.75)
-            revenue_low = df['total_revenue'].quantile(0.25)
-            df['segment'] = 'Bronze'
-            df.loc[df['total_revenue'] > revenue_low, 'segment'] = 'Silver'
-            df.loc[df['total_revenue'] > revenue_median, 'segment'] = 'Gold'
-            df.loc[df['total_revenue'] > revenue_high, 'segment'] = 'Platinum'
-        sliced = df.iloc[offset:offset+limit]
-        return jsonify(sanitize_output(loader.to_dict(sliced)))
-    return jsonify([])
+        else:
+            raise ValueError("Not enough distinct revenue values")
+    except Exception:
+        revenue_median = df['total_revenue'].median()
+        revenue_high = df['total_revenue'].quantile(0.75)
+        revenue_low = df['total_revenue'].quantile(0.25)
+        df['segment'] = 'Bronze'
+        df.loc[df['total_revenue'] > revenue_low, 'segment'] = 'Silver'
+        df.loc[df['total_revenue'] > revenue_median, 'segment'] = 'Gold'
+        df.loc[df['total_revenue'] > revenue_high, 'segment'] = 'Platinum'
+    sliced = df.iloc[offset:offset+limit]
+    return jsonify(sanitize_output(loader.to_dict(sliced)))
 
 @app.route('/api/churn_detection')
 @require_auth
@@ -772,7 +808,7 @@ def churn_detection():
     limit = request.args.get('limit', default=100, type=int)
     offset = request.args.get('offset', default=0, type=int)
     df = friendly_data.get('Churn Detection')
-    if df is not None:
+    if df is not None and not df.empty:
         sliced = df.iloc[offset:offset+limit]
         return jsonify(sanitize_output(loader.to_dict(sliced)))
     return jsonify([])
@@ -793,7 +829,7 @@ def fulfillment_performance():
     limit = request.args.get('limit', default=100, type=int)
     offset = request.args.get('offset', default=0, type=int)
     df = friendly_data.get('Order Fulfillment Performance')
-    if df is not None:
+    if df is not None and not df.empty:
         sliced = df.iloc[offset:offset+limit]
         return jsonify(sanitize_output(loader.to_dict(sliced)))
     return jsonify([])
@@ -804,7 +840,7 @@ def time_to_purchase():
     limit = request.args.get('limit', default=100, type=int)
     offset = request.args.get('offset', default=0, type=int)
     df = friendly_data.get('Time to Purchase Behavior')
-    if df is not None:
+    if df is not None and not df.empty and 'days_between_orders' in df.columns:
         df_filtered = df[df['days_between_orders'] > 7]
         sliced = df_filtered.iloc[offset:offset+limit]
         return jsonify(sanitize_output(loader.to_dict(sliced)))
@@ -816,7 +852,7 @@ def rfm_segmentation():
     limit = request.args.get('limit', default=500, type=int)
     offset = request.args.get('offset', default=0, type=int)
     df = friendly_data.get('RFM Segmentation')
-    if df is not None:
+    if df is not None and not df.empty:
         sliced = df.iloc[offset:offset+limit]
         return jsonify(sanitize_output(loader.to_dict(sliced)))
     return jsonify([])
@@ -827,11 +863,14 @@ def cohort_retention():
     limit = request.args.get('limit', default=200, type=int)
     offset = request.args.get('offset', default=0, type=int)
     df = friendly_data.get('Cohort Retention Analysis')
-    if df is not None:
-        df = df[df['month_number'] > 0]
-        sliced = df.iloc[offset:offset+limit]
-        return jsonify(sanitize_output(loader.to_dict(sliced)))
-    return jsonify([])
+    if df is None or df.empty:
+        return jsonify([])
+    if 'month_number' not in df.columns:
+        logger.warning("Cohort Retention Analysis missing 'month_number' column")
+        return jsonify([])
+    df = df[df['month_number'] > 0]
+    sliced = df.iloc[offset:offset+limit]
+    return jsonify(sanitize_output(loader.to_dict(sliced)))
 
 @app.route('/api/revenue_by_location')
 @require_auth
@@ -839,7 +878,7 @@ def revenue_by_location():
     limit = request.args.get('limit', default=100, type=int)
     offset = request.args.get('offset', default=0, type=int)
     df = friendly_data.get('Revenue by Location')
-    if df is not None:
+    if df is not None and not df.empty:
         sliced = df.iloc[offset:offset+limit]
         return jsonify(sanitize_output(loader.to_dict(sliced)))
     return jsonify([])
@@ -908,7 +947,7 @@ def high_risk_customers():
 @require_auth
 def aov_by_category():
     df = friendly_data.get('Revenue by Product Category')
-    if df is None or df.empty:
+    if df is None or df.empty or 'revenue' not in df.columns:
         return jsonify([])
     df['aov'] = df['revenue'] / 1000
     return jsonify(sanitize_output(loader.to_dict(df[['category', 'aov']])))
@@ -917,7 +956,13 @@ def aov_by_category():
 @require_auth
 def frequency_by_category():
     df = friendly_data.get('Revenue by Product Category')
-    if df is None or df.empty:
+    # Defensive check: df might be a LazyDataFrame that raises KeyError on .empty if the underlying query failed.
+    try:
+        if df is None or df.empty:
+            return jsonify([])
+    except Exception:
+        return jsonify([])
+    if 'category' not in df.columns:
         return jsonify([])
     df['frequency'] = 1.5
     return jsonify(sanitize_output(loader.to_dict(df[['category', 'frequency']])))
@@ -1201,7 +1246,6 @@ def simulate():
     delta = float(data.get('delta', 0))
 
     try:
-        # Use the new kpis endpoint which is already fast
         total_revenue = kpis().json.get('total_revenue', 0)
         total_orders = kpis().json.get('total_orders', 0)
         aov_current = total_revenue / total_orders if total_orders else 0
@@ -1627,10 +1671,11 @@ def check_anomalies():
         anomalies_list = []
         if daily_df is not None and not daily_df.empty:
             rev_col = 'total_amount'
-            df_sorted = daily_df.sort_values('order_day')
-            df_sorted['pct_change'] = df_sorted[rev_col].pct_change() * 100
-            anomalies_df = df_sorted[df_sorted['pct_change'] < -20]
-            anomalies_list = anomalies_df[['order_day', rev_col, 'pct_change']].rename(columns={'order_day': 'date', rev_col: 'revenue', 'pct_change': 'drop_percent'}).to_dict(orient='records')
+            if rev_col in daily_df.columns:
+                df_sorted = daily_df.sort_values('order_day')
+                df_sorted['pct_change'] = df_sorted[rev_col].pct_change() * 100
+                anomalies_df = df_sorted[df_sorted['pct_change'] < -20]
+                anomalies_list = anomalies_df[['order_day', rev_col, 'pct_change']].rename(columns={'order_day': 'date', rev_col: 'revenue', 'pct_change': 'drop_percent'}).to_dict(orient='records')
         repeat_data = get_dataset('Repeat vs One-Time Customers')
         repeat_dict = {r['customer_type']: r['customer_count'] for r in repeat_data} if repeat_data else {}
         extra_metrics = _get_additional_metrics()
