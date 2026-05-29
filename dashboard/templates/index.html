@@ -4,14 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Enterprise BI Dashboard | AI Analyst</title>
-    <!-- Favicon: crisp bar chart + BI badge -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%231e3c72'/%3E%3Crect x='12' y='32' width='10' height='20' fill='%23ffffff' opacity='0.9'/%3E%3Crect x='27' y='20' width='10' height='32' fill='%23ffffff' opacity='0.9'/%3E%3Crect x='42' y='8' width='10' height='44' fill='%23ffffff' opacity='0.9'/%3E%3Ccircle cx='32' cy='56' r='4' fill='%23facc15'/%3E%3Ctext x='32' y='58' font-size='10' font-family='Arial' font-weight='bold' fill='%231e3c72' text-anchor='middle'%3EBI%3C/text%3E%3C/svg%3E">
     <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9TpUUqDnYQcchQnSyIijhKFYtgobQVWnUwufQLmjQkKS6OgmvBwY/FqoOLs64OroIg+AHi5uak6CIl/i8ptIjx4Lgf7+497t4BQr3MNKtrAtB020wl4mImuyoGXxHBGPoRkBmRZc45S5JSNO7bswY91UWeZ31v/ZU+JWcywCcQzzDdtIhXiWc2bZ3zPnGYlSSF+Jx41KALEj9yXXb5jXPRYYFnhowsNUs8Ih7LdbHcxaxsqsRTxJFU1ShfyLqscd7irJZrrHlP/sJgTltZ4jrNISSxiCQkiFBQRhnl2EjSrpNiIU3nCR//kOuXyKWQqwRGjgWUoUF2/eB/8Hu2VmFqzEsKJYDuF8f5GAVCu0Cj5jjfx47TOAH8z8CV3vZX6sDsJ+n1thY5AkK7wMV1W1P2gMsdYPDJkE3ZlYI0hUIB+D6jbs4DvbtAZ833rXMcP4CkSlW9BhwcAiNFyl73eXd3Z9/+bWn27wcNqXKldaoK9QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+cFFwQoIHSnM1sAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAABnRFWHRTb2Z0d2FyZQBnbm9tZS1zY3JlZW5zaG907wO/PgAAAixJREFUeJztm71rFEEYh5+dhGCCYCHaBC1UwV8gxU0ba22jYhG0sdPG4h+wUvS/iFqoIEpQi69VUBAhEDQY94WgzUZisYsuxzWL+yXNuoPmZnbenc8Dw8zuzrM77DvsfDszl2KMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHG/NdcA+ZgF1gCFoEfwCTwsmP58w7GvgHcq+huA1gCtuf4DfaBReBVB/+lYdzP2wXGRvQ/+AzMAtMd+nwArvZcp5+AdWBhhP/twBnQp5pR+b8No/pcAYae1Q3KoJN4A1wYp33gaEXdy8ADYK2i+j1gYcDYrwOPS+quAS96zPEj8K6i7sfA+QH6vwUutPp8Bp61+vx6DvhkYfZ+ZBd4XIz3RgO4K3OjWADm2jl3gKvAP2BWrGYiXbdK+ZPMZmV1UjIPPO7gOwycT9f3RKq8lCzzcUjHSnF8PvWb0Da+I9u/xP1kHvYowN9IHwHPipobwHmpyGSyILZhtDzg+NNS4TzwkO+76pMu66qknwBrc/axAPyWlfcsU/EOeFUy+Fty78t8IrQj5c2L0vIAdiIzMI5U2Yq03AK2E3E9CT2LSNUyYS0iHd+ItKXfyCOkzqQhT6Xn+ZtG+rYCvAduE1r4DnA9W/5+Qp+3Uv1bUv2RdNrWkA0HpdK/TLp+P0Y6Py2VTgP36T6O3gCfkXbdjPD8GePM/geG3yVnTq0NWAAAAABJRU5ErkJggg==">
     <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%231e3c72'/%3E%3Crect x='2' y='12' width='4' height='10' fill='%23ffffff'/%3E%3Crect x='8' y='6' width='4' height='16' fill='%23ffffff'/%3E%3Crect x='14' y='2' width='4' height='20' fill='%23ffffff'/%3E%3C/svg%3E">
-    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.24.1/plotly.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <style>
-        /* ========== EXISTING STYLES (unchanged) ========== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: #f8fafc; color: #0f172a; }
         .dashboard { display: flex; min-height: 100vh; }
@@ -230,26 +228,6 @@
         if (cust && cust.full_name) return cust.full_name;
         return 'Unknown';
     }
-    function cleanDateString(dateStr) {
-        if (!dateStr) return null;
-        if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
-        let d = new Date(dateStr);
-        if (!isNaN(d.getTime())) return d.toISOString().split('T')[0];
-        let match = String(dateStr).match(/(\d{4}-\d{2}-\d{2})/);
-        return match ? match[1] : null;
-    }
-    function findDateColumn(obj) {
-        const candidates = ['order_day', 'order_date', 'day', 'date', 'transaction_date'];
-        for (let key of candidates) if (obj.hasOwnProperty(key)) return key;
-        for (let key in obj) if (key.toLowerCase().includes('date') || key.toLowerCase().includes('day')) return key;
-        return null;
-    }
-    function findRevenueColumn(obj) {
-        const candidates = ['total_amount', 'revenue', 'amount', 'total_revenue', 'sales'];
-        for (let key of candidates) if (obj.hasOwnProperty(key)) return key;
-        for (let key in obj) if (key.toLowerCase().includes('amount') || key.toLowerCase().includes('revenue')) return key;
-        return null;
-    }
 
     // ========== MARKDOWN RENDERER ==========
     function renderMarkdown(text) {
@@ -319,7 +297,7 @@
                         j++;
                     }
                     i = j - 1;
-                    let tableHtml = '<table>';
+                    let tableHtml = '</td>';
                     let headerRows = rows.filter(r => !/^[\|\s\-:]+$/.test(r));
                     if (headerRows.length) {
                         let cells = headerRows[0].slice(1, -1).split('|').map(c => c.trim());
@@ -384,10 +362,13 @@
 
     function renderChart(elementId, traces, layout) {
         const el = document.getElementById(elementId);
-        if (el && traces && traces.length) {
-            if (layout && layout.xaxis && layout.xaxis.type === 'date') layout.xaxis.tickformat = '%Y-%m-%d';
-            Plotly.newPlot(elementId, traces, layout || { height: 400 }, { responsive: true, displayModeBar: true });
-        } else if (el) el.innerHTML = '<p class="caption">No data available</p>';
+        if (!el) return;
+        // Check if we have valid data
+        if (traces && traces.length && traces[0].x && traces[0].x.length) {
+            Plotly.newPlot(elementId, traces, layout || { height: 400, title: 'Chart' }, { responsive: true });
+        } else {
+            el.innerHTML = '<div class="insight-card" style="text-align:center;">No data available for this chart.</div>';
+        }
     }
 
     function attachCrossFilterEvents(chartDivId, type) {
@@ -607,29 +588,88 @@
                 fetchJSON('/api/customer_segmentation?limit=100'),
                 fetchJSON('/api/high_risk_customers?limit=20')
             ]);
+            
             const highestCLV = clvData.highest || [];
             const lowestCLV = clvData.lowest || [];
+            
+            console.log('Highest CLV count:', highestCLV.length);
+            console.log('Lowest CLV count:', lowestCLV.length);
+            if (lowestCLV.length) console.log('Sample lowest:', lowestCLV[0]);
+            
             let filteredSeg = seg;
             if (filterState.valueRange.min !== null && filterState.valueRange.max !== null)
                 filteredSeg = seg.filter(c => c.total_revenue >= filterState.valueRange.min && c.total_revenue <= filterState.valueRange.max);
+            
             let highRiskHtml = `<div class="section-header">⚠️ High‑Risk VIP Customers</div>
                                 <div class="chart-card full-width">
                                     <div class="table-responsive" id="high-risk-table" style="max-height:500px; overflow-y:auto;">
-                                        <table style="width:100%"><thead><tr><th>Customer ID</th><th>Name</th><th>Recency (days)</th><th>Frequency</th><th>Monetary</th></tr></thead><tbody id="high-risk-tbody"></tbody></table>
+                                        <table style="width:100%"><thead><tr><th>Customer ID</th><th>Name</th><th>Recency (days)</th><th>Frequency</th><th>Monetary</th></table></thead><tbody id="high-risk-tbody"></tbody></table>
                                     </div>
                                 </div>`;
+            
             let html = `<div class="section-header">👥 Customer Intelligence</div>
-                        <div class="chart-row"><div class="chart-card"><div id="clv-highest-chart"></div><div class="caption">🏆 Top 5 Highest Lifetime Value</div></div><div class="chart-card"><div id="clv-lowest-chart"></div><div class="caption">⚠️ Bottom 5 Lowest Lifetime Value</div></div></div>
-                        <div class="chart-row"><div class="chart-card"><div id="repeat-chart"></div></div><div class="chart-card"><div id="seg-pie"></div></div></div>${highRiskHtml}`;
+                        <div class="chart-row">
+                            <div class="chart-card"><div id="clv-highest-chart"></div><div class="caption">🏆 Top 5 Highest Lifetime Value</div></div>
+                            <div class="chart-card"><div id="clv-lowest-chart"></div><div class="caption">⚠️ Bottom 5 Lowest Lifetime Value</div></div>
+                        </div>
+                        <div class="chart-row">
+                            <div class="chart-card"><div id="repeat-chart"></div></div>
+                            <div class="chart-card"><div id="seg-pie"></div></div>
+                        </div>${highRiskHtml}`;
             document.getElementById('page-content').innerHTML = html;
-            if (highestCLV.length) renderChart('clv-highest-chart', [{ x: highestCLV.map(c => getCustomerDisplay(c)), y: highestCLV.map(c => c.total_net_amount || c.total_revenue), type: 'bar', marker: { color: '#2ecc71' }, text: highestCLV.map(c => formatMoney(c.total_net_amount || c.total_revenue)), textposition: 'outside' }], { title: 'Highest CLV', height: 450 });
-            if (lowestCLV.length) renderChart('clv-lowest-chart', [{ x: lowestCLV.map(c => getCustomerDisplay(c)), y: lowestCLV.map(c => c.total_net_amount || c.total_revenue), type: 'bar', marker: { color: '#e74c3c' }, text: lowestCLV.map(c => formatMoney(c.total_net_amount || c.total_revenue)), textposition: 'outside' }], { title: 'Lowest CLV', height: 450 });
-            if (repeat.length) renderChart('repeat-chart', [{ labels: repeat.map(r => r.customer_type), values: repeat.map(r => r.customer_count), type: 'pie' }], { title: 'Repeat vs One-Time', height: 450 });
-            if (filteredSeg.length) {
-                const segAgg = filteredSeg.reduce((acc, s) => { acc[s.segment] = (acc[s.segment] || 0) + 1; return acc; }, {});
-                renderChart('seg-pie', [{ labels: Object.keys(segAgg), values: Object.values(segAgg), type: 'pie', textinfo: 'label+percent', marker: { colors: ['#1e3c72', '#3b82f6', '#94a3b8', '#cbd5e1'] } }], { title: 'Customer Segments', height: 450 });
-                attachCrossFilterEvents('seg-pie', 'segment');
+            
+            // Highest CLV chart
+            if (highestCLV.length > 0) {
+                const xVals = highestCLV.map(c => getCustomerDisplay(c));
+                const yVals = highestCLV.map(c => parseFloat(c.total_net_amount || c.total_revenue || 0));
+                renderChart('clv-highest-chart', [{
+                    x: xVals, y: yVals, type: 'bar', marker: { color: '#2ecc71' },
+                    text: yVals.map(v => formatMoney(v)), textposition: 'outside'
+                }], { title: 'Highest CLV Customers', height: 450 });
+            } else {
+                document.getElementById('clv-highest-chart').innerHTML = '<div class="insight-card">No CLV data available</div>';
             }
+            
+            // Lowest CLV chart
+            if (lowestCLV.length > 0) {
+                const xVals = lowestCLV.map(c => getCustomerDisplay(c));
+                const yVals = lowestCLV.map(c => parseFloat(c.total_net_amount || c.total_revenue || 0));
+                renderChart('clv-lowest-chart', [{
+                    x: xVals, y: yVals, type: 'bar', marker: { color: '#e74c3c' },
+                    text: yVals.map(v => formatMoney(v)), textposition: 'outside'
+                }], { title: 'Lowest CLV Customers', height: 450 });
+            } else {
+                document.getElementById('clv-lowest-chart').innerHTML = '<div class="insight-card">No lowest CLV data available</div>';
+            }
+            
+            // Repeat chart
+            if (repeat && repeat.length) {
+                renderChart('repeat-chart', [{
+                    labels: repeat.map(r => r.customer_type), values: repeat.map(r => r.customer_count),
+                    type: 'pie', hole: 0.3
+                }], { title: 'Repeat vs One-Time', height: 450 });
+            } else {
+                document.getElementById('repeat-chart').innerHTML = '<div class="insight-card">No repeat data</div>';
+            }
+            
+            // Segmentation pie
+            if (filteredSeg && filteredSeg.length) {
+                const segAgg = filteredSeg.reduce((acc, s) => { acc[s.segment] = (acc[s.segment] || 0) + 1; return acc; }, {});
+                if (Object.keys(segAgg).length > 0) {
+                    renderChart('seg-pie', [{
+                        labels: Object.keys(segAgg), values: Object.values(segAgg),
+                        type: 'pie', textinfo: 'label+percent',
+                        marker: { colors: ['#1e3c72', '#3b82f6', '#94a3b8', '#cbd5e1'] }
+                    }], { title: 'Customer Segments', height: 450 });
+                    attachCrossFilterEvents('seg-pie', 'segment');
+                } else {
+                    document.getElementById('seg-pie').innerHTML = '<div class="insight-card">No segment data</div>';
+                }
+            } else {
+                document.getElementById('seg-pie').innerHTML = '<div class="insight-card">No segmentation data</div>';
+            }
+            
+            // Infinite scroll for high-risk customers
             const tbody = document.getElementById('high-risk-tbody');
             let offset = 0;
             const limit = 100;
@@ -723,7 +763,7 @@
                     avgMon: custs.reduce((s,c)=>s+c.monetary,0)/custs.length
                 };
             });
-            const statsHtml = '<td><thead><tr><th>Segment</th><th>Customers</th><th>Avg Recency</th><th>Avg Frequency</th><th>Avg Monetary</th></tr></thead><tbody>' +
+            const statsHtml = '<table><thead><tr><th>Segment</th><th>Customers</th><th>Avg Recency</th><th>Avg Frequency</th><th>Avg Monetary</th></tr></thead><tbody>' +
                 segments.map(seg => `<tr style="border-left:4px solid ${getColor(seg)};"><td>${seg}</td><td>${segStats[seg].count}</td><td>${segStats[seg].avgRecency.toFixed(1)}</td><td>${segStats[seg].avgFreq.toFixed(1)}</td><td>${formatMoney(segStats[seg].avgMon)}</td></tr>`).join('') +
                 '</tbody></table>';
             document.getElementById('seg-stats-table').innerHTML = statsHtml;
@@ -785,7 +825,7 @@
         },
 
         insights: async () => {
-            const html = `<div class="section-header">📖 Project Insights: ETL Pipeline & Business Value</div><div class="info-card"><strong>🚀 About this Project</strong><br>4M+ records, 99.8% validity, PySpark, Databricks, Delta Lake. 12 analytical use cases.</div><div class="section-header">🎯 Business Problems Solved</div><div class="use-case-grid"><div class="use-case-card"><div class="use-case-title">💰 Revenue Leakage & Growth</div><div class="use-case-desc">Identify underperforming cities/categories.</div><div class="use-case-action">Reallocate marketing budget.</div></div><div class="use-case-card"><div class="use-case-title">👥 Customer Churn & Loyalty</div><div class="use-case-desc">RFM and cohort retention highlight at-risk customers.</div><div class="use-case-action">Launch reactivation campaigns.</div></div><div class="use-case-card"><div class="use-case-title">📦 Operational Efficiency</div><div class="use-case-desc">Fulfillment gaps and payment method analysis.</div><div class="use-case-action">Improve logistics & checkout.</div></div><div class="use-case-card"><div class="use-case-title">🏷️ Product Mix Optimization</div><div class="use-case-desc">Category/subcategory revenue guides inventory.</div><div class="use-case-action">Bundle or promote accordingly.</div></div></div><div class="section-header">📊 Analytical Use Cases (3 Levels)</div><div class="chart-card full-width"><table><thead><tr><th>Level</th><th>Use Case</th><th>Business Question</th></td></thead><tbody><tr><td rowspan="3"><strong>Level 1</strong></td><td>CLV</td><td>Highest lifetime value customers?</td></tr><tr><td>Daily Revenue Trends</td><td>Seasonality or growth?</td></tr><tr><td>Top Cities</td><td>Where to expand?</td></tr><tr><td rowspan="3"><strong>Level 2</strong></td><td>Repeat vs One-Time</td><td>Conversion to loyal?</td></tr><tr><td>Order Fulfillment</td><td>Shipping delays impact?</td></tr><tr><td>Payment Methods</td><td>Which drive revenue?</td></tr><tr><td rowspan="3"><strong>Level 3</strong></td><td>Product Subcategory</td><td>Cash cows vs underperformers?</td></tr><tr><td>RFM Segmentation</td><td>Personalized marketing?</td></tr><tr><td>Cohort Retention</td><td>New vs old customers?</td></tr></tbody></table></div><div class="insight-card"><strong>🏆 Key Achievements</strong><br>4M+ records, 99.8% validity, factory pattern design, production-grade stack.</div>`;
+            const html = `<div class="section-header">📖 Project Insights: ETL Pipeline & Business Value</div><div class="info-card"><strong>🚀 About this Project</strong><br>4M+ records, 99.8% validity, PySpark, Databricks, Delta Lake. 12 analytical use cases.</div><div class="section-header">🎯 Business Problems Solved</div><div class="use-case-grid"><div class="use-case-card"><div class="use-case-title">💰 Revenue Leakage & Growth</div><div class="use-case-desc">Identify underperforming cities/categories.</div><div class="use-case-action">Reallocate marketing budget.</div></div><div class="use-case-card"><div class="use-case-title">👥 Customer Churn & Loyalty</div><div class="use-case-desc">RFM and cohort retention highlight at-risk customers.</div><div class="use-case-action">Launch reactivation campaigns.</div></div><div class="use-case-card"><div class="use-case-title">📦 Operational Efficiency</div><div class="use-case-desc">Fulfillment gaps and payment method analysis.</div><div class="use-case-action">Improve logistics & checkout.</div></div><div class="use-case-card"><div class="use-case-title">🏷️ Product Mix Optimization</div><div class="use-case-desc">Category/subcategory revenue guides inventory.</div><div class="use-case-action">Bundle or promote accordingly.</div></div></div><div class="section-header">📊 Analytical Use Cases (3 Levels)</div><div class="chart-card full-width"><table><thead><tr><th>Level</th><th>Use Case</th><th>Business Question</th></tr></thead><tbody><tr><td rowspan="3"><strong>Level 1</strong></td><td>CLV</td><td>Highest lifetime value customers?</td></tr><tr><td>Daily Revenue Trends</td><td>Seasonality or growth?</td></tr><tr><td>Top Cities</td><td>Where to expand?</td></tr><tr><td rowspan="3"><strong>Level 2</strong></td><td>Repeat vs One-Time</td><td>Conversion to loyal?</td></tr><tr><td>Order Fulfillment</td><td>Shipping delays impact?</td></tr><tr><td>Payment Methods</td><td>Which drive revenue?</td></tr><tr><td rowspan="3"><strong>Level 3</strong></td><td>Product Subcategory</td><td>Cash cows vs underperformers?</td></tr><tr><td>RFM Segmentation</td><td>Personalized marketing?</td></tr><tr><td>Cohort Retention</td><td>New vs old customers?</td></tr></tbody></table></div><div class="insight-card"><strong>🏆 Key Achievements</strong><br>4M+ records, 99.8% validity, factory pattern design, production-grade stack.</div>`;
             document.getElementById('page-content').innerHTML = html;
         },
 
@@ -884,6 +924,7 @@
 
     function escapeHtml(str) { return String(str).replace(/[&<>]/g, function(m) { if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m; }); }
 
+    // AI Insights
     async function getAIInsights() {
         const [kpis, daily, monthly, cities, categories, repeatRaw, rfm, cohort, anomalies, highRisk, clv] = await Promise.all([
             fetchJSON('/api/kpis'), fetchJSON('/api/daily_revenue?limit=30'), fetchJSON('/api/monthly_revenue?limit=12'),
