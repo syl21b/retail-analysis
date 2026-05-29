@@ -319,7 +319,7 @@
                         j++;
                     }
                     i = j - 1;
-                    let tableHtml = '</table>';
+                    let tableHtml = '<table>';
                     let headerRows = rows.filter(r => !/^[\|\s\-:]+$/.test(r));
                     if (headerRows.length) {
                         let cells = headerRows[0].slice(1, -1).split('|').map(c => c.trim());
@@ -429,8 +429,7 @@
             }
         };
         container.addEventListener('scroll', handler);
-        // initial call to load first page
-        loadMoreFunc().then(() => { /* initial load done */ });
+        loadMoreFunc().then(() => {});
     }
 
     function createExportButton(endpoint, filename) {
@@ -495,29 +494,47 @@
                     anomalies.forEach(a => { anomalyMap.set(a.date, { revenue: a.revenue, drop: a.drop_percent }); });
                     for (let i = 0; i < dates.length; i++) {
                         const dt = dates[i].split('T')[0];
-                        if (anomalyMap.has(dt)) { anomalyX.push(dates[i]); anomalyY.push(revenues[i]); anomalyLabels.push(`⚠️ Anomaly on ${dt}: drop ${Math.abs(anomalyMap.get(dt).drop).toFixed(1)}%`); }
+                        if (anomalyMap.has(dt)) {
+                            anomalyX.push(dates[i]);
+                            anomalyY.push(revenues[i]);
+                            anomalyLabels.push(`⚠️ Anomaly on ${dt}: drop ${Math.abs(anomalyMap.get(dt).drop).toFixed(1)}%`);
+                        }
                     }
                 }
                 const traces = [traceMain];
-                if (anomalyX.length) traces.push({ x: anomalyX, y: anomalyY, type: 'scatter', mode: 'markers', marker: { color: '#e74c3c', size: 10, symbol: 'circle' }, name: '⚠️ Anomaly', hoverinfo: 'text', text: anomalyLabels });
-                // Updated layout: legend centered at the bottom
-                    const layout = { 
-                        title: 'Daily Revenue', 
-                        height: 380, 
-                        xaxis: { rangeslider: { visible: true }, tickformat: '%Y-%m-%d', type: 'date' }, 
-                        yaxis: { title: '$' }, 
-                        legend: { 
-                            orientation: 'h', 
-                            yanchor: 'bottom', 
-                            y: -0.3, 
-                            xanchor: 'center', 
-                            x: 0.5,
-                            bgcolor: 'rgba(255,255,255,0.8)'
-                        } 
-                    };                    
-                    if (ev['xaxis.range']) { let r = ev['xaxis.range']; let minDate = r[0].split(' ')[0].split('T')[0]; let maxDate = r[1].split(' ')[0].split('T')[0]; filterState.dateRange = { min: minDate, max: maxDate }; document.getElementById('date-min').value = filterState.dateRange.min; document.getElementById('date-max').value = filterState.dateRange.max; updateFilterUI(); refreshCurrentPage(); }
+                if (anomalyX.length) {
+                    traces.push({ x: anomalyX, y: anomalyY, type: 'scatter', mode: 'markers', marker: { color: '#e74c3c', size: 10, symbol: 'circle' }, name: '⚠️ Anomaly', hoverinfo: 'text', text: anomalyLabels });
+                }
+                const layout = {
+                    title: 'Daily Revenue',
+                    height: 380,
+                    xaxis: { rangeslider: { visible: true }, tickformat: '%Y-%m-%d', type: 'date' },
+                    yaxis: { title: '$' },
+                    legend: {
+                        orientation: 'h',
+                        yanchor: 'bottom',
+                        y: -0.3,
+                        xanchor: 'center',
+                        x: 0.5,
+                        bgcolor: 'rgba(255,255,255,0.8)'
+                    }
+                };
+                Plotly.newPlot('daily-chart', traces, layout);
+                document.getElementById('daily-chart').on('plotly_relayout', ev => {
+                    if (ev['xaxis.range']) {
+                        let r = ev['xaxis.range'];
+                        let minDate = r[0].split(' ')[0].split('T')[0];
+                        let maxDate = r[1].split(' ')[0].split('T')[0];
+                        filterState.dateRange = { min: minDate, max: maxDate };
+                        document.getElementById('date-min').value = filterState.dateRange.min;
+                        document.getElementById('date-max').value = filterState.dateRange.max;
+                        updateFilterUI();
+                        refreshCurrentPage();
+                    }
                 });
-            } else document.getElementById('daily-chart').innerHTML = '<div class="error-message">No daily data</div>';
+            } else {
+                document.getElementById('daily-chart').innerHTML = '<div class="error-message">No daily data</div>';
+            }
             if (cities.length) renderChart('cities-chart', [{ x: cities.map(c => c.city), y: cities.map(c => c.total_revenue), type: 'bar', marker: { color: '#1e3c72' }, text: cities.map(c => formatMoney(c.total_revenue)), textposition: 'outside' }], { title: 'Top Cities', height: 400 });
             attachCrossFilterEvents('cities-chart', 'city');
             if (categories.length) renderChart('category-chart', [{ labels: categories.map(c => c.category), values: categories.map(c => c.revenue), type: 'pie', hole: 0.3, marker: { colors: ['#1e3c72', '#3b82f6', '#94a3b8'] }, textinfo: 'label+percent' }], { title: 'Category Share', height: 400 });
@@ -556,7 +573,6 @@
                 for (let i = 0; i < contrib.length; i++) { sum += contrib[i].total_revenue; cumsum.push((sum / total) * 100); }
                 renderChart('pareto-chart', [{ x: contrib.map((_, i) => i+1), y: cumsum, mode: 'lines', name: 'Cumulative %' }], { title: 'Revenue Concentration (Pareto)', height: 400 });
                 
-                // Infinite scroll for top customers
                 const tbody = document.getElementById('top-customers-tbody');
                 let offset = 0;
                 const limit = 100;
@@ -577,7 +593,6 @@
                     loading = false;
                 };
                 setupInfiniteScroll('top-customers-table', loadMore);
-                // Add export button
                 const container = document.getElementById('top-customers-container');
                 const exportBtn = createExportButton('/api/revenue_contribution?limit=100000', 'top_customers.csv');
                 container.appendChild(exportBtn);
@@ -615,7 +630,6 @@
                 renderChart('seg-pie', [{ labels: Object.keys(segAgg), values: Object.values(segAgg), type: 'pie', textinfo: 'label+percent', marker: { colors: ['#1e3c72', '#3b82f6', '#94a3b8', '#cbd5e1'] } }], { title: 'Customer Segments', height: 450 });
                 attachCrossFilterEvents('seg-pie', 'segment');
             }
-            // Infinite scroll for high-risk customers
             const tbody = document.getElementById('high-risk-tbody');
             let offset = 0;
             const limit = 100;
@@ -699,7 +713,6 @@
                         <div class="section-header">📋 Segment Statistics</div><div class="chart-card full-width"><div class="table-responsive" id="seg-stats-table" style="max-height:300px; overflow-y:auto;"></div></div>
                         <div class="section-header">📋 All Customers (RFM) – infinite scroll</div><div class="chart-card full-width"><div class="table-responsive" id="rfm-full-table" style="max-height:500px; overflow-y:auto;"><table style="width:100%"><thead><tr><th>Customer ID</th><th>Recency</th><th>Frequency</th><th>Monetary</th><th>Segment</th></tr></thead><tbody id="rfm-full-tbody"></tbody></table></div></div>`;
             document.getElementById('page-content').innerHTML = html;
-            // Segment stats table
             const segStats = {};
             segments.forEach(seg => {
                 const custs = rfmData.filter(d => d[segField] === seg);
@@ -710,11 +723,10 @@
                     avgMon: custs.reduce((s,c)=>s+c.monetary,0)/custs.length
                 };
             });
-            const statsHtml = '<table><thead><tr><th>Segment</th><th>Customers</th><th>Avg Recency</th><th>Avg Frequency</th><th>Avg Monetary</th></tr></thead><tbody>' +
+            const statsHtml = '<td><thead><tr><th>Segment</th><th>Customers</th><th>Avg Recency</th><th>Avg Frequency</th><th>Avg Monetary</th></tr></thead><tbody>' +
                 segments.map(seg => `<tr style="border-left:4px solid ${getColor(seg)};"><td>${seg}</td><td>${segStats[seg].count}</td><td>${segStats[seg].avgRecency.toFixed(1)}</td><td>${segStats[seg].avgFreq.toFixed(1)}</td><td>${formatMoney(segStats[seg].avgMon)}</td></tr>`).join('') +
                 '</tbody></table>';
             document.getElementById('seg-stats-table').innerHTML = statsHtml;
-            // Scatter plot
             const scatterTraces = [];
             const toShow = filterState.selectedSegment ? [filterState.selectedSegment] : segments;
             toShow.forEach(seg => {
@@ -729,7 +741,6 @@
             document.getElementById('seg-drop').addEventListener('change', e => { filterState.selectedSegment = e.target.value || null; updateFilterUI(); refreshCurrentPage(); });
             document.getElementById('clear-seg').addEventListener('click', () => { filterState.selectedSegment = null; updateFilterUI(); refreshCurrentPage(); });
             
-            // Infinite scroll for full RFM table
             const rfmTbody = document.getElementById('rfm-full-tbody');
             let rfmOffset = 0;
             const rfmLimit = 200;
@@ -774,7 +785,7 @@
         },
 
         insights: async () => {
-            const html = `<div class="section-header">📖 Project Insights: ETL Pipeline & Business Value</div><div class="info-card"><strong>🚀 About this Project</strong><br>4M+ records, 99.8% validity, PySpark, Databricks, Delta Lake. 12 analytical use cases.</div><div class="section-header">🎯 Business Problems Solved</div><div class="use-case-grid"><div class="use-case-card"><div class="use-case-title">💰 Revenue Leakage & Growth</div><div class="use-case-desc">Identify underperforming cities/categories.</div><div class="use-case-action">Reallocate marketing budget.</div></div><div class="use-case-card"><div class="use-case-title">👥 Customer Churn & Loyalty</div><div class="use-case-desc">RFM and cohort retention highlight at-risk customers.</div><div class="use-case-action">Launch reactivation campaigns.</div></div><div class="use-case-card"><div class="use-case-title">📦 Operational Efficiency</div><div class="use-case-desc">Fulfillment gaps and payment method analysis.</div><div class="use-case-action">Improve logistics & checkout.</div></div><div class="use-case-card"><div class="use-case-title">🏷️ Product Mix Optimization</div><div class="use-case-desc">Category/subcategory revenue guides inventory.</div><div class="use-case-action">Bundle or promote accordingly.</div></div></div><div class="section-header">📊 Analytical Use Cases (3 Levels)</div><div class="chart-card full-width"><table><thead><tr><th>Level</th><th>Use Case</th><th>Business Question</th></tr></thead><tbody><tr><td rowspan="3"><strong>Level 1</strong></td><td>CLV</td><td>Highest lifetime value customers?</td></tr><tr><td>Daily Revenue Trends</td><td>Seasonality or growth?</td></tr><tr><td>Top Cities</td><td>Where to expand?</td></tr><tr><td rowspan="3"><strong>Level 2</strong></td><td>Repeat vs One-Time</td><td>Conversion to loyal?</td></tr><tr><td>Order Fulfillment</td><td>Shipping delays impact?</td></tr><tr><td>Payment Methods</td><td>Which drive revenue?</td></tr><tr><td rowspan="3"><strong>Level 3</strong></td><td>Product Subcategory</td><td>Cash cows vs underperformers?</td></tr><tr><td>RFM Segmentation</td><td>Personalized marketing?</td></tr><tr><td>Cohort Retention</td><td>New vs old customers?</td></tr></tbody></table></div><div class="insight-card"><strong>🏆 Key Achievements</strong><br>4M+ records, 99.8% validity, factory pattern design, production-grade stack.</div>`;
+            const html = `<div class="section-header">📖 Project Insights: ETL Pipeline & Business Value</div><div class="info-card"><strong>🚀 About this Project</strong><br>4M+ records, 99.8% validity, PySpark, Databricks, Delta Lake. 12 analytical use cases.</div><div class="section-header">🎯 Business Problems Solved</div><div class="use-case-grid"><div class="use-case-card"><div class="use-case-title">💰 Revenue Leakage & Growth</div><div class="use-case-desc">Identify underperforming cities/categories.</div><div class="use-case-action">Reallocate marketing budget.</div></div><div class="use-case-card"><div class="use-case-title">👥 Customer Churn & Loyalty</div><div class="use-case-desc">RFM and cohort retention highlight at-risk customers.</div><div class="use-case-action">Launch reactivation campaigns.</div></div><div class="use-case-card"><div class="use-case-title">📦 Operational Efficiency</div><div class="use-case-desc">Fulfillment gaps and payment method analysis.</div><div class="use-case-action">Improve logistics & checkout.</div></div><div class="use-case-card"><div class="use-case-title">🏷️ Product Mix Optimization</div><div class="use-case-desc">Category/subcategory revenue guides inventory.</div><div class="use-case-action">Bundle or promote accordingly.</div></div></div><div class="section-header">📊 Analytical Use Cases (3 Levels)</div><div class="chart-card full-width"><table><thead><tr><th>Level</th><th>Use Case</th><th>Business Question</th></td></thead><tbody><tr><td rowspan="3"><strong>Level 1</strong></td><td>CLV</td><td>Highest lifetime value customers?</td></tr><tr><td>Daily Revenue Trends</td><td>Seasonality or growth?</td></tr><tr><td>Top Cities</td><td>Where to expand?</td></tr><tr><td rowspan="3"><strong>Level 2</strong></td><td>Repeat vs One-Time</td><td>Conversion to loyal?</td></tr><tr><td>Order Fulfillment</td><td>Shipping delays impact?</td></tr><tr><td>Payment Methods</td><td>Which drive revenue?</td></tr><tr><td rowspan="3"><strong>Level 3</strong></td><td>Product Subcategory</td><td>Cash cows vs underperformers?</td></tr><tr><td>RFM Segmentation</td><td>Personalized marketing?</td></tr><tr><td>Cohort Retention</td><td>New vs old customers?</td></tr></tbody></table></div><div class="insight-card"><strong>🏆 Key Achievements</strong><br>4M+ records, 99.8% validity, factory pattern design, production-grade stack.</div>`;
             document.getElementById('page-content').innerHTML = html;
         },
 
@@ -873,7 +884,6 @@
 
     function escapeHtml(str) { return String(str).replace(/[&<>]/g, function(m) { if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m; }); }
 
-    // AI Insights
     async function getAIInsights() {
         const [kpis, daily, monthly, cities, categories, repeatRaw, rfm, cohort, anomalies, highRisk, clv] = await Promise.all([
             fetchJSON('/api/kpis'), fetchJSON('/api/daily_revenue?limit=30'), fetchJSON('/api/monthly_revenue?limit=12'),
