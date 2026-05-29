@@ -1812,7 +1812,23 @@ def health():
 # ------------------------------
 #  Run app
 # ------------------------------
+# Flag to ensure startup tasks run only once
+_startup_done = False
+
+@app.before_request
+def run_startup_tasks():
+    global _startup_done
+    if not _startup_done:
+        try:
+            create_performance_indexes()
+            with app.app_context():
+                train_simulation_model()
+        except Exception as e:
+            app.logger.error(f"Startup tasks failed: {e}")
+        _startup_done = True
+
 if __name__ == '__main__':
+    # For local development, you can still run them synchronously
     create_performance_indexes()
     with app.app_context():
         train_simulation_model()
