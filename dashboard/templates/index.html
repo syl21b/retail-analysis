@@ -11,6 +11,7 @@
     <script src="https://cdn.plot.ly/plotly-2.24.1.min.js" charset="utf-8"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <style>
+        /* ========== EXISTING STYLES (unchanged) ========== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: #f8fafc; color: #0f172a; }
         .dashboard { display: flex; min-height: 100vh; }
@@ -99,6 +100,9 @@
         .simulate-card { background: white; border-radius: 24px; padding: 1.5rem; margin: 1rem 0; border: 1px solid #e2e8f0; }
         .simulate-slider { width: 100%; margin: 1rem 0; }
         .alert-toast { position: fixed; bottom: 20px; right: 20px; background: #fee2e2; border-left: 4px solid #ef4444; padding: 0.8rem 1.2rem; border-radius: 12px; z-index: 2000; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: none; }
+        .table-responsive { max-height: 500px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 16px; }
+        .export-csv-btn { background: #10b981; color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.7rem; cursor: pointer; margin-left: 1rem; }
+        .export-csv-btn:hover { background: #059669; }
         @media (max-width: 768px) { .sidebar { width: 100%; position: relative; height: auto; } .main-content { margin-left: 0; } .chart-row { grid-template-columns: 1fr; } }
         footer { text-align: center; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; font-size: 0.7rem; color: #64748b; }
     </style>
@@ -203,15 +207,7 @@
     let currentPersona = 'balanced_analyst';
     let lastInsightsHtml = '';
 
-    // Pagination state for large tables
-    let pagination = {
-        revenueContribution: { offset: 0, limit: 20, hasMore: true, loading: false },
-        highRisk: { offset: 0, limit: 20, hasMore: true, loading: false },
-        rfm: { offset: 0, limit: 200, hasMore: true, loading: false },
-        cohort: { offset: 0, limit: 200, hasMore: true, loading: false }
-    };
-
-    // Helper functions
+    // ========== HELPER FUNCTIONS ==========
     async function fetchJSON(url) {
         const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -255,7 +251,7 @@
         return null;
     }
 
-    // ========== IMPROVED MARKDOWN RENDERER ==========
+    // ========== MARKDOWN RENDERER ==========
     function renderMarkdown(text) {
         if (!text) return '';
         let html = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -270,19 +266,15 @@
         let result = [];
         let inList = false;
         let listStack = [];
-        
         for (let i = 0; i < lines.length; i++) {
             let line = lines[i];
             let trimmed = line.trim();
-            
             let olMatch = trimmed.match(/^(\d+)\.\s+(.*)/);
             let ulMatch = trimmed.match(/^[\*\-]\s+(.*)/);
-            
             if (olMatch || ulMatch) {
                 let indent = line.search(/\S/);
                 let type = olMatch ? 'ol' : 'ul';
                 let content = olMatch ? olMatch[2] : ulMatch[1];
-                
                 if (!inList) {
                     result.push(`<${type}>`);
                     listStack = [{ type, indent }];
@@ -327,7 +319,7 @@
                         j++;
                     }
                     i = j - 1;
-                    let tableHtml = '<table>';
+                    let tableHtml = '</table>';
                     let headerRows = rows.filter(r => !/^[\|\s\-:]+$/.test(r));
                     if (headerRows.length) {
                         let cells = headerRows[0].slice(1, -1).split('|').map(c => c.trim());
@@ -420,53 +412,47 @@
         });
     }
 
-    // ========== PAGINATED LOAD HELPER ==========
-    async function loadMore(endpoint, containerId, stateKey, rowMapper, reset = false) {
-        const state = pagination[stateKey];
-        if (!state || state.loading) return;
-        if (!reset && !state.hasMore) return;
-        if (reset) {
-            state.offset = 0;
-            state.hasMore = true;
-            document.getElementById(containerId).innerHTML = '';
-            const existingBtn = document.getElementById(`load-more-${stateKey}`);
-            if (existingBtn) existingBtn.remove();
-        }
-        state.loading = true;
-        try {
-            const url = `${endpoint}?limit=${state.limit}&offset=${state.offset}`;
-            const data = await fetchJSON(url);
-            if (!data.length) {
-                state.hasMore = false;
-                return;
+    // ========== INFINITE SCROLL HELPERS ==========
+    function setupInfiniteScroll(containerId, loadMoreFunc) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        let isLoading = false;
+        const handler = async () => {
+            if (isLoading) return;
+            const scrollTop = container.scrollTop;
+            const clientHeight = container.clientHeight;
+            const scrollHeight = container.scrollHeight;
+            if (scrollTop + clientHeight >= scrollHeight - 150) {
+                isLoading = true;
+                await loadMoreFunc();
+                isLoading = false;
             }
-            const container = document.getElementById(containerId);
-            if (!container) return;
-            data.forEach(row => {
-                container.innerHTML += rowMapper(row);
-            });
-            state.offset += data.length;
-            if (data.length < state.limit) state.hasMore = false;
-            // Add or update "Load more" button
-            let btn = document.getElementById(`load-more-${stateKey}`);
-            if (state.hasMore) {
-                if (!btn) {
-                    btn = document.createElement('button');
-                    btn.id = `load-more-${stateKey}`;
-                    btn.innerText = 'Load more';
-                    btn.className = 'btn-clear';
-                    btn.style.margin = '10px auto';
-                    btn.style.display = 'block';
-                    btn.onclick = () => loadMore(endpoint, containerId, stateKey, rowMapper);
-                    container.parentNode.appendChild(btn);
-                }
-            } else if (btn) btn.remove();
-        } finally {
-            state.loading = false;
-        }
+        };
+        container.addEventListener('scroll', handler);
+        // initial call to load first page
+        loadMoreFunc().then(() => { /* initial load done */ });
     }
 
-    // ========== PAGE DEFINITIONS (OPTIMIZED) ==========
+    function createExportButton(endpoint, filename) {
+        const btn = document.createElement('button');
+        btn.innerText = '📥 Export CSV';
+        btn.className = 'export-csv-btn';
+        btn.onclick = async () => {
+            try {
+                const res = await fetch(endpoint);
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+                URL.revokeObjectURL(url);
+            } catch(e) { alert('Export failed: ' + e.message); }
+        };
+        return btn;
+    }
+
+    // ========== PAGE DEFINITIONS ==========
     const pages = {
         overview: async () => {
             document.getElementById('page-content').innerHTML = '<div class="loader"><div class="spinner"></div>Loading executive dashboard...</div>';
@@ -493,15 +479,11 @@
                         <div class="chart-row"><div class="chart-card"><div id="subcat-chart"></div><div class="caption">📦 Top subcategories (by revenue)</div></div><div class="chart-card"><div id="repeat-chart"></div><div class="caption">🔄 Repeat vs one‑time customers</div></div></div>
                         <div class="chart-row"><div class="chart-card"><div id="status-chart"></div><div class="caption">📋 Order status distribution</div></div><div class="chart-card"><div id="payment-chart"></div><div class="caption">💳 Revenue by payment method</div></div></div>`;
             document.getElementById('page-content').innerHTML = html;
-
-            // Monthly chart using aggregated endpoint
             if (monthlyTrend.length) {
                 const months = monthlyTrend.map(m => m.period.slice(0,7));
                 const revenue = monthlyTrend.map(m => m.revenue);
                 renderChart('monthly-chart', [{ x: months, y: revenue, type: 'bar', marker: { color: '#1e3c72' }, text: revenue.map(v => formatMoney(v)), textposition: 'outside' }], { title: 'Monthly Revenue', height: 380 });
             }
-
-            // Daily chart (last 90 days)
             const dailyTrend = await fetchJSON('/api/revenue_trend?granularity=day');
             if (dailyTrend.length) {
                 const dates = dailyTrend.map(d => d.period);
@@ -518,13 +500,24 @@
                 }
                 const traces = [traceMain];
                 if (anomalyX.length) traces.push({ x: anomalyX, y: anomalyY, type: 'scatter', mode: 'markers', marker: { color: '#e74c3c', size: 10, symbol: 'circle' }, name: '⚠️ Anomaly', hoverinfo: 'text', text: anomalyLabels });
-                const layout = { title: 'Daily Revenue', height: 380, xaxis: { rangeslider: { visible: true }, tickformat: '%Y-%m-%d', type: 'date' }, yaxis: { title: '$' }, legend: { orientation: 'h', y: -0.2 } };
-                Plotly.newPlot('daily-chart', traces, layout);
-                document.getElementById('daily-chart').on('plotly_relayout', ev => {
+                // Updated layout: legend centered at the bottom
+                    const layout = { 
+                        title: 'Daily Revenue', 
+                        height: 380, 
+                        xaxis: { rangeslider: { visible: true }, tickformat: '%Y-%m-%d', type: 'date' }, 
+                        yaxis: { title: '$' }, 
+                        legend: { 
+                            orientation: 'h', 
+                            yanchor: 'bottom', 
+                            y: -0.3, 
+                            xanchor: 'center', 
+                            x: 0.5,
+                            bgcolor: 'rgba(255,255,255,0.8)'
+                        } 
+                    };                    
                     if (ev['xaxis.range']) { let r = ev['xaxis.range']; let minDate = r[0].split(' ')[0].split('T')[0]; let maxDate = r[1].split(' ')[0].split('T')[0]; filterState.dateRange = { min: minDate, max: maxDate }; document.getElementById('date-min').value = filterState.dateRange.min; document.getElementById('date-max').value = filterState.dateRange.max; updateFilterUI(); refreshCurrentPage(); }
                 });
             } else document.getElementById('daily-chart').innerHTML = '<div class="error-message">No daily data</div>';
-
             if (cities.length) renderChart('cities-chart', [{ x: cities.map(c => c.city), y: cities.map(c => c.total_revenue), type: 'bar', marker: { color: '#1e3c72' }, text: cities.map(c => formatMoney(c.total_revenue)), textposition: 'outside' }], { title: 'Top Cities', height: 400 });
             attachCrossFilterEvents('cities-chart', 'city');
             if (categories.length) renderChart('category-chart', [{ labels: categories.map(c => c.category), values: categories.map(c => c.revenue), type: 'pie', hole: 0.3, marker: { colors: ['#1e3c72', '#3b82f6', '#94a3b8'] }, textinfo: 'label+percent' }], { title: 'Category Share', height: 400 });
@@ -542,14 +535,11 @@
                 fetchJSON('/api/revenue_contribution?limit=20'),
                 fetchJSON('/api/order_value_distribution')
             ]);
-            let filteredContrib = contrib;
-            if (filterState.valueRange.min !== null && filterState.valueRange.max !== null)
-                filteredContrib = contrib.filter(c => c.total_revenue >= filterState.valueRange.min && c.total_revenue <= filterState.valueRange.max);
             let html = `<div class="section-header">💰 Revenue Deep Dive</div>
                         <div class="insight-card">🔍 Value filter: ${filterState.valueRange.min !== null ? formatMoney(filterState.valueRange.min) + ' – ' + formatMoney(filterState.valueRange.max) : 'No filter'} | Adjust slider above to see top customers.</div>
                         <div class="chart-row"><div class="chart-card"><div id="rev-monthly"></div></div></div>
                         <div class="section-header">📊 Pareto & Top Customers</div>
-                        <div class="chart-row"><div class="chart-card"><div id="pareto-chart"></div></div><div class="chart-card"><div id="top-customers-container"><div id="top-customers-table" style="max-height:400px; overflow-y:auto;"></div></div></div></div>`;
+                        <div class="chart-row"><div class="chart-card"><div id="pareto-chart"></div></div><div class="chart-card"><div id="top-customers-container"><div class="table-responsive" id="top-customers-table" style="max-height:500px; overflow-y:auto;"><table style="width:100%"><thead><tr><th>Customer ID</th><th>Revenue</th><th>Cumulative %</th></tr></thead><tbody id="top-customers-tbody"></tbody></table></div></div></div></div>`;
             if (orderVal.length) html += `<div class="insight-card">📦 Order Value Stats: Min ${formatMoney(orderVal[0].min_order_value)}, Max ${formatMoney(orderVal[0].max_order_value)}, Median ${formatMoney(orderVal[0].median_order_value)}</div>`;
             document.getElementById('page-content').innerHTML = html;
 
@@ -559,21 +549,38 @@
                 renderChart('rev-monthly', [{ x: months, y: revenue, type: 'bar', text: revenue.map(v => formatMoney(v)), textposition: 'outside' }], { title: 'Monthly Revenue', height: 400 });
             }
 
-            if (filteredContrib.length) {
-                const total = filteredContrib.reduce((s, v) => s + v.total_revenue, 0);
-                let cumsum = [], sum = 0;
-                for (let i = 0; i < filteredContrib.length; i++) { sum += filteredContrib[i].total_revenue; cumsum.push((sum / total) * 100); }
-                renderChart('pareto-chart', [{ x: filteredContrib.map((_, i) => i+1), y: cumsum, mode: 'lines', name: 'Cumulative %' }], { title: 'Revenue Concentration (Pareto)', height: 400 });
-                // Paginated top customers
-                const tableContainer = document.getElementById('top-customers-table');
-                if (tableContainer) {
-                    const renderRow = (c) => `<tr><td>${c.customer_id}</td><td>${formatMoney(c.total_revenue)}</td><td>${c.cumulative_percentage.toFixed(1)}%</td></tr>`;
-                    tableContainer.innerHTML = '<table style="width:100%"><thead><tr><th>Customer ID</th><th>Revenue</th><th>Cumulative %</th></tr></thead><tbody id="top-customers-tbody"></tbody></table>';
-                    const tbody = document.getElementById('top-customers-tbody');
-                    pagination.revenueContribution = { offset: 0, limit: 20, hasMore: true, loading: false };
-                    const loadTopCustomers = () => loadMore('/api/revenue_contribution', 'top-customers-tbody', 'revenueContribution', renderRow);
-                    loadTopCustomers();
-                }
+            if (contrib.length) {
+                const total = contrib.reduce((s, v) => s + v.total_revenue, 0);
+                let cumsum = [];
+                let sum = 0;
+                for (let i = 0; i < contrib.length; i++) { sum += contrib[i].total_revenue; cumsum.push((sum / total) * 100); }
+                renderChart('pareto-chart', [{ x: contrib.map((_, i) => i+1), y: cumsum, mode: 'lines', name: 'Cumulative %' }], { title: 'Revenue Concentration (Pareto)', height: 400 });
+                
+                // Infinite scroll for top customers
+                const tbody = document.getElementById('top-customers-tbody');
+                let offset = 0;
+                const limit = 100;
+                let hasMore = true;
+                let loading = false;
+                const loadMore = async () => {
+                    if (loading || !hasMore) return;
+                    loading = true;
+                    const data = await fetchJSON(`/api/revenue_contribution?limit=${limit}&offset=${offset}`);
+                    if (data.length === 0) { hasMore = false; loading = false; return; }
+                    data.forEach(c => {
+                        const row = tbody.insertRow();
+                        row.insertCell(0).innerText = c.customer_id;
+                        row.insertCell(1).innerText = formatMoney(c.total_revenue);
+                        row.insertCell(2).innerText = c.cumulative_percentage.toFixed(1) + '%';
+                    });
+                    offset += data.length;
+                    loading = false;
+                };
+                setupInfiniteScroll('top-customers-table', loadMore);
+                // Add export button
+                const container = document.getElementById('top-customers-container');
+                const exportBtn = createExportButton('/api/revenue_contribution?limit=100000', 'top_customers.csv');
+                container.appendChild(exportBtn);
             }
         },
 
@@ -590,10 +597,12 @@
             let filteredSeg = seg;
             if (filterState.valueRange.min !== null && filterState.valueRange.max !== null)
                 filteredSeg = seg.filter(c => c.total_revenue >= filterState.valueRange.min && c.total_revenue <= filterState.valueRange.max);
-            let highRiskHtml = '';
-            if (highRisk && highRisk.length) {
-                highRiskHtml = `<div class="section-header">⚠️ High‑Risk VIP Customers</div><div class="chart-card full-width"><div id="high-risk-table" style="max-height:400px; overflow-y:auto;"><table style="width:100%"><thead><tr><th>Customer ID</th><th>Name</th><th>Recency (days)</th><th>Frequency</th><th>Monetary</th></tr></thead><tbody id="high-risk-tbody"></tbody></table></div><button id="load-more-high-risk" class="btn-clear" style="margin-top:10px;">Load more</button></div>`;
-            }
+            let highRiskHtml = `<div class="section-header">⚠️ High‑Risk VIP Customers</div>
+                                <div class="chart-card full-width">
+                                    <div class="table-responsive" id="high-risk-table" style="max-height:500px; overflow-y:auto;">
+                                        <table style="width:100%"><thead><tr><th>Customer ID</th><th>Name</th><th>Recency (days)</th><th>Frequency</th><th>Monetary</th></tr></thead><tbody id="high-risk-tbody"></tbody></table>
+                                    </div>
+                                </div>`;
             let html = `<div class="section-header">👥 Customer Intelligence</div>
                         <div class="chart-row"><div class="chart-card"><div id="clv-highest-chart"></div><div class="caption">🏆 Top 5 Highest Lifetime Value</div></div><div class="chart-card"><div id="clv-lowest-chart"></div><div class="caption">⚠️ Bottom 5 Lowest Lifetime Value</div></div></div>
                         <div class="chart-row"><div class="chart-card"><div id="repeat-chart"></div></div><div class="chart-card"><div id="seg-pie"></div></div></div>${highRiskHtml}`;
@@ -606,13 +615,32 @@
                 renderChart('seg-pie', [{ labels: Object.keys(segAgg), values: Object.values(segAgg), type: 'pie', textinfo: 'label+percent', marker: { colors: ['#1e3c72', '#3b82f6', '#94a3b8', '#cbd5e1'] } }], { title: 'Customer Segments', height: 450 });
                 attachCrossFilterEvents('seg-pie', 'segment');
             }
-            if (highRisk && highRisk.length) {
-                const tbody = document.getElementById('high-risk-tbody');
-                const renderRow = (c) => `<tr><td>${c.customer_id}</td><td>${c.full_name || 'N/A'}</td><td>${c.recency_days}</td><td>${c.frequency}</td><td>${formatMoney(c.monetary)}</td></tr>`;
-                pagination.highRisk = { offset: 20, limit: 20, hasMore: highRisk.length === 20, loading: false };
-                const loadMoreHighRisk = () => loadMore('/api/high_risk_customers', 'high-risk-tbody', 'highRisk', renderRow);
-                document.getElementById('load-more-high-risk').onclick = loadMoreHighRisk;
-            }
+            // Infinite scroll for high-risk customers
+            const tbody = document.getElementById('high-risk-tbody');
+            let offset = 0;
+            const limit = 100;
+            let hasMore = true;
+            let loading = false;
+            const loadMoreHighRisk = async () => {
+                if (loading || !hasMore) return;
+                loading = true;
+                const data = await fetchJSON(`/api/high_risk_customers?limit=${limit}&offset=${offset}`);
+                if (data.length === 0) { hasMore = false; loading = false; return; }
+                data.forEach(c => {
+                    const row = tbody.insertRow();
+                    row.insertCell(0).innerText = c.customer_id;
+                    row.insertCell(1).innerText = c.full_name || 'N/A';
+                    row.insertCell(2).innerText = c.recency_days;
+                    row.insertCell(3).innerText = c.frequency;
+                    row.insertCell(4).innerText = formatMoney(c.monetary);
+                });
+                offset += data.length;
+                loading = false;
+            };
+            setupInfiniteScroll('high-risk-table', loadMoreHighRisk);
+            const highRiskContainer = document.querySelector('#high-risk-table').parentNode;
+            const exportHighRisk = createExportButton('/api/high_risk_customers?limit=100000', 'high_risk_customers.csv');
+            highRiskContainer.appendChild(exportHighRisk);
         },
 
         products: async () => {
@@ -668,9 +696,10 @@
             let html = `<div class="section-header">⭐ RFM Segmentation</div><div class="insight-card">📊 RFM groups: <span style="color:#ffd700;">● Champions</span> · <span style="color:#e74c3c;">● At Risk</span> · <span style="color:#2ecc71;">● Loyal</span> · <span style="color:#0728fe;">● Lost</span></div>
                         <div class="filter-group"><span class="filter-label">🎯 Filter by Segment:</span><select id="seg-drop" class="segment-select"><option value="">All</option>${segments.map(s => `<option value="${s}" ${filterState.selectedSegment === s ? 'selected' : ''}>${s}</option>`).join('')}</select><button id="clear-seg" class="btn-clear">Clear</button></div>
                         <div class="chart-row"><div class="chart-card"><div id="rfm-scatter"></div></div><div class="chart-card"><div id="seg-pie2"></div></div></div>
-                        <div class="section-header">📋 Segment Statistics</div><div class="chart-card full-width"><div id="seg-stats-table" style="max-height:300px; overflow-y:auto;"></div></div>`;
+                        <div class="section-header">📋 Segment Statistics</div><div class="chart-card full-width"><div class="table-responsive" id="seg-stats-table" style="max-height:300px; overflow-y:auto;"></div></div>
+                        <div class="section-header">📋 All Customers (RFM) – infinite scroll</div><div class="chart-card full-width"><div class="table-responsive" id="rfm-full-table" style="max-height:500px; overflow-y:auto;"><table style="width:100%"><thead><tr><th>Customer ID</th><th>Recency</th><th>Frequency</th><th>Monetary</th><th>Segment</th></tr></thead><tbody id="rfm-full-tbody"></tbody></table></div></div>`;
             document.getElementById('page-content').innerHTML = html;
-            // Build statistics
+            // Segment stats table
             const segStats = {};
             segments.forEach(seg => {
                 const custs = rfmData.filter(d => d[segField] === seg);
@@ -699,6 +728,33 @@
             document.getElementById('seg-pie2').on('plotly_click', data => { if(data.points) { filterState.selectedSegment = data.points[0].label; updateFilterUI(); refreshCurrentPage(); } });
             document.getElementById('seg-drop').addEventListener('change', e => { filterState.selectedSegment = e.target.value || null; updateFilterUI(); refreshCurrentPage(); });
             document.getElementById('clear-seg').addEventListener('click', () => { filterState.selectedSegment = null; updateFilterUI(); refreshCurrentPage(); });
+            
+            // Infinite scroll for full RFM table
+            const rfmTbody = document.getElementById('rfm-full-tbody');
+            let rfmOffset = 0;
+            const rfmLimit = 200;
+            let rfmHasMore = true;
+            let rfmLoading = false;
+            const loadMoreRFM = async () => {
+                if (rfmLoading || !rfmHasMore) return;
+                rfmLoading = true;
+                const data = await fetchJSON(`/api/rfm_segmentation?limit=${rfmLimit}&offset=${rfmOffset}`);
+                if (data.length === 0) { rfmHasMore = false; rfmLoading = false; return; }
+                data.forEach(c => {
+                    const row = rfmTbody.insertRow();
+                    row.insertCell(0).innerText = c.customer_id;
+                    row.insertCell(1).innerText = c.recency_days;
+                    row.insertCell(2).innerText = c.frequency;
+                    row.insertCell(3).innerText = formatMoney(c.monetary);
+                    row.insertCell(4).innerText = c[segField] || 'N/A';
+                });
+                rfmOffset += data.length;
+                rfmLoading = false;
+            };
+            setupInfiniteScroll('rfm-full-table', loadMoreRFM);
+            const rfmContainer = document.getElementById('rfm-full-table').parentNode;
+            const exportRFM = createExportButton('/api/rfm_segmentation?limit=100000', 'rfm_full.csv');
+            rfmContainer.appendChild(exportRFM);
         },
 
         cohort: async () => {

@@ -1542,8 +1542,26 @@ def generate_deep_insights_with_persona(kpis, filters, daily_revenue, monthly_re
     pay_df = extra_metrics.get('payment_methods')
     top_payment = pay_df.iloc[0].get('payment_method', 'N/A') if pay_df is not None and len(pay_df) > 0 else 'N/A'
 
+    # ----- SAFELY CONVERT KPI VALUES (fix for the ValueError) -----
+    def safe_float(val, default=0.0):
+        try:
+            return float(val)
+        except (TypeError, ValueError):
+            return default
+
+    def safe_int(val, default=0):
+        try:
+            return int(val)
+        except (TypeError, ValueError):
+            return default
+
+    total_revenue = safe_float(kpis.get('total_revenue', 0))
+    total_orders = safe_int(kpis.get('total_orders', 0))
+    total_customers = safe_int(kpis.get('total_customers', 0))
+    aov = safe_float(kpis.get('avg_order_value', 0))
+
     context = f"""
-KPIs: Revenue ${kpis.get('total_revenue',0):,.0f}, Orders {kpis.get('total_orders',0):,}, Customers {kpis.get('total_customers',0):,}, AOV ${kpis.get('avg_order_value',0):,.0f}
+KPIs: Revenue ${total_revenue:,.0f}, Orders {total_orders:,}, Customers {total_customers:,}, AOV ${aov:,.0f}
 Filters: Date {filters.get('dateRange',{}).get('min','any')} -> {filters.get('dateRange',{}).get('max','any')}, City {filters.get('selectedCity','any')}, Category {filters.get('selectedCategory','any')}
 Daily Revenue (last 7 days): {daily_str}
 Monthly Revenue (last 6 months): {monthly_str}
@@ -1577,7 +1595,7 @@ Churn Rate: {churn_rate_val if churn_rate_val is not None else 'N/A'}%
             revenue_categories, repeat_customers, clv_data, rfm_segments,
             cohort_retention, anomalies, high_risk, extra_metrics
         )
-
+        
 ai_insights_cache = TTLCache(maxsize=100, ttl=21600)
 
 @app.route('/api/ai_insights', methods=['POST'])
