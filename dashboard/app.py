@@ -72,7 +72,7 @@ class Config:
 
     # Performance tuning
     DATAFRAME_CACHE_SIZE = int(os.environ.get('DATAFRAME_CACHE_SIZE', 1))
-    MAX_ROWS_PER_DATASET = int(os.environ.get('MAX_ROWS_PER_DATASET', 500))
+    MAX_ROWS_PER_DATASET = int(os.environ.get('MAX_ROWS_PER_DATASET', 20000))
 
 # ------------------------------
 #  Flask app initialization
@@ -256,8 +256,8 @@ def sanitize_output(data):
     return data
 
 def validate_nlq_input(question):
-    if len(question) > 500:
-        return False, "Query too long (max 500 characters)"
+    if len(question) > 1000:
+        return False, "Query too long (max 1000 characters)"
     dangerous = [
         r';\s*DROP\s+TABLE', r';\s*DELETE\s+FROM', r';\s*UPDATE\s+.*SET',
         r';\s*INSERT\s+INTO', r'UNION\s+SELECT', r'--\s*$', r'/\*.*\*/'
@@ -849,7 +849,7 @@ def time_to_purchase():
 @app.route('/api/rfm_segmentation')
 @require_auth
 def rfm_segmentation():
-    limit = request.args.get('limit', default=500, type=int)
+    limit = request.args.get('limit', default=1000, type=int)
     offset = request.args.get('offset', default=0, type=int)
     df = friendly_data.get('RFM Segmentation')
     if df is not None and not df.empty:
