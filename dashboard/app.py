@@ -55,10 +55,6 @@ class Config:
     DATABASE_URL = os.environ.get('DATABASE_URL')
     if not DATABASE_URL:
         print("\n❌ ERROR: DATABASE_URL environment variable not set.")
-        print("   Please create a .env file with your Neon PostgreSQL URL.")
-        print("   Example .env content:")
-        print("   DATABASE_URL=postgresql://user:pass@host:5432/db")
-        print("   Then run: source .env  (or use python-dotenv)\n")
         sys.exit(1)
     
     GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
@@ -83,7 +79,7 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 app.secret_key = Config.SECRET_KEY
 
 CORS(app, origins=Config.CORS_ORIGINS, supports_credentials=True)
-Compress(app)                                   # Enable gzip compression
+Compress(app)
 
 # ------------------------------
 #  Rate Limiter
@@ -221,10 +217,8 @@ db = SecureDatabase(Config.DATABASE_URL)
 #  Performance indexes (run at startup)
 # ------------------------------
 def create_performance_indexes():
-    """Create indexes on frequently queried columns if they don't exist."""
     try:
         with db.get_cursor() as cur:
-            # Check if schema exists first
             cur.execute("SELECT schema_name FROM information_schema.schemata WHERE schema_name = 'warehouse'")
             if not cur.fetchone():
                 logger.warning("Schema 'warehouse' does not exist, skipping index creation")
@@ -239,7 +233,7 @@ def create_performance_indexes():
                 try:
                     cur.execute(sql)
                 except Exception as e:
-                    logger.warning(f"Index creation failed (may already exist): {e}")
+                    logger.warning(f"Index creation failed: {e}")
     except Exception as e:
         logger.warning(f"Could not check/create indexes: {e}")
 
@@ -288,7 +282,6 @@ def fix_date_extract(sql_query):
     return sql_query
 
 def clean_sql(sql_content):
-    """Remove comments, trim, and remove trailing semicolon."""
     lines = []
     for line in sql_content.split('\n'):
         if '--' in line:
@@ -297,28 +290,34 @@ def clean_sql(sql_content):
         if line:
             lines.append(line)
     sql = '\n'.join(lines)
-    # Strip any trailing whitespace and then remove a trailing semicolon
     sql = sql.strip()
     if sql.endswith(';'):
         sql = sql[:-1].strip()
     return sql
 
 # ------------------------------
-#  DataLoader (with reduced cache and row limits)
+#  DataLoader (lazy loading)
 # ------------------------------
 class DataLoader:
     def __init__(self):
-        self.sql_folder = self._find_sql_folder()
+        self.sql_folder = None
         self.sql_files = {}
         self._cache = OrderedDict()
         self._cache_maxsize = Config.DATAFRAME_CACHE_SIZE
-        self._index_sql_files()
+        self._loaded = False
+
+    def _ensure_loaded(self):
+        if not self._loaded:
+            self.sql_folder = self._find_sql_folder()
+            self._index_sql_files()
+            self._loaded = True
 
     def _find_sql_folder(self):
         possible = [Path('sql/analytics'), Path('../sql/analytics'), Path('Retail_Analytics/sql/analytics')]
         for p in possible:
             if p.exists():
                 return p
+        logger.warning("SQL folder not found. Charts may be empty.")
         return None
 
     def _index_sql_files(self):
@@ -327,6 +326,7 @@ class DataLoader:
         for sql_file in self.sql_folder.glob('*.sql'):
             name = re.sub(r'[^\w\-_]', '_', sql_file.stem)
             self.sql_files[name] = sql_file
+        logger.info(f"Loaded {len(self.sql_files)} SQL files")
 
     def _execute_sql_file(self, sql_path):
         try:
@@ -337,11 +337,8 @@ class DataLoader:
                 return None
             sql_content = add_schema_prefix(sql_content)
             sql_content = fix_date_extract(sql_content)
-            # Remove any existing LIMIT clause (case‑insensitive)
             sql_content = re.sub(r'\s+LIMIT\s+\d+', '', sql_content, flags=re.IGNORECASE)
-            # Also remove any stray semicolon that might remain before LIMIT
             sql_content = sql_content.rstrip(';').strip()
-            # Add our own LIMIT only for SELECT queries
             if sql_content.strip().upper().startswith('SELECT'):
                 sql_content += f" LIMIT {Config.MAX_ROWS_PER_DATASET}"
             result = db.execute_query(sql_content)
@@ -351,7 +348,6 @@ class DataLoader:
                 if len(df) > Config.MAX_ROWS_PER_DATASET:
                     logger.warning(f"Truncating {sql_path.name} from {len(df)} to {Config.MAX_ROWS_PER_DATASET} rows")
                     df = df.head(Config.MAX_ROWS_PER_DATASET)
-                # Downcast numeric columns to reduce memory
                 for col in df.select_dtypes(include=['float']).columns:
                     df[col] = pd.to_numeric(df[col], downcast='float')
                 for col in df.select_dtypes(include=['integer']).columns:
@@ -373,6 +369,7 @@ class DataLoader:
         return df
 
     def get_dataframe(self, sql_key):
+        self._ensure_loaded()
         if sql_key in self._cache:
             self._cache.move_to_end(sql_key)
             return self._cache[sql_key]
@@ -385,8 +382,7 @@ class DataLoader:
         self._cache[sql_key] = df
         if len(self._cache) > self._cache_maxsize:
             oldest_key = next(iter(self._cache))
-            logger.info(f"Evicting {oldest_key} from cache (size {len(self._cache)-1}/{self._cache_maxsize})")
-            # Use try/except to avoid KeyError if key disappears (race condition)
+            logger.info(f"Evicting {oldest_key} from cache")
             try:
                 del self._cache[oldest_key]
             except KeyError:
@@ -395,6 +391,7 @@ class DataLoader:
 
     @cached_property
     def friendly_data(self):
+        self._ensure_loaded()
         mapping = {
             '1a_Customer_Lifetime_Value__CLV_': 'Customer Lifetime Value',
             '1b_Daily_Revenue_Trends': 'Daily Revenue Trends',
@@ -438,36 +435,26 @@ class DataLoader:
             return []
         return df.replace({np.nan: None}).to_dict(orient='records')
 
-
 class LazyDataFrame:
     def __init__(self, loader, sql_key):
         self.loader = loader
         self.sql_key = sql_key
-
     def _get_df(self):
         return self.loader.get_dataframe(self.sql_key)
-
     def __getitem__(self, key):
         return self._get_df().__getitem__(key)
-
     def __setitem__(self, key, value):
         self._get_df()[key] = value
-
     def __getattr__(self, name):
         return getattr(self._get_df(), name)
-
     def __len__(self):
         return len(self._get_df())
-
     def __bool__(self):
         return bool(self._get_df())
-
     def __contains__(self, key):
         return key in self._get_df()
-
     def to_dict(self, orient='records'):
         return self._get_df().to_dict(orient=orient)
-
     def copy(self):
         return self._get_df().copy()
 
@@ -538,7 +525,7 @@ def call_ai_provider(prompt):
     return None
 
 # ------------------------------
-#  API Endpoints (with pagination and aggregation)
+#  API Endpoints
 # ------------------------------
 @app.route('/')
 def index():
@@ -592,7 +579,6 @@ def value_range():
 @app.route('/api/kpis')
 @require_auth
 def kpis():
-    """Direct SQL aggregation – no loading of full DataFrames."""
     with db.get_cursor() as cur:
         cur.execute("SELECT COALESCE(SUM(net_amount), 0) FROM warehouse.fact_orders")
         total_revenue = cur.fetchone()['coalesce']
@@ -611,7 +597,6 @@ def kpis():
 @app.route('/api/revenue_trend', methods=['GET'])
 @require_auth
 def revenue_trend():
-    """Aggregated revenue trend (day, week, month) to reduce payload."""
     granularity = request.args.get('granularity', 'month')
     if granularity == 'day':
         sql = """
@@ -752,20 +737,29 @@ def order_value_distribution():
 @require_auth
 def customer_clv():
     df = friendly_data.get('Customer Lifetime Value')
-    if df is not None and not df.empty:
-        if 'category' in df.columns:
-            highest = df[df['category'] == 'Highest'].head(5)
-            lowest = df[df['category'] == 'Lowest'].head(5)
-        else:
-            amount_col = 'total_net_amount' if 'total_net_amount' in df.columns else 'total_revenue'
-            if amount_col not in df.columns:
-                return jsonify({'highest': [], 'lowest': []})
-            df[amount_col] = pd.to_numeric(df[amount_col], errors='coerce').fillna(0)
-            sorted_df = df.sort_values(amount_col, ascending=False)
-            highest = sorted_df.head(5)
-            lowest = sorted_df.tail(5)
-        return jsonify({'highest': sanitize_output(loader.to_dict(highest)), 'lowest': sanitize_output(loader.to_dict(lowest))})
-    return jsonify({'highest': [], 'lowest': []})
+    if df is None or df.empty:
+        return jsonify({'highest': [], 'lowest': []})
+    
+    # Find the monetary column
+    amount_col = None
+    for col in ['total_net_amount', 'total_revenue', 'clv', 'customer_lifetime_value']:
+        if col in df.columns:
+            amount_col = col
+            break
+    if not amount_col:
+        logger.warning("No amount column found in CLV data")
+        return jsonify({'highest': [], 'lowest': []})
+    
+    df[amount_col] = pd.to_numeric(df[amount_col], errors='coerce').fillna(0)
+    
+    # Get top 5 and bottom 5
+    highest = df.nlargest(5, amount_col)
+    lowest = df.nsmallest(5, amount_col)
+    
+    return jsonify({
+        'highest': sanitize_output(loader.to_dict(highest)),
+        'lowest': sanitize_output(loader.to_dict(lowest))
+    })
 
 @app.route('/api/repeat_vs_onetime')
 @require_auth
@@ -786,7 +780,6 @@ def customer_segmentation():
         return jsonify([])
     df['total_revenue'] = pd.to_numeric(df['total_revenue'], errors='coerce').fillna(0)
     try:
-        # qcut requires at least 4 unique values
         if len(df['total_revenue'].unique()) >= 4:
             df['segment'] = pd.qcut(df['total_revenue'], q=4, labels=['Bronze', 'Silver', 'Gold', 'Platinum'])
         else:
@@ -956,7 +949,6 @@ def aov_by_category():
 @require_auth
 def frequency_by_category():
     df = friendly_data.get('Revenue by Product Category')
-    # Defensive check: df might be a LazyDataFrame that raises KeyError on .empty if the underlying query failed.
     try:
         if df is None or df.empty:
             return jsonify([])
@@ -1812,7 +1804,6 @@ def health():
 # ------------------------------
 #  Run app
 # ------------------------------
-# Flag to ensure startup tasks run only once
 _startup_done = False
 
 @app.before_request
@@ -1823,12 +1814,13 @@ def run_startup_tasks():
             create_performance_indexes()
             with app.app_context():
                 train_simulation_model()
+            logger.info("✅ Startup tasks completed.")
         except Exception as e:
-            app.logger.error(f"Startup tasks failed: {e}")
+            logger.error(f"⚠️ Startup tasks failed (will retry): {e}")
+            return
         _startup_done = True
 
 if __name__ == '__main__':
-    # For local development, you can still run them synchronously
     create_performance_indexes()
     with app.app_context():
         train_simulation_model()

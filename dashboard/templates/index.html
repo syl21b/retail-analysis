@@ -10,6 +10,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.24.1/plotly.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <style>
+        /* Your existing CSS (keep as is) */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: #f8fafc; color: #0f172a; }
         .dashboard { display: flex; min-height: 100vh; }
@@ -297,7 +298,7 @@
                         j++;
                     }
                     i = j - 1;
-                    let tableHtml = '</td>';
+                    let tableHtml = '<table>';
                     let headerRows = rows.filter(r => !/^[\|\s\-:]+$/.test(r));
                     if (headerRows.length) {
                         let cells = headerRows[0].slice(1, -1).split('|').map(c => c.trim());
@@ -360,13 +361,29 @@
         if (currentPage && pages[currentPage]) await pages[currentPage]();
     }
 
+    // IMPROVED renderChart function: handles both bar and pie charts
     function renderChart(elementId, traces, layout) {
         const el = document.getElementById(elementId);
         if (!el) return;
-        // Check if we have valid data
-        if (traces && traces.length && traces[0].x && traces[0].x.length) {
+        // Validate that we have traces with data
+        if (!traces || traces.length === 0) {
+            el.innerHTML = '<div class="insight-card" style="text-align:center;">No data available for this chart.</div>';
+            return;
+        }
+        const trace = traces[0];
+        // For bar/line charts (x and y arrays must have length > 0)
+        if (trace.x && trace.y && trace.x.length > 0 && trace.y.length > 0) {
             Plotly.newPlot(elementId, traces, layout || { height: 400, title: 'Chart' }, { responsive: true });
-        } else {
+        }
+        // For pie charts (labels and values arrays)
+        else if (trace.labels && trace.values && trace.labels.length > 0 && trace.values.length > 0) {
+            Plotly.newPlot(elementId, traces, layout || { height: 400, title: 'Chart' }, { responsive: true });
+        }
+        // For scatter plots (x and y)
+        else if (trace.x && trace.y && trace.x.length > 0) {
+            Plotly.newPlot(elementId, traces, layout || { height: 400, title: 'Chart' }, { responsive: true });
+        }
+        else {
             el.innerHTML = '<div class="insight-card" style="text-align:center;">No data available for this chart.</div>';
         }
     }
@@ -592,10 +609,6 @@
             const highestCLV = clvData.highest || [];
             const lowestCLV = clvData.lowest || [];
             
-            console.log('Highest CLV count:', highestCLV.length);
-            console.log('Lowest CLV count:', lowestCLV.length);
-            if (lowestCLV.length) console.log('Sample lowest:', lowestCLV[0]);
-            
             let filteredSeg = seg;
             if (filterState.valueRange.min !== null && filterState.valueRange.max !== null)
                 filteredSeg = seg.filter(c => c.total_revenue >= filterState.valueRange.min && c.total_revenue <= filterState.valueRange.max);
@@ -603,7 +616,7 @@
             let highRiskHtml = `<div class="section-header">⚠️ High‑Risk VIP Customers</div>
                                 <div class="chart-card full-width">
                                     <div class="table-responsive" id="high-risk-table" style="max-height:500px; overflow-y:auto;">
-                                        <table style="width:100%"><thead><tr><th>Customer ID</th><th>Name</th><th>Recency (days)</th><th>Frequency</th><th>Monetary</th></table></thead><tbody id="high-risk-tbody"></tbody></table>
+                                        <table style="width:100%"><thead><tr><th>Customer ID</th><th>Name</th><th>Recency (days)</th><th>Frequency</th><th>Monetary</th></tr></thead><tbody id="high-risk-tbody"></tbody></table>
                                     </div>
                                 </div>`;
             
@@ -763,9 +776,9 @@
                     avgMon: custs.reduce((s,c)=>s+c.monetary,0)/custs.length
                 };
             });
-            const statsHtml = '<table><thead><tr><th>Segment</th><th>Customers</th><th>Avg Recency</th><th>Avg Frequency</th><th>Avg Monetary</th></tr></thead><tbody>' +
+            const statsHtml = '<table><thead><tr><th>Segment</th><th>Customers</th><th>Avg Recency</th><th>Avg Frequency</th><th>Avg Monetary</th><tr></thead><tbody>' +
                 segments.map(seg => `<tr style="border-left:4px solid ${getColor(seg)};"><td>${seg}</td><td>${segStats[seg].count}</td><td>${segStats[seg].avgRecency.toFixed(1)}</td><td>${segStats[seg].avgFreq.toFixed(1)}</td><td>${formatMoney(segStats[seg].avgMon)}</td></tr>`).join('') +
-                '</tbody></table>';
+                '</tbody><tr>';
             document.getElementById('seg-stats-table').innerHTML = statsHtml;
             const scatterTraces = [];
             const toShow = filterState.selectedSegment ? [filterState.selectedSegment] : segments;
@@ -825,7 +838,7 @@
         },
 
         insights: async () => {
-            const html = `<div class="section-header">📖 Project Insights: ETL Pipeline & Business Value</div><div class="info-card"><strong>🚀 About this Project</strong><br>4M+ records, 99.8% validity, PySpark, Databricks, Delta Lake. 12 analytical use cases.</div><div class="section-header">🎯 Business Problems Solved</div><div class="use-case-grid"><div class="use-case-card"><div class="use-case-title">💰 Revenue Leakage & Growth</div><div class="use-case-desc">Identify underperforming cities/categories.</div><div class="use-case-action">Reallocate marketing budget.</div></div><div class="use-case-card"><div class="use-case-title">👥 Customer Churn & Loyalty</div><div class="use-case-desc">RFM and cohort retention highlight at-risk customers.</div><div class="use-case-action">Launch reactivation campaigns.</div></div><div class="use-case-card"><div class="use-case-title">📦 Operational Efficiency</div><div class="use-case-desc">Fulfillment gaps and payment method analysis.</div><div class="use-case-action">Improve logistics & checkout.</div></div><div class="use-case-card"><div class="use-case-title">🏷️ Product Mix Optimization</div><div class="use-case-desc">Category/subcategory revenue guides inventory.</div><div class="use-case-action">Bundle or promote accordingly.</div></div></div><div class="section-header">📊 Analytical Use Cases (3 Levels)</div><div class="chart-card full-width"><table><thead><tr><th>Level</th><th>Use Case</th><th>Business Question</th></tr></thead><tbody><tr><td rowspan="3"><strong>Level 1</strong></td><td>CLV</td><td>Highest lifetime value customers?</td></tr><tr><td>Daily Revenue Trends</td><td>Seasonality or growth?</td></tr><tr><td>Top Cities</td><td>Where to expand?</td></tr><tr><td rowspan="3"><strong>Level 2</strong></td><td>Repeat vs One-Time</td><td>Conversion to loyal?</td></tr><tr><td>Order Fulfillment</td><td>Shipping delays impact?</td></tr><tr><td>Payment Methods</td><td>Which drive revenue?</td></tr><tr><td rowspan="3"><strong>Level 3</strong></td><td>Product Subcategory</td><td>Cash cows vs underperformers?</td></tr><tr><td>RFM Segmentation</td><td>Personalized marketing?</td></tr><tr><td>Cohort Retention</td><td>New vs old customers?</td></tr></tbody></table></div><div class="insight-card"><strong>🏆 Key Achievements</strong><br>4M+ records, 99.8% validity, factory pattern design, production-grade stack.</div>`;
+            const html = `<div class="section-header">📖 Project Insights: ETL Pipeline & Business Value</div><div class="info-card"><strong>🚀 About this Project</strong><br>4M+ records, 99.8% validity, PySpark, Databricks, Delta Lake. 12 analytical use cases.</div><div class="section-header">🎯 Business Problems Solved</div><div class="use-case-grid"><div class="use-case-card"><div class="use-case-title">💰 Revenue Leakage & Growth</div><div class="use-case-desc">Identify underperforming cities/categories.</div><div class="use-case-action">Reallocate marketing budget.</div></div><div class="use-case-card"><div class="use-case-title">👥 Customer Churn & Loyalty</div><div class="use-case-desc">RFM and cohort retention highlight at-risk customers.</div><div class="use-case-action">Launch reactivation campaigns.</div></div><div class="use-case-card"><div class="use-case-title">📦 Operational Efficiency</div><div class="use-case-desc">Fulfillment gaps and payment method analysis.</div><div class="use-case-action">Improve logistics & checkout.</div></div><div class="use-case-card"><div class="use-case-title">🏷️ Product Mix Optimization</div><div class="use-case-desc">Category/subcategory revenue guides inventory.</div><div class="use-case-action">Bundle or promote accordingly.</div></div></div><div class="section-header">📊 Analytical Use Cases (3 Levels)</div><div class="chart-card full-width"></table><thead><tr><th>Level</th><th>Use Case</th><th>Business Question</th></tr></thead><tbody><tr><td rowspan="3"><strong>Level 1</strong></td><td>CLV</td><td>Highest lifetime value customers?</td></tr><tr><td>Daily Revenue Trends</td><td>Seasonality or growth?</td></tr><tr><td>Top Cities</td><td>Where to expand?</td></tr><tr><td rowspan="3"><strong>Level 2</strong></td><td>Repeat vs One-Time</td><td>Conversion to loyal?</td></tr><tr><td>Order Fulfillment</td><td>Shipping delays impact?</td></tr><tr><td>Payment Methods</td><td>Which drive revenue?</td></tr><tr><td rowspan="3"><strong>Level 3</strong></td><td>Product Subcategory</td><td>Cash cows vs underperformers?</td></tr><tr><td>RFM Segmentation</td><td>Personalized marketing?</td></tr><tr><td>Cohort Retention</td><td>New vs old customers?</td></tr></tbody></table></div><div class="insight-card"><strong>🏆 Key Achievements</strong><br>4M+ records, 99.8% validity, factory pattern design, production-grade stack.</div>`;
             document.getElementById('page-content').innerHTML = html;
         },
 
