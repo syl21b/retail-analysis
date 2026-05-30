@@ -10,6 +10,7 @@ from functools import cached_property, wraps
 from pathlib import Path
 from collections import defaultdict, OrderedDict
 from contextlib import contextmanager
+import sys
 
 import pandas as pd
 import numpy as np
@@ -26,20 +27,16 @@ from cachetools import TTLCache
 from sklearn.linear_model import LinearRegression
 import io
 import tempfile
-import sys
 from dotenv import load_dotenv
 
 load_dotenv()
 warnings.filterwarnings('ignore')
 
-# ------------------------------
-#  Logging setup
-# ------------------------------
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # ------------------------------
-#  Configuration (environment based)
+#  Configuration
 # ------------------------------
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', os.urandom(32))
@@ -54,7 +51,7 @@ class Config:
     
     DATABASE_URL = os.environ.get('DATABASE_URL')
     if not DATABASE_URL:
-        print("\n❌ ERROR: DATABASE_URL environment variable not set.")
+        logger.error("DATABASE_URL environment variable not set.")
         sys.exit(1)
     
     GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
@@ -66,12 +63,11 @@ class Config:
     DISABLE_AUTH = os.environ.get('DISABLE_AUTH', 'true').lower() == 'true'
     DEBUG = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
 
-    # Performance tuning
     DATAFRAME_CACHE_SIZE = int(os.environ.get('DATAFRAME_CACHE_SIZE', 1))
     MAX_ROWS_PER_DATASET = int(os.environ.get('MAX_ROWS_PER_DATASET', 20000))
 
 # ------------------------------
-#  Flask app initialization
+#  Flask app
 # ------------------------------
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -82,12 +78,11 @@ CORS(app, origins=Config.CORS_ORIGINS, supports_credentials=True)
 Compress(app)
 
 # ------------------------------
-#  Rate Limiter
+#  Rate Limiter & Auth
 # ------------------------------
 class RateLimiter:
     def __init__(self):
         self.requests = defaultdict(list)
-    
     def is_allowed(self, key, limit, window_seconds):
         now = datetime.utcnow()
         cutoff = now - timedelta(seconds=window_seconds)
@@ -110,29 +105,19 @@ def rate_limit(limit, window=3600, by_ip=True):
         return decorated
     return decorator
 
-# ------------------------------
-#  Authentication (JWT)
-# ------------------------------
 class AuthManager:
     def __init__(self):
         self.api_keys = {}
-    
     def generate_api_key(self, user_id, role='analyst'):
         key = secrets.token_urlsafe(32)
         hashed = hashlib.sha256(key.encode()).hexdigest()
         self.api_keys[hashed] = {'user_id': user_id, 'role': role, 'created_at': datetime.utcnow()}
         return key
-    
     def verify_api_key(self, api_key):
         hashed = hashlib.sha256(api_key.encode()).hexdigest()
         return self.api_keys.get(hashed)
-    
     def generate_jwt(self, user_id, role):
-        payload = {
-            'user_id': user_id,
-            'role': role,
-            'exp': datetime.utcnow() + timedelta(hours=1)
-        }
+        payload = {'user_id': user_id, 'role': role, 'exp': datetime.utcnow() + timedelta(hours=1)}
         return jwt.encode(payload, app.config['SECRET_KEY'], algorithm='HS256')
 
 auth_manager = AuthManager()
@@ -143,7 +128,6 @@ def require_auth(f):
         if Config.DISABLE_AUTH:
             request.current_user = {'user_id': 'dev_user', 'role': 'admin'}
             return f(*args, **kwargs)
-        
         auth_header = request.headers.get('Authorization')
         if not auth_header:
             return jsonify({'error': 'Missing authorization header'}), 401
@@ -175,18 +159,15 @@ def require_role(roles):
     return decorator
 
 # ------------------------------
-#  Secure Database Pool
+#  Database
 # ------------------------------
 class SecureDatabase:
     def __init__(self, db_url, min_conn=1, max_conn=10):
         self.pool = SimpleConnectionPool(min_conn, max_conn, db_url)
-    
     def get_connection(self):
         return self.pool.getconn()
-    
     def put_connection(self, conn):
         self.pool.putconn(conn)
-    
     @contextmanager
     def get_cursor(self):
         conn = None
@@ -203,7 +184,6 @@ class SecureDatabase:
         finally:
             if conn:
                 self.put_connection(conn)
-    
     def execute_query(self, query, params=None):
         with self.get_cursor() as cur:
             cur.execute(query, params)
@@ -213,9 +193,6 @@ class SecureDatabase:
 
 db = SecureDatabase(Config.DATABASE_URL)
 
-# ------------------------------
-#  Performance indexes (run at startup)
-# ------------------------------
 def create_performance_indexes():
     try:
         with db.get_cursor() as cur:
@@ -238,7 +215,7 @@ def create_performance_indexes():
         logger.warning(f"Could not check/create indexes: {e}")
 
 # ------------------------------
-#  Input validation helpers
+#  SQL helpers
 # ------------------------------
 def sanitize_output(data):
     if isinstance(data, str):
@@ -251,7 +228,7 @@ def sanitize_output(data):
 
 def validate_nlq_input(question):
     if len(question) > 1000:
-        return False, "Query too long (max 1000 characters)"
+        return False, "Query too long"
     dangerous = [
         r';\s*DROP\s+TABLE', r';\s*DELETE\s+FROM', r';\s*UPDATE\s+.*SET',
         r';\s*INSERT\s+INTO', r'UNION\s+SELECT', r'--\s*$', r'/\*.*\*/'
@@ -261,9 +238,6 @@ def validate_nlq_input(question):
             return False, "Potentially dangerous query blocked"
     return True, ""
 
-# ------------------------------
-#  SQL Utilities (with schema prefix)
-# ------------------------------
 def add_schema_prefix(sql_query, schema='warehouse'):
     tables = ['fact_orders', 'dim_customers', 'dim_products', 'dim_location',
               'dim_payment', 'dim_status', 'dim_time']
@@ -273,12 +247,11 @@ def add_schema_prefix(sql_query, schema='warehouse'):
     return sql_query
 
 def fix_date_extract(sql_query):
-    pattern = r'EXTRACT\(DAY\s+FROM\s+\(CURRENT_DATE\s*-\s*MAX\(([^)]+)\)\)\)'
-    sql_query = re.sub(pattern, r'(CURRENT_DATE - MAX(\1))', sql_query, flags=re.IGNORECASE)
-    pattern = r'EXTRACT\(DAY\s+FROM\s+\(MAX\(([^)]+)\)\s*-\s*MIN\(([^)]+)\)\)\)'
-    sql_query = re.sub(pattern, r'(MAX(\1) - MIN(\2))', sql_query, flags=re.IGNORECASE)
-    pattern = r'EXTRACT\(DAY\s+FROM\s+\(([^)]+)\)\)'
-    sql_query = re.sub(pattern, r'(\1)', sql_query, flags=re.IGNORECASE)
+    sql_query = re.sub(r'EXTRACT\(DAY\s+FROM\s+\(CURRENT_DATE\s*-\s*MAX\(([^)]+)\)\)\)',
+                       r'(CURRENT_DATE - MAX(\1))', sql_query, flags=re.IGNORECASE)
+    sql_query = re.sub(r'EXTRACT\(DAY\s+FROM\s+\(MAX\(([^)]+)\)\s*-\s*MIN\(([^)]+)\)\)\)',
+                       r'(MAX(\1) - MIN(\2))', sql_query, flags=re.IGNORECASE)
+    sql_query = re.sub(r'EXTRACT\(DAY\s+FROM\s+\(([^)]+)\)\)', r'(\1)', sql_query, flags=re.IGNORECASE)
     return sql_query
 
 def clean_sql(sql_content):
@@ -289,14 +262,13 @@ def clean_sql(sql_content):
         line = line.strip()
         if line:
             lines.append(line)
-    sql = '\n'.join(lines)
-    sql = sql.strip()
+    sql = '\n'.join(lines).strip()
     if sql.endswith(';'):
         sql = sql[:-1].strip()
     return sql
 
 # ------------------------------
-#  DataLoader (lazy loading)
+#  DataLoader with lazy loading
 # ------------------------------
 class DataLoader:
     def __init__(self):
@@ -308,9 +280,13 @@ class DataLoader:
 
     def _ensure_loaded(self):
         if not self._loaded:
-            self.sql_folder = self._find_sql_folder()
-            self._index_sql_files()
-            self._loaded = True
+            try:
+                self.sql_folder = self._find_sql_folder()
+                self._index_sql_files()
+            except Exception as e:
+                logger.error(f"Error loading SQL files: {e}")
+            finally:
+                self._loaded = True
 
     def _find_sql_folder(self):
         possible = [Path('sql/analytics'), Path('../sql/analytics'), Path('Retail_Analytics/sql/analytics')]
@@ -460,7 +436,6 @@ class LazyDataFrame:
 
 loader = DataLoader()
 friendly_data = loader.friendly_data
-
 def get_dataset(name):
     return loader.to_dict(friendly_data.get(name, pd.DataFrame()))
 
@@ -500,10 +475,8 @@ def call_ai_provider(prompt):
     if genai_client:
         try:
             response = genai_client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=prompt,
-                config=types.GenerateContentConfig(temperature=0.7, max_output_tokens=8192, top_p=0.95)
-            )
+                model="gemini-2.5-flash", contents=prompt,
+                config=types.GenerateContentConfig(temperature=0.7, max_output_tokens=8192, top_p=0.95))
             logger.info("✅ AI response from Gemini.")
             return response.text
         except Exception as e:
@@ -513,19 +486,16 @@ def call_ai_provider(prompt):
             completion = groq_client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
                 messages=[{"role": "user", "content": prompt}],
-                temperature=0.7,
-                max_tokens=8192,
-                top_p=0.95
-            )
+                temperature=0.7, max_tokens=8192, top_p=0.95)
             logger.info("✅ AI response from Groq.")
             return completion.choices[0].message.content
         except Exception as e:
             logger.error(f"Groq error: {e}")
-    logger.warning("No AI provider available. Falling back to local analysis.")
+    logger.warning("No AI provider available.")
     return None
 
 # ------------------------------
-#  API Endpoints
+#  API Endpoints (pagination and aggregation)
 # ------------------------------
 @app.route('/')
 def index():
@@ -614,7 +584,7 @@ def revenue_trend():
             GROUP BY DATE_TRUNC('week', dt.date)
             ORDER BY period
         """
-    else:  # month
+    else:
         sql = """
             SELECT DATE_TRUNC('month', dt.date) AS period, SUM(fo.net_amount) AS revenue
             FROM warehouse.fact_orders fo
@@ -739,8 +709,6 @@ def customer_clv():
     df = friendly_data.get('Customer Lifetime Value')
     if df is None or df.empty:
         return jsonify({'highest': [], 'lowest': []})
-    
-    # Find the monetary column
     amount_col = None
     for col in ['total_net_amount', 'total_revenue', 'clv', 'customer_lifetime_value']:
         if col in df.columns:
@@ -749,13 +717,9 @@ def customer_clv():
     if not amount_col:
         logger.warning("No amount column found in CLV data")
         return jsonify({'highest': [], 'lowest': []})
-    
     df[amount_col] = pd.to_numeric(df[amount_col], errors='coerce').fillna(0)
-    
-    # Get top 5 and bottom 5
     highest = df.nlargest(5, amount_col)
     lowest = df.nsmallest(5, amount_col)
-    
     return jsonify({
         'highest': sanitize_output(loader.to_dict(highest)),
         'lowest': sanitize_output(loader.to_dict(lowest))
@@ -973,7 +937,6 @@ def get_schema_description():
     tables = db.execute_query(tables_query, (schema_name,))
     if not tables:
         return "No tables found in warehouse schema."
-    
     description = "Database schema for retail analytics (schema: warehouse):\n\n"
     for tbl in tables:
         table = tbl['table_name']
@@ -989,7 +952,6 @@ def get_schema_description():
             description += f"- warehouse.{table}: {col_list}\n"
         else:
             description += f"- warehouse.{table}: (no columns found)\n"
-    
     description += "\nKey metrics (derived): total_revenue = sum(net_amount), total_orders = count(distinct order_id)\n"
     try:
         date_range_query = "SELECT MIN(date) AS min_date, MAX(date) AS max_date FROM warehouse.dim_time WHERE date IS NOT NULL"
@@ -1057,24 +1019,19 @@ def natural_language_query():
     question = request.args.get('q', '').strip()
     if not question:
         return jsonify({"error": "Missing 'q' parameter"}), 400
-    
     is_valid, msg = validate_nlq_input(question)
     if not is_valid:
         return jsonify({"error": msg}), 400
-
     cache_key = hashlib.md5(question.encode()).hexdigest()
     if cache_key in nlq_cache:
         return jsonify({"question": question, "results": nlq_cache[cache_key], "cached": True})
-
     max_attempts = 2
     last_error = None
     sql = None
-
     for attempt in range(max_attempts):
         sql = generate_sql_from_question(question, previous_error=last_error)
         if not sql or sql == '-- impossible request':
             return jsonify({"error": "Could not generate SQL", "question": question}), 400
-
         try:
             test_sql = add_schema_prefix(sql)
             test_sql = fix_date_extract(test_sql)
@@ -1087,7 +1044,6 @@ def natural_language_query():
             logger.warning(f"NLQ attempt {attempt+1} failed: {last_error}")
             if attempt == max_attempts - 1:
                 return jsonify({"error": f"SQL failed after {max_attempts} attempts", "db_error": last_error}), 500
-
     try:
         sql = add_schema_prefix(sql)
         sql = fix_date_extract(sql)
@@ -1171,22 +1127,18 @@ def train_simulation_model():
     if df.empty or len(df) < 3:
         logger.warning("Not enough monthly data to train simulation model. Using default coefficients.")
         return
-
     df = df.sort_values('year_month')
     df['revenue_pct'] = df['total_revenue'].pct_change() * 100
     df['repeat_rate_pct'] = df['repeat_rate'].pct_change() * 100
     df['aov_pct'] = df['aov'].pct_change() * 100
     df['churn_rate_pct'] = df['churn_rate'].pct_change() * 100
-
     numeric_cols = ['revenue_pct', 'repeat_rate_pct', 'aov_pct', 'churn_rate_pct']
     for col in numeric_cols:
         df[col] = pd.to_numeric(df[col], errors='coerce')
     df_clean = df.replace([np.inf, -np.inf], np.nan).dropna(subset=numeric_cols)
-
     if len(df_clean) < 2:
         logger.warning("Not enough clean monthly data points for regression. Using default coefficients.")
         return
-
     X_repeat = df_clean['repeat_rate_pct'].values.reshape(-1, 1).astype(float)
     y_revenue = df_clean['revenue_pct'].values.astype(float)
     if len(X_repeat) >= 2:
@@ -1194,21 +1146,18 @@ def train_simulation_model():
         model.fit(X_repeat, y_revenue)
         SIMULATION_COEFFS["repeat_rate"] = float(model.coef_[0])
         logger.info(f"Trained repeat_rate coefficient: {SIMULATION_COEFFS['repeat_rate']:.4f}")
-
     X_aov = df_clean['aov_pct'].values.reshape(-1, 1).astype(float)
     if len(X_aov) >= 2:
         model = LinearRegression()
         model.fit(X_aov, y_revenue)
         SIMULATION_COEFFS["aov"] = float(model.coef_[0])
         logger.info(f"Trained aov coefficient: {SIMULATION_COEFFS['aov']:.4f}")
-
     X_churn = df_clean['churn_rate_pct'].values.reshape(-1, 1).astype(float)
     if len(X_churn) >= 2:
         model = LinearRegression()
         model.fit(X_churn, y_revenue)
         SIMULATION_COEFFS["churn_rate"] = -float(model.coef_[0])
         logger.info(f"Trained churn_rate coefficient: {SIMULATION_COEFFS['churn_rate']:.4f}")
-
     SIMULATION_COEFFS["last_trained"] = datetime.now().isoformat()
 
 @app.route('/api/simulate/train', methods=['POST'])
@@ -1236,28 +1185,23 @@ def simulate():
         return jsonify({"error": "Invalid request"}), 400
     metric = data.get('metric')
     delta = float(data.get('delta', 0))
-
     try:
         total_revenue = kpis().json.get('total_revenue', 0)
         total_orders = kpis().json.get('total_orders', 0)
         aov_current = total_revenue / total_orders if total_orders else 0
-
         coeff = SIMULATION_COEFFS.get(metric, 1.0)
         if metric == 'churn_rate':
             uplift_pct = delta * coeff
         else:
             uplift_pct = delta * coeff
-
         estimated_uplift = total_revenue * (uplift_pct / 100)
         new_revenue = total_revenue + estimated_uplift
-
         extra_info = {}
         if metric == 'aov':
             extra_info = {
                 "current_AOV": round(aov_current, 2),
                 "new_AOV": round(aov_current * (1 + delta/100), 2)
             }
-
         return jsonify({
             "metric": metric,
             "delta": delta,
@@ -1273,7 +1217,7 @@ def simulate():
         return jsonify({"error": str(e)}), 500
 
 # ------------------------------
-#  AI Insights (with fixed repeat rate and order status)
+#  AI Insights (full, as in original)
 # ------------------------------
 PERSONA_TEMPLATES = {
     "conservative_cfo": """
@@ -1353,7 +1297,6 @@ def fix_list_numbering(text):
 def generate_local_deep_insights_fallback(kpis, filters, daily_revenue, monthly_revenue, top_cities,
                                           revenue_categories, repeat_customers, clv_data, rfm_segments,
                                           cohort_retention, anomalies, high_risk, extra_metrics):
-    # Robust repeat rate extraction
     one_time = 0
     repeat_cust = 0
     one_time = repeat_customers.get('one-time', repeat_customers.get('one_time', 0))
@@ -1372,7 +1315,6 @@ def generate_local_deep_insights_fallback(kpis, filters, daily_revenue, monthly_
     repeat_rate = (repeat_cust / total_cust * 100) if total_cust else 0
     aov = kpis.get('avg_order_value', 0)
     total_rev = kpis.get('total_revenue', 0)
-    
     status_df = extra_metrics.get('order_status')
     status_summary = ""
     if status_df is not None and not status_df.empty:
@@ -1386,7 +1328,6 @@ def generate_local_deep_insights_fallback(kpis, filters, daily_revenue, monthly_
         status_summary = ", ".join(status_list[:5])
     else:
         status_summary = "No order status data"
-    
     report = []
     report.append("# 📊 Retail Analytics – Deep Business Report (AI Fallback)\n")
     report.append("## Executive Summary\n")
@@ -1460,12 +1401,11 @@ def generate_deep_insights_with_persona(kpis, filters, daily_revenue, monthly_re
                                          revenue_categories, repeat_customers, clv_data, rfm_segments,
                                          cohort_retention, anomalies, high_risk, extra_metrics,
                                          persona="balanced_analyst"):
-    # ----- SAFE REPEAT RATE EXTRACTION -----
     one_time = 0
     repeat_cust = 0
-    one_time = repeat_customers.get('one-time', repeat_customers.get('one_time', 
+    one_time = repeat_customers.get('one-time', repeat_customers.get('one_time',
                repeat_customers.get('One-Time', repeat_customers.get('One_Time', 0))))
-    repeat_cust = repeat_customers.get('repeat', repeat_customers.get('repeat_customer', 
+    repeat_cust = repeat_customers.get('repeat', repeat_customers.get('repeat_customer',
                                           repeat_customers.get('Repeat', 0)))
     if one_time == 0:
         for k, v in repeat_customers.items():
@@ -1480,8 +1420,6 @@ def generate_deep_insights_with_persona(kpis, filters, daily_revenue, monthly_re
                 break
     total_cust = one_time + repeat_cust
     repeat_rate = (repeat_cust / total_cust * 100) if total_cust else 0
-
-    # Order status summary
     status_df = extra_metrics.get('order_status')
     status_summary = ""
     if status_df is not None and not status_df.empty:
@@ -1495,63 +1433,47 @@ def generate_deep_insights_with_persona(kpis, filters, daily_revenue, monthly_re
         status_summary = ", ".join(status_list[:5])
     else:
         status_summary = "No order status data available"
-
-    # Build daily and monthly strings
     daily_vals = []
     for d in daily_revenue[-7:]:
         val = d.get('total_amount') or d.get('revenue') or 0
         daily_vals.append(f"${val:,.0f}")
     daily_str = ", ".join(daily_vals) if daily_vals else "no data"
-    
     monthly_str = ""
     for m in monthly_revenue[-6:]:
         month = m.get('year_month', 'unknown')
         rev = m.get('total_amount', 0)
         monthly_str += f"{month}: ${rev:,.0f}; "
-    
     top_cities_str = ", ".join([f"{c.get('city', 'N/A')} (${c.get('total_revenue',0):,.0f})" for c in top_cities[:3]])
     categories_str = ", ".join([f"{c.get('category', 'N/A')} (${c.get('revenue',0):,.0f})" for c in revenue_categories[:5]])
-    
     highest_clv_list = clv_data.get('highest', [])
     avg_top_clv = sum(c.get('total_net_amount', c.get('total_revenue', 0)) for c in highest_clv_list) / max(len(highest_clv_list), 1)
-    
     rfm_sample = rfm_segments[:3] if rfm_segments else []
     rfm_str = ", ".join([str(s.get('segment', s.get('rfm_segment', 'unknown'))) for s in rfm_sample])
-    
     anomaly_dates = [a.get('date', '')[:10] for a in anomalies[:3]]
     anomalies_str = f"{len(anomalies)} days, e.g. {', '.join(anomaly_dates)}" if anomalies else "none"
-    
     high_risk_total = sum(c.get('monetary', 0) for c in high_risk[:5])
     high_risk_str = f"{len(high_risk)} customers, total at-risk ${high_risk_total:,.0f}" if high_risk else "none"
-    
     cohort_str = ""
     for c in cohort_retention[:3]:
         cohort_str += f"{c.get('cohort_month', '')} month {c.get('month_number',0)}: {c.get('retention_rate',0)*100:.1f}%; "
-    
     churn_df = extra_metrics.get('churn')
     churn_rate_val = churn_df['churn_rate'].iloc[0] if churn_df is not None and 'churn_rate' in churn_df.columns else None
-    
     pay_df = extra_metrics.get('payment_methods')
     top_payment = pay_df.iloc[0].get('payment_method', 'N/A') if pay_df is not None and len(pay_df) > 0 else 'N/A'
-
-    # ----- SAFELY CONVERT KPI VALUES (fix for the ValueError) -----
     def safe_float(val, default=0.0):
         try:
             return float(val)
         except (TypeError, ValueError):
             return default
-
     def safe_int(val, default=0):
         try:
             return int(val)
         except (TypeError, ValueError):
             return default
-
     total_revenue = safe_float(kpis.get('total_revenue', 0))
     total_orders = safe_int(kpis.get('total_orders', 0))
     total_customers = safe_int(kpis.get('total_customers', 0))
     aov = safe_float(kpis.get('avg_order_value', 0))
-
     context = f"""
 KPIs: Revenue ${total_revenue:,.0f}, Orders {total_orders:,}, Customers {total_customers:,}, AOV ${aov:,.0f}
 Filters: Date {filters.get('dateRange',{}).get('min','any')} -> {filters.get('dateRange',{}).get('max','any')}, City {filters.get('selectedCity','any')}, Category {filters.get('selectedCategory','any')}
@@ -1587,7 +1509,7 @@ Churn Rate: {churn_rate_val if churn_rate_val is not None else 'N/A'}%
             revenue_categories, repeat_customers, clv_data, rfm_segments,
             cohort_retention, anomalies, high_risk, extra_metrics
         )
-        
+
 ai_insights_cache = TTLCache(maxsize=100, ttl=21600)
 
 @app.route('/api/ai_insights', methods=['POST'])
@@ -1597,7 +1519,6 @@ def ai_insights():
     data = request.get_json()
     if not data:
         return jsonify({'error': 'No data provided'}), 400
-    
     filters = data.get('filters', {})
     kpis_data = data.get('kpis', {})
     daily_revenue = data.get('daily_revenue', [])
@@ -1611,7 +1532,6 @@ def ai_insights():
     anomalies = data.get('anomalies', [])
     high_risk = data.get('high_risk_customers', [])
     persona = data.get('persona', 'balanced_analyst')
-    
     cache_key = hashlib.md5(json.dumps({
         "filters": filters,
         "kpis": kpis_data,
@@ -1621,7 +1541,6 @@ def ai_insights():
         "persona": persona,
         "repeat_rate_hash": repeat_customers.get('repeat', 0)
     }, sort_keys=True).encode()).hexdigest()
-    
     if cache_key in ai_insights_cache:
         insights = ai_insights_cache[cache_key]
     else:
@@ -1635,7 +1554,6 @@ def ai_insights():
             persona=persona
         )
         ai_insights_cache[cache_key] = insights
-    
     insights = fix_list_numbering(insights)
     return jsonify({"insights": insights, "persona": persona})
 
@@ -1817,7 +1735,6 @@ def run_startup_tasks():
             logger.info("✅ Startup tasks completed.")
         except Exception as e:
             logger.error(f"⚠️ Startup tasks failed (will retry): {e}")
-            return
         _startup_done = True
 
 if __name__ == '__main__':
