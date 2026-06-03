@@ -838,7 +838,103 @@
         },
 
         insights: async () => {
-            const html = `<div class="section-header">📖 Project Insights: ETL Pipeline & Business Value</div><div class="info-card"><strong>🚀 About this Project</strong><br>4M+ records, 99.8% validity, PySpark, Databricks, Delta Lake. 12 analytical use cases.</div><div class="section-header">🎯 Business Problems Solved</div><div class="use-case-grid"><div class="use-case-card"><div class="use-case-title">💰 Revenue Leakage & Growth</div><div class="use-case-desc">Identify underperforming cities/categories.</div><div class="use-case-action">Reallocate marketing budget.</div></div><div class="use-case-card"><div class="use-case-title">👥 Customer Churn & Loyalty</div><div class="use-case-desc">RFM and cohort retention highlight at-risk customers.</div><div class="use-case-action">Launch reactivation campaigns.</div></div><div class="use-case-card"><div class="use-case-title">📦 Operational Efficiency</div><div class="use-case-desc">Fulfillment gaps and payment method analysis.</div><div class="use-case-action">Improve logistics & checkout.</div></div><div class="use-case-card"><div class="use-case-title">🏷️ Product Mix Optimization</div><div class="use-case-desc">Category/subcategory revenue guides inventory.</div><div class="use-case-action">Bundle or promote accordingly.</div></div></div><div class="section-header">📊 Analytical Use Cases (3 Levels)</div><div class="chart-card full-width"></table><thead><tr><th>Level</th><th>Use Case</th><th>Business Question</th></tr></thead><tbody><tr><td rowspan="3"><strong>Level 1</strong></td><td>CLV</td><td>Highest lifetime value customers?</td></tr><tr><td>Daily Revenue Trends</td><td>Seasonality or growth?</td></tr><tr><td>Top Cities</td><td>Where to expand?</td></tr><tr><td rowspan="3"><strong>Level 2</strong></td><td>Repeat vs One-Time</td><td>Conversion to loyal?</td></tr><tr><td>Order Fulfillment</td><td>Shipping delays impact?</td></tr><tr><td>Payment Methods</td><td>Which drive revenue?</td></tr><tr><td rowspan="3"><strong>Level 3</strong></td><td>Product Subcategory</td><td>Cash cows vs underperformers?</td></tr><tr><td>RFM Segmentation</td><td>Personalized marketing?</td></tr><tr><td>Cohort Retention</td><td>New vs old customers?</td></tr></tbody></table></div><div class="insight-card"><strong>🏆 Key Achievements</strong><br>4M+ records, 99.8% validity, factory pattern design, production-grade stack.</div>`;
+            const html = `
+                <div class="section-header">📖 Project Insights: ETL Pipeline & Business Value</div>
+                <div class="info-card">
+                    <strong>🚀 About this Project</strong><br>
+                    4M+ records, 99.8% validity, PySpark, Databricks, Delta Lake. 12 analytical use cases.
+                </div>
+                
+                <div class="section-header">🎯 Business Problems Solved</div>
+                <div class="use-case-grid">
+                    <div class="use-case-card">
+                        <div class="use-case-title">💰 Revenue Leakage & Growth</div>
+                        <div class="use-case-desc">Identify underperforming cities/categories.</div>
+                        <div class="use-case-action">Reallocate marketing budget.</div>
+                    </div>
+                    <div class="use-case-card">
+                        <div class="use-case-title">👥 Customer Churn & Loyalty</div>
+                        <div class="use-case-desc">RFM and cohort retention highlight at-risk customers.</div>
+                        <div class="use-case-action">Launch reactivation campaigns.</div>
+                    </div>
+                    <div class="use-case-card">
+                        <div class="use-case-title">📦 Operational Efficiency</div>
+                        <div class="use-case-desc">Fulfillment gaps and payment method analysis.</div>
+                        <div class="use-case-action">Improve logistics & checkout.</div>
+                    </div>
+                    <div class="use-case-card">
+                        <div class="use-case-title">🏷️ Product Mix Optimization</div>
+                        <div class="use-case-desc">Category/subcategory revenue guides inventory.</div>
+                        <div class="use-case-action">Bundle or promote accordingly.</div>
+                    </div>
+                </div>
+                
+                <div class="section-header">📊 Analytical Use Cases (3 Levels)</div>
+                <div class="chart-card full-width">
+                    <div class="table-responsive">
+                        <table style="width:100%; border-collapse: collapse; background: white;">
+                            <thead>
+                                <tr style="background: #f1f5f9;">
+                                    <th style="padding: 10px; border: 1px solid #e2e8f0; text-align: left;">Level</th>
+                                    <th style="padding: 10px; border: 1px solid #e2e8f0; text-align: left;">Use Case</th>
+                                    <th style="padding: 10px; border: 1px solid #e2e8f0; text-align: left;">Business Question</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Level 1 -->
+                                <tr>
+                                    <td rowspan="3" style="vertical-align: top; padding: 10px; border: 1px solid #e2e8f0; background: #f8fafc;"><strong>Level 1</strong></td>
+                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">CLV</td>
+                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">Highest lifetime value customers?</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">Daily Revenue Trends</td>
+                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">Seasonality or growth?</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">Top Cities</td>
+                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">Where to expand?</td>
+                                </tr>
+                                
+                                <!-- Level 2 -->
+                                <tr>
+                                    <td rowspan="3" style="vertical-align: top; padding: 10px; border: 1px solid #e2e8f0; background: #f8fafc;"><strong>Level 2</strong></td>
+                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">Repeat vs One-Time</td>
+                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">Conversion to loyal?</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">Order Fulfillment</td>
+                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">Shipping delays impact?</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">Payment Methods</td>
+                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">Which drive revenue?</td>
+                                </tr>
+                                
+                                <!-- Level 3 -->
+                                <tr>
+                                    <td rowspan="3" style="vertical-align: top; padding: 10px; border: 1px solid #e2e8f0; background: #f8fafc;"><strong>Level 3</strong></td>
+                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">Product Subcategory</td>
+                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">Cash cows vs underperformers?</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">RFM Segmentation</td>
+                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">Personalized marketing?</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">Cohort Retention</td>
+                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">New vs old customers?</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="insight-card">
+                    <strong>🏆 Key Achievements</strong><br>
+                    4M+ records, 99.8% validity, factory pattern design, production-grade stack.
+                </div>
+            `;
             document.getElementById('page-content').innerHTML = html;
         },
 

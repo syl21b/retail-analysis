@@ -8,7 +8,7 @@ import warnings
 from datetime import datetime, timedelta
 from functools import cached_property, wraps
 from pathlib import Path
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
 from contextlib import contextmanager
 import sys
 
@@ -63,7 +63,9 @@ class Config:
     DISABLE_AUTH = os.environ.get('DISABLE_AUTH', 'true').lower() == 'true'
     DEBUG = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
 
-    DATAFRAME_CACHE_SIZE = int(os.environ.get('DATAFRAME_CACHE_SIZE', 1))
+    # Memory optimisation settings
+    DATAFRAME_CACHE_SIZE = int(os.environ.get('DATAFRAME_CACHE_SIZE', 10))      # max number of dataframes in cache
+    DATAFRAME_CACHE_TTL = int(os.environ.get('DATAFRAME_CACHE_TTL', 300))       # seconds before expiry
     MAX_ROWS_PER_DATASET = int(os.environ.get('MAX_ROWS_PER_DATASET', 20000))
 
 # ------------------------------
@@ -268,14 +270,13 @@ def clean_sql(sql_content):
     return sql
 
 # ------------------------------
-#  DataLoader with lazy loading
+#  DataLoader with TTL + LRU Cache
 # ------------------------------
 class DataLoader:
     def __init__(self):
         self.sql_folder = None
         self.sql_files = {}
-        self._cache = OrderedDict()
-        self._cache_maxsize = Config.DATAFRAME_CACHE_SIZE
+        self._cache = TTLCache(maxsize=Config.DATAFRAME_CACHE_SIZE, ttl=Config.DATAFRAME_CACHE_TTL)
         self._loaded = False
 
     def _ensure_loaded(self):
@@ -347,7 +348,6 @@ class DataLoader:
     def get_dataframe(self, sql_key):
         self._ensure_loaded()
         if sql_key in self._cache:
-            self._cache.move_to_end(sql_key)
             return self._cache[sql_key]
         sql_path = self.sql_files.get(sql_key)
         if not sql_path:
@@ -356,14 +356,12 @@ class DataLoader:
         if df is None:
             df = pd.DataFrame()
         self._cache[sql_key] = df
-        if len(self._cache) > self._cache_maxsize:
-            oldest_key = next(iter(self._cache))
-            logger.info(f"Evicting {oldest_key} from cache")
-            try:
-                del self._cache[oldest_key]
-            except KeyError:
-                pass
         return df
+
+    def clear_cache(self):
+        """Manually clear the entire dataframe cache."""
+        self._cache.clear()
+        logger.info("DataLoader cache cleared manually")
 
     @cached_property
     def friendly_data(self):
@@ -495,7 +493,7 @@ def call_ai_provider(prompt):
     return None
 
 # ------------------------------
-#  API Endpoints (pagination and aggregation)
+#  API Endpoints (including cache management)
 # ------------------------------
 @app.route('/')
 def index():
@@ -512,6 +510,25 @@ def login():
         return jsonify({'error': 'Invalid API key'}), 401
     token = auth_manager.generate_jwt(user['user_id'], user['role'])
     return jsonify({'token': token, 'user': user})
+
+@app.route('/api/cache/status', methods=['GET'])
+@require_auth
+def cache_status():
+    """Return current cache size and keys for debugging."""
+    return jsonify({
+        'size': len(loader._cache),
+        'maxsize': loader._cache.maxsize,
+        'ttl': loader._cache.ttl,
+        'keys': list(loader._cache.keys())
+    })
+
+@app.route('/api/cache/clear', methods=['POST'])
+@require_auth
+@require_role(['admin'])
+def clear_cache():
+    """Clear all cached dataframes to free memory."""
+    loader.clear_cache()
+    return jsonify({'message': 'Cache cleared successfully'})
 
 @app.route('/api/datasets')
 @require_auth
@@ -1217,7 +1234,7 @@ def simulate():
         return jsonify({"error": str(e)}), 500
 
 # ------------------------------
-#  AI Insights (full, as in original)
+#  AI Insights
 # ------------------------------
 PERSONA_TEMPLATES = {
     "conservative_cfo": """
