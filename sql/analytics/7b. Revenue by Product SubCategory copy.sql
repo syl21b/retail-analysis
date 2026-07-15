@@ -1,7 +1,8 @@
 SELECT 
-    dp.sub_category,
-    SUM(COALESCE(fo.total_amount, 0)) AS revenue
-FROM warehouse.fact_orders fo
-INNER JOIN warehouse.dim_products dp ON fo.product_id = dp.product_id
-GROUP BY dp.sub_category
+    sct.sub_category_name AS sub_category,
+    COALESCE(SUM(fo.total_amount), 0) AS revenue
+FROM sub_category_table sct
+LEFT JOIN products_table p ON sct.sub_category_code = p.sub_category_code
+LEFT JOIN fact_orders fo ON p.product_id = fo.product_id
+GROUP BY sct.sub_category_name
 ORDER BY revenue DESC;

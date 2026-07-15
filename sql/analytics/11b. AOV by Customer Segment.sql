@@ -2,12 +2,12 @@ WITH rfm_seg AS (
     SELECT 
         customer_id,
         CASE 
-            WHEN EXTRACT(DAY FROM (CURRENT_DATE - MAX(order_date))) <= 30 
+            WHEN (CURRENT_DATE - MAX(order_date)) <= 30 
                  AND COUNT(DISTINCT order_id) >= 5 THEN 'Champions'
-            WHEN EXTRACT(DAY FROM (CURRENT_DATE - MAX(order_date))) <= 60 
+            WHEN (CURRENT_DATE - MAX(order_date)) <= 60 
                  AND COUNT(DISTINCT order_id) >= 3 THEN 'Loyal'
-            WHEN EXTRACT(DAY FROM (CURRENT_DATE - MAX(order_date))) <= 90 THEN 'Active'
-            WHEN EXTRACT(DAY FROM (CURRENT_DATE - MAX(order_date))) <= 180 THEN 'At Risk'
+            WHEN (CURRENT_DATE - MAX(order_date)) <= 90 THEN 'Active'
+            WHEN (CURRENT_DATE - MAX(order_date)) <= 180 THEN 'At Risk'
             ELSE 'Lost'
         END AS segment
     FROM fact_orders

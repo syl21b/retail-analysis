@@ -1,5 +1,7 @@
-SELECT l.city, SUM(COALESCE(f.total_amount, 0)) AS total_revenue
-FROM warehouse.fact_orders f
-INNER JOIN warehouse.dim_location l ON f.location_id = l.location_id
-GROUP BY l.city
+SELECT 
+    lt.city_name AS city,
+    SUM(COALESCE(f.total_amount, 0)) AS total_revenue
+FROM fact_orders f
+INNER JOIN location_table lt ON f.city_code = lt.city_code
+GROUP BY lt.city_name
 ORDER BY total_revenue DESC;

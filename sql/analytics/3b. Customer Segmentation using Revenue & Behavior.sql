@@ -7,7 +7,7 @@ FROM (
         COUNT(DISTINCT f.order_id) AS total_orders,
         ROW_NUMBER() OVER (ORDER BY SUM(f.total_amount) DESC) AS revenue_rank
     FROM fact_orders f
-    JOIN dim_customers c ON f.customer_id = c.customer_id
+    JOIN customers_table c ON f.customer_id = c.customer_id
     GROUP BY f.customer_id, c.full_name
-) AS ranked_customers;
---WHERE revenue_rank <= 100;
+) AS ranked_customers
+WHERE revenue_rank <= 100;

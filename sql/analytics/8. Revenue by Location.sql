@@ -1,7 +1,7 @@
 SELECT 
-    dl.state,
+    lt.state_name AS state,
     SUM(COALESCE(fo.total_amount, 0)) AS revenue
-FROM warehouse.fact_orders fo
-INNER JOIN warehouse.dim_location dl ON fo.location_id = dl.location_id
-GROUP BY dl.state
+FROM fact_orders fo
+INNER JOIN location_table lt ON fo.city_code = lt.city_code
+GROUP BY lt.state_name
 ORDER BY revenue DESC;

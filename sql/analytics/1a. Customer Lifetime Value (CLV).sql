@@ -4,8 +4,8 @@ WITH cte_customer_revenue AS (
         f.customer_id, 
         c.full_name,
         SUM(COALESCE(f.net_amount, 0)) AS total_net_amount
-    FROM warehouse.fact_orders f
-    JOIN warehouse.dim_customers c 
+    FROM fact_orders f
+    JOIN customers_table c 
         ON f.customer_id = c.customer_id
     GROUP BY f.customer_id, c.full_name
 )

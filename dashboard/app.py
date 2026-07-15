@@ -64,8 +64,8 @@ class Config:
     DEBUG = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
 
     # Memory optimisation settings
-    DATAFRAME_CACHE_SIZE = int(os.environ.get('DATAFRAME_CACHE_SIZE', 10))      # max number of dataframes in cache
-    DATAFRAME_CACHE_TTL = int(os.environ.get('DATAFRAME_CACHE_TTL', 300))       # seconds before expiry
+    DATAFRAME_CACHE_SIZE = int(os.environ.get('DATAFRAME_CACHE_SIZE', 10))
+    DATAFRAME_CACHE_TTL = int(os.environ.get('DATAFRAME_CACHE_TTL', 300))
     MAX_ROWS_PER_DATASET = int(os.environ.get('MAX_ROWS_PER_DATASET', 20000))
 
 # ------------------------------
@@ -195,18 +195,16 @@ class SecureDatabase:
 
 db = SecureDatabase(Config.DATABASE_URL)
 
+# ------------------------------
+#  Index creation (updated)
+# ------------------------------
 def create_performance_indexes():
     try:
         with db.get_cursor() as cur:
-            cur.execute("SELECT schema_name FROM information_schema.schemata WHERE schema_name = 'warehouse'")
-            if not cur.fetchone():
-                logger.warning("Schema 'warehouse' does not exist, skipping index creation")
-                return
             index_queries = [
-                "CREATE INDEX IF NOT EXISTS idx_fact_orders_order_date ON warehouse.fact_orders(order_date);",
-                "CREATE INDEX IF NOT EXISTS idx_fact_orders_customer_id ON warehouse.fact_orders(customer_id);",
-                "CREATE INDEX IF NOT EXISTS idx_dim_time_date ON warehouse.dim_time(date);",
-                "CREATE INDEX IF NOT EXISTS idx_fact_orders_net_amount ON warehouse.fact_orders(net_amount);"
+                "CREATE INDEX IF NOT EXISTS idx_fact_orders_order_date ON public.fact_orders(order_date);",
+                "CREATE INDEX IF NOT EXISTS idx_fact_orders_customer_id ON public.fact_orders(customer_id);",
+                "CREATE INDEX IF NOT EXISTS idx_fact_orders_net_amount ON public.fact_orders(net_amount);"
             ]
             for sql in index_queries:
                 try:
@@ -217,7 +215,7 @@ def create_performance_indexes():
         logger.warning(f"Could not check/create indexes: {e}")
 
 # ------------------------------
-#  SQL helpers
+#  SQL helpers (updated)
 # ------------------------------
 def sanitize_output(data):
     if isinstance(data, str):
@@ -240,9 +238,9 @@ def validate_nlq_input(question):
             return False, "Potentially dangerous query blocked"
     return True, ""
 
-def add_schema_prefix(sql_query, schema='warehouse'):
-    tables = ['fact_orders', 'dim_customers', 'dim_products', 'dim_location',
-              'dim_payment', 'dim_status', 'dim_time']
+def add_schema_prefix(sql_query, schema='public'):
+    tables = ['fact_orders', 'customers_table', 'products_table', 'location_table',
+              'payment_table', 'status_table', 'category_table', 'sub_category_table']
     for table in tables:
         pattern = rf'(?<![\.\w]){table}\b(?!\.)'
         sql_query = re.sub(pattern, f'{schema}.{table}', sql_query, flags=re.IGNORECASE)
@@ -359,7 +357,6 @@ class DataLoader:
         return df
 
     def clear_cache(self):
-        """Manually clear the entire dataframe cache."""
         self._cache.clear()
         logger.info("DataLoader cache cleared manually")
 
@@ -493,7 +490,7 @@ def call_ai_provider(prompt):
     return None
 
 # ------------------------------
-#  API Endpoints (including cache management)
+#  API Endpoints
 # ------------------------------
 @app.route('/')
 def index():
@@ -514,7 +511,6 @@ def login():
 @app.route('/api/cache/status', methods=['GET'])
 @require_auth
 def cache_status():
-    """Return current cache size and keys for debugging."""
     return jsonify({
         'size': len(loader._cache),
         'maxsize': loader._cache.maxsize,
@@ -526,7 +522,6 @@ def cache_status():
 @require_auth
 @require_role(['admin'])
 def clear_cache():
-    """Clear all cached dataframes to free memory."""
     loader.clear_cache()
     return jsonify({'message': 'Cache cleared successfully'})
 
@@ -567,11 +562,11 @@ def value_range():
 @require_auth
 def kpis():
     with db.get_cursor() as cur:
-        cur.execute("SELECT COALESCE(SUM(net_amount), 0) FROM warehouse.fact_orders")
+        cur.execute("SELECT COALESCE(SUM(net_amount), 0) FROM public.fact_orders")
         total_revenue = cur.fetchone()['coalesce']
-        cur.execute("SELECT COUNT(DISTINCT order_id) FROM warehouse.fact_orders")
+        cur.execute("SELECT COUNT(DISTINCT order_id) FROM public.fact_orders")
         total_orders = cur.fetchone()['count']
-        cur.execute("SELECT COUNT(DISTINCT customer_id) FROM warehouse.fact_orders")
+        cur.execute("SELECT COUNT(DISTINCT customer_id) FROM public.fact_orders")
         total_customers = cur.fetchone()['count']
     avg_order = total_revenue / total_orders if total_orders else 0
     return jsonify({
@@ -587,26 +582,23 @@ def revenue_trend():
     granularity = request.args.get('granularity', 'month')
     if granularity == 'day':
         sql = """
-            SELECT dt.date AS period, SUM(fo.net_amount) AS revenue
-            FROM warehouse.fact_orders fo
-            JOIN warehouse.dim_time dt ON fo.order_date = dt.date
-            GROUP BY dt.date
-            ORDER BY dt.date
+            SELECT order_date AS period, SUM(net_amount) AS revenue
+            FROM public.fact_orders
+            GROUP BY order_date
+            ORDER BY order_date
         """
     elif granularity == 'week':
         sql = """
-            SELECT DATE_TRUNC('week', dt.date) AS period, SUM(fo.net_amount) AS revenue
-            FROM warehouse.fact_orders fo
-            JOIN warehouse.dim_time dt ON fo.order_date = dt.date
-            GROUP BY DATE_TRUNC('week', dt.date)
+            SELECT DATE_TRUNC('week', order_date) AS period, SUM(net_amount) AS revenue
+            FROM public.fact_orders
+            GROUP BY DATE_TRUNC('week', order_date)
             ORDER BY period
         """
     else:
         sql = """
-            SELECT DATE_TRUNC('month', dt.date) AS period, SUM(fo.net_amount) AS revenue
-            FROM warehouse.fact_orders fo
-            JOIN warehouse.dim_time dt ON fo.order_date = dt.date
-            GROUP BY DATE_TRUNC('month', dt.date)
+            SELECT DATE_TRUNC('month', order_date) AS period, SUM(net_amount) AS revenue
+            FROM public.fact_orders
+            GROUP BY DATE_TRUNC('month', order_date)
             ORDER BY period
         """
     rows = db.execute_query(sql)
@@ -892,6 +884,7 @@ def revenue_anomalies():
 def high_risk_customers():
     limit = request.args.get('limit', default=20, type=int)
     offset = request.args.get('offset', default=0, type=int)
+    segment_filter = request.args.get('segment', '').strip()   # NEW: accept segment filter
     rfm_df = friendly_data.get('RFM Segmentation')
     if rfm_df is None or rfm_df.empty:
         return jsonify([])
@@ -908,6 +901,8 @@ def high_risk_customers():
         rfm_df.loc[(rfm_df['recency_days'] > rec_median*1.5) & (rfm_df['monetary'] < mon_median), 'segment'] = 'At Risk'
     monetary_90th = rfm_df['monetary'].quantile(0.9)
     high_risk = rfm_df[(rfm_df['segment'] == 'At Risk') & (rfm_df['monetary'] > monetary_90th)]
+    if segment_filter:
+        high_risk = high_risk[high_risk['segment'] == segment_filter]   # apply filter
     high_risk = high_risk.sort_values('monetary', ascending=False)
     if 'full_name' in high_risk.columns:
         high_risk['full_name'] = high_risk['full_name'].fillna(high_risk['customer_id'].apply(lambda x: f"Customer {x}"))
@@ -944,7 +939,7 @@ def frequency_by_category():
 #  NLQ Endpoint
 # ------------------------------
 def get_schema_description():
-    schema_name = 'warehouse'
+    schema_name = 'public'
     tables_query = """
         SELECT table_name 
         FROM information_schema.tables 
@@ -953,8 +948,8 @@ def get_schema_description():
     """
     tables = db.execute_query(tables_query, (schema_name,))
     if not tables:
-        return "No tables found in warehouse schema."
-    description = "Database schema for retail analytics (schema: warehouse):\n\n"
+        return "No tables found in public schema."
+    description = "Database schema for retail analytics (schema: public):\n\n"
     for tbl in tables:
         table = tbl['table_name']
         cols_query = """
@@ -966,12 +961,12 @@ def get_schema_description():
         columns = db.execute_query(cols_query, (schema_name, table))
         if columns:
             col_list = ", ".join([f"{c['column_name']} ({c['data_type']})" for c in columns])
-            description += f"- warehouse.{table}: {col_list}\n"
+            description += f"- public.{table}: {col_list}\n"
         else:
-            description += f"- warehouse.{table}: (no columns found)\n"
+            description += f"- public.{table}: (no columns found)\n"
     description += "\nKey metrics (derived): total_revenue = sum(net_amount), total_orders = count(distinct order_id)\n"
     try:
-        date_range_query = "SELECT MIN(date) AS min_date, MAX(date) AS max_date FROM warehouse.dim_time WHERE date IS NOT NULL"
+        date_range_query = "SELECT MIN(order_date) AS min_date, MAX(order_date) AS max_date FROM public.fact_orders WHERE order_date IS NOT NULL"
         date_range = db.execute_query(date_range_query)
         if date_range and date_range[0]['min_date'] and date_range[0]['max_date']:
             min_date = date_range[0]['min_date']
@@ -996,7 +991,7 @@ Schema:
 User question: {question}
 
 Rules:
-- Use schema prefix 'warehouse.'
+- Use schema prefix 'public.'
 - Only SELECT statements.
 - Return ONLY SQL, no explanation.
 
@@ -1011,7 +1006,7 @@ Schema:
 User question: {question}
 
 Rules:
-- Use 'warehouse.'
+- Use 'public.'
 - Only SELECT.
 - Return ONLY SQL.
 
@@ -1092,14 +1087,13 @@ def compute_monthly_metrics():
     query = """
     WITH monthly_orders AS (
         SELECT 
-            dt.year,
-            dt.month,
-            fo.customer_id,
-            fo.order_id,
-            fo.net_amount
-        FROM warehouse.fact_orders fo
-        JOIN warehouse.dim_time dt ON fo.order_date = dt.date
-        WHERE fo.order_date IS NOT NULL
+            EXTRACT(YEAR FROM order_date) AS year,
+            EXTRACT(MONTH FROM order_date) AS month,
+            customer_id,
+            order_id,
+            net_amount
+        FROM public.fact_orders
+        WHERE order_date IS NOT NULL
     ),
     customer_monthly AS (
         SELECT 

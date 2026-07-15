@@ -6,7 +6,7 @@ SELECT
     ROUND(SUM(total_revenue) OVER (ORDER BY total_revenue DESC) * 100.0 / NULLIF(SUM(total_revenue) OVER (), 0), 2) AS cumulative_percentage
 FROM (
     SELECT customer_id, SUM(COALESCE(total_amount, 0)) AS total_revenue
-    FROM warehouse.fact_orders
+    FROM fact_orders
     GROUP BY customer_id
 ) t
 WHERE total_revenue > 0

@@ -17,6 +17,7 @@ GROUP BY
     END
 ORDER BY order_value_bucket;
 
+
 -- Order value statistics
 SELECT 
     MAX(total_amount) AS max_order_value, 

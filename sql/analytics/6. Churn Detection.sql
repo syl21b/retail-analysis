@@ -19,6 +19,6 @@ FROM (
     WHERE order_date IS NOT NULL
     GROUP BY customer_id
 ) lo
-JOIN dim_customers c ON lo.customer_id = c.customer_id
+JOIN customers_table c ON lo.customer_id = c.customer_id
 WHERE (CURRENT_DATE - lo.last_order_date) > 30
 ORDER BY days_since_last_order DESC;

@@ -2,10 +2,10 @@
 WITH rfm_calc AS (
     SELECT 
         customer_id,
-        EXTRACT(DAY FROM (CURRENT_DATE - MAX(order_date))) AS recency_days,
+        (CURRENT_DATE - MAX(order_date)) AS recency_days,   -- direct integer days
         COUNT(DISTINCT order_id) AS frequency,
         SUM(COALESCE(net_amount, 0)) AS monetary
-    FROM warehouse.fact_orders
+    FROM fact_orders
     WHERE order_date IS NOT NULL
     GROUP BY customer_id
 )
@@ -23,7 +23,7 @@ SELECT
         WHEN COALESCE(r.recency_days, 999) <= 180 THEN 'At Risk'
         ELSE 'Lost'
     END AS segment
-FROM warehouse.dim_customers c
+FROM customers_table c
 LEFT JOIN rfm_calc r ON c.customer_id = r.customer_id
-WHERE COALESCE(r.monetary, 0) > 0  -- Only show customers with purchases
+WHERE COALESCE(r.monetary, 0) > 0   -- Only show customers with purchases
 ORDER BY monetary DESC;

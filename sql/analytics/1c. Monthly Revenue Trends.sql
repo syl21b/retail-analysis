@@ -1,4 +1,4 @@
--- Monthly revenue trends
+-- Monthly revenue trends (PostgreSQL)
 SELECT 
     TO_CHAR(order_date, 'YYYY-MM') AS year_month,
     SUM(total_amount) AS total_amount

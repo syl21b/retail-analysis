@@ -1,35 +1,22 @@
 USE master;
 GO
 
--- 1. DROP THE CHILD TABLE FIRST (This breaks the FK links)
-IF OBJECT_ID('[dbo].[fact_orders]', 'U') IS NOT NULL
-    DROP TABLE [dbo].[fact_orders];
-GO
+-- ================================================================
+-- Drop all existing tables (including staging)
+-- ================================================================
+IF OBJECT_ID('fact_orders', 'U') IS NOT NULL DROP TABLE fact_orders;
+IF OBJECT_ID('time_table', 'U') IS NOT NULL DROP TABLE time_table;
+IF OBJECT_ID('products_table', 'U') IS NOT NULL DROP TABLE products_table;
+IF OBJECT_ID('customers_table', 'U') IS NOT NULL DROP TABLE customers_table;
+IF OBJECT_ID('sub_category_table', 'U') IS NOT NULL DROP TABLE sub_category_table;
+IF OBJECT_ID('category_table', 'U') IS NOT NULL DROP TABLE category_table;
+IF OBJECT_ID('brand_table', 'U') IS NOT NULL DROP TABLE brand_table;
+IF OBJECT_ID('city_table', 'U') IS NOT NULL DROP TABLE city_table;
+IF OBJECT_ID('status_table', 'U') IS NOT NULL DROP TABLE status_table;
+IF OBJECT_ID('payment_table', 'U') IS NOT NULL DROP TABLE payment_table;
 
--- 2. NOW DROP THE PARENT DIMENSION TABLES
-IF OBJECT_ID('[dbo].[dim_customers]', 'U') IS NOT NULL
-    DROP TABLE [dbo].[dim_customers];
-GO
-
-IF OBJECT_ID('[dbo].[dim_products]', 'U') IS NOT NULL
-    DROP TABLE [dbo].[dim_products];
-GO
-
-IF OBJECT_ID('[dbo].[dim_location]', 'U') IS NOT NULL
-    DROP TABLE [dbo].[dim_location];
-GO
-
-IF OBJECT_ID('[dbo].[dim_time]', 'U') IS NOT NULL
-    DROP TABLE [dbo].[dim_time];
-GO
-
--- 3. DROP STAGING AND OTHER REMNANT TABLES
-IF OBJECT_ID('[dbo].[stg_customers]', 'U') IS NOT NULL DROP TABLE [dbo].[stg_customers];
-IF OBJECT_ID('[dbo].[stg_orders]', 'U') IS NOT NULL DROP TABLE [dbo].[stg_orders];
-IF OBJECT_ID('[dbo].[stg_order_items]', 'U') IS NOT NULL DROP TABLE [dbo].[stg_order_items];
-IF OBJECT_ID('[dbo].[stg_products]', 'U') IS NOT NULL DROP TABLE [dbo].[stg_products];
-IF OBJECT_ID('[dbo].[customers]', 'U') IS NOT NULL DROP TABLE [dbo].[customers];
-IF OBJECT_ID('[dbo].[products]', 'U') IS NOT NULL DROP TABLE [dbo].[products];
-IF OBJECT_ID('[dbo].[orders]', 'U') IS NOT NULL DROP TABLE [dbo].[orders];
-IF OBJECT_ID('[dbo].[order_items]', 'U') IS NOT NULL DROP TABLE [dbo].[order_items];
+-- Drop staging tables if they exist
+IF OBJECT_ID('products_staging', 'U') IS NOT NULL DROP TABLE products_staging;
+IF OBJECT_ID('orders_staging_full', 'U') IS NOT NULL DROP TABLE orders_staging_full;
+IF OBJECT_ID('order_items_staging', 'U') IS NOT NULL DROP TABLE order_items_staging;
 GO
