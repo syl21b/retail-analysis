@@ -808,106 +808,208 @@
 
         rfm: async () => {
             document.getElementById('page-content').innerHTML = '<div class="loader"><div class="spinner"></div>Loading RFM analysis...</div>';
-            let rfmData = await fetchJSON('/api/rfm_segmentation?limit=200');
-            if (!rfmData || !rfmData.length) { document.getElementById('page-content').innerHTML = '<div class="warning-card">⚠️ No RFM data.</div>'; return; }
-            let segField = rfmData[0].segment !== undefined ? 'segment' : (rfmData[0].rfm_segment !== undefined ? 'rfm_segment' : null);
-            if (!segField) {
-                const recMedian = rfmData.map(d => d.recency_days).sort((a,b)=>a-b)[Math.floor(rfmData.length/2)];
-                const monMedian = rfmData.map(d => d.monetary).sort((a,b)=>a-b)[Math.floor(rfmData.length/2)];
-                rfmData.forEach(d => {
-                    if (d.recency_days <= recMedian/2 && d.monetary >= monMedian*2) d.segment = 'Champions';
-                    else if (d.recency_days <= recMedian && d.monetary >= monMedian) d.segment = 'Loyal';
-                    else if (d.recency_days > recMedian*1.5 && d.monetary < monMedian) d.segment = 'At Risk';
-                    else if (d.recency_days > 180) d.segment = 'Lost';
-                    else d.segment = 'Others';
-                });
-                segField = 'segment';
-            }
-            const segments = [...new Set(rfmData.map(d => d[segField]))].sort();
-            const segColors = { Champions: '#ffd700', Loyal: '#2ecc71', 'At Risk': '#e74c3c', Lost: '#0728fe', Others: '#95a5a6'};
-            const getColor = s => segColors[s] || '#1e3c72';
-            let html = `<div class="section-header">⭐ RFM Segmentation</div><div class="insight-card">📊 RFM groups: <span style="color:#ffd700;">● Champions</span> · <span style="color:#e74c3c;">● At Risk</span> · <span style="color:#2ecc71;">● Loyal</span> · <span style="color:#0728fe;">● Lost</span></div>
-                        <div class="filter-group"><span class="filter-label">🎯 Filter by Segment:</span><select id="seg-drop" class="segment-select"><option value="">All</option>${segments.map(s => `<option value="${s}" ${filterState.selectedSegment === s ? 'selected' : ''}>${s}</option>`).join('')}</select><button id="clear-seg" class="btn-clear">Clear</button></div>
-                        <div class="chart-row"><div class="chart-card"><div id="rfm-scatter"></div></div><div class="chart-card"><div id="seg-pie2"></div></div></div>
-                        <div class="section-header">📋 Segment Statistics</div><div class="chart-card full-width"><div class="table-responsive" id="seg-stats-table" style="max-height:300px; overflow-y:auto;"></div></div>
-                        <div class="section-header">📋 All Customers (RFM)</div>
-                        <div style="display:flex; align-items:center; gap:0.8rem; margin-bottom:0.5rem;">
-                            <span class="filter-label">Rows:</span>
-                            <select id="rfm-row-limit" class="row-limit-dropdown">
-                                <option value="10">10</option>
-                                <option value="100" selected>100</option>
-                                <option value="1000">1000</option>
-                                <option value="10000">10000</option>
-                                <option value="100000">All</option>
-                            </select>
-                        </div>
-                        <div class="chart-card full-width">
-                            <div class="table-responsive" id="rfm-full-table" style="max-height:500px; overflow-y:auto;">
-                                <table style="width:100%"><thead><tr><th>Customer ID</th><th>Recency</th><th>Frequency</th><th>Monetary</th><th>Segment</th></tr></thead><tbody id="rfm-full-tbody"></tbody></table>
-                            </div>
-                        </div>`;
-            document.getElementById('page-content').innerHTML = html;
-            const segStats = {};
-            segments.forEach(seg => {
-                const custs = rfmData.filter(d => d[segField] === seg);
-                segStats[seg] = {
-                    count: custs.length,
-                    avgRecency: custs.reduce((s,c)=>s+c.recency_days,0)/custs.length,
-                    avgFreq: custs.reduce((s,c)=>s+c.frequency,0)/custs.length,
-                    avgMon: custs.reduce((s,c)=>s+c.monetary,0)/custs.length
-                };
-            });
-            const statsHtml = '<table><thead><tr><th>Segment</th><th>Customers</th><th>Avg Recency</th><th>Avg Frequency</th><th>Avg Monetary</th><tr></thead><tbody>' +
-                segments.map(seg => `<tr style="border-left:4px solid ${getColor(seg)};"><td>${seg}</td><td>${segStats[seg].count}</td><td>${segStats[seg].avgRecency.toFixed(1)}</td><td>${segStats[seg].avgFreq.toFixed(1)}</td><td>${formatMoney(segStats[seg].avgMon)}</td></tr>`).join('') +
-                '</tbody><tr>';
-            document.getElementById('seg-stats-table').innerHTML = statsHtml;
-            const scatterTraces = [];
-            const toShow = filterState.selectedSegment ? [filterState.selectedSegment] : segments;
-            toShow.forEach(seg => {
-                const pts = rfmData.filter(d => d[segField] === seg);
-                if (!pts.length) return;
-                scatterTraces.push({ x: pts.map(p => p.recency_days), y: pts.map(p => p.monetary), mode: 'markers', name: seg, marker: { color: getColor(seg), size: 8, opacity: 0.7 }, text: pts.map(p => `${getCustomerDisplay(p)}<br>Recency: ${p.recency_days} days<br>Freq: ${p.frequency}<br>Monetary: ${formatMoney(p.monetary)}`) });
-            });
-            Plotly.newPlot('rfm-scatter', scatterTraces, { title: 'Recency vs Monetary', height: 500, xaxis: { title: 'Recency (days)' }, yaxis: { title: 'Monetary ($)' } });
-            const segCounts = segments.reduce((a,s)=>{ a[s]=rfmData.filter(d=>d[segField]===s).length; return a; },{});
-            Plotly.newPlot('seg-pie2', [{ labels: Object.keys(segCounts), values: Object.values(segCounts), type: 'pie', hole: 0.4, marker: { colors: Object.keys(segCounts).map(getColor) }, textinfo: 'label+percent' }], { title: 'Segment Distribution', height: 450 });
-            document.getElementById('seg-pie2').on('plotly_click', data => { if(data.points) { filterState.selectedSegment = data.points[0].label; updateFilterUI(); refreshCurrentPage(); } });
-            document.getElementById('seg-drop').addEventListener('change', e => { filterState.selectedSegment = e.target.value || null; updateFilterUI(); refreshCurrentPage(); });
-            document.getElementById('clear-seg').addEventListener('click', () => { filterState.selectedSegment = null; updateFilterUI(); refreshCurrentPage(); });
             
-            // RFM All Customers table with row limit
-            const rfmTbody = document.getElementById('rfm-full-tbody');
-            const rowLimitSelect = document.getElementById('rfm-row-limit');
-            let currentLimit = parseInt(rowLimitSelect.value, 10);
+            // Build filter UI
+            let html = `
+                <div class="section-header">⭐ RFM Segmentation</div>
+                <div class="insight-card">📊 RFM groups: <span style="color:#ffd700;">● Champions</span> · <span style="color:#e74c3c;">● At Risk</span> · <span style="color:#2ecc71;">● Loyal</span> · <span style="color:#0728fe;">● Lost</span></div>
+                <div class="filter-group" style="flex-wrap:wrap; gap:0.5rem; margin-bottom:0.5rem;">
+                    <span class="filter-label">🎯 Segment:</span>
+                    <select id="seg-drop" class="segment-select"><option value="">All</option>...</select>
+                    <button id="clear-seg" class="btn-clear">Clear</button>
+                    <span class="filter-label">📏 Recency (days):</span>
+                    <input type="number" id="recency-min" class="filter-input" placeholder="min" style="width:80px;">
+                    <span>–</span>
+                    <input type="number" id="recency-max" class="filter-input" placeholder="max" style="width:80px;">
+                    <span class="filter-label">💰 Monetary ($):</span>
+                    <input type="number" id="monetary-min" class="filter-input" placeholder="min" style="width:100px;">
+                    <span>–</span>
+                    <input type="number" id="monetary-max" class="filter-input" placeholder="max" style="width:100px;">
+                    <span class="filter-label">Rows:</span>
+                    <select id="rfm-row-limit" class="row-limit-dropdown">
+                        <option value="10">10</option>
+                        <option value="50">50</option>
+                        <option value="100" selected>100</option>
+                        <option value="500">500</option>
+                        <option value="1000">1000</option>
+                        <option value="-1">All</option>
+                    </select>
+                    <button id="rfm-apply-filters" class="btn-ai">Apply Filters</button>
+                    <button id="rfm-clear-filters" class="btn-clear">Clear Filters</button>
+                </div>
+                <div class="chart-row"><div class="chart-card"><div id="rfm-scatter"></div></div><div class="chart-card"><div id="seg-pie2"></div></div></div>
+                <div class="section-header">📋 Segment Statistics</div>
+                <div class="chart-card full-width"><div class="table-responsive" id="seg-stats-table" style="max-height:300px; overflow-y:auto;"></div></div>
+                <div class="section-header">📋 All Customers (RFM)</div>
+                <div class="chart-card full-width">
+                    <div class="table-responsive" id="rfm-full-table" style="max-height:500px; overflow-y:auto;">
+                        <table style="width:100%"><thead><tr><th>Customer ID</th><th>Recency</th><th>Frequency</th><th>Monetary</th><th>Segment</th></tr></thead><tbody id="rfm-full-tbody"></tbody></table>
+                    </div>
+                </div>
+            `;
+            document.getElementById('page-content').innerHTML = html;
 
-            const loadRFM = async () => {
-                const limit = currentLimit;
-                const url = `/api/rfm_segmentation?limit=${limit}&offset=0`;
+            // Now we need to load data with filters.
+            // We'll define a function loadRFMData() that reads all filter values and fetches.
+
+            const segDrop = document.getElementById('seg-drop');
+            const clearSeg = document.getElementById('clear-seg');
+            const recencyMin = document.getElementById('recency-min');
+            const recencyMax = document.getElementById('recency-max');
+            const monetaryMin = document.getElementById('monetary-min');
+            const monetaryMax = document.getElementById('monetary-max');
+            const rowLimitSelect = document.getElementById('rfm-row-limit');
+            const applyBtn = document.getElementById('rfm-apply-filters');
+            const clearFiltersBtn = document.getElementById('rfm-clear-filters');
+            const rfmTbody = document.getElementById('rfm-full-tbody');
+            const scatterDiv = document.getElementById('rfm-scatter');
+            const segPieDiv = document.getElementById('seg-pie2');
+            const statsDiv = document.getElementById('seg-stats-table');
+
+            let currentData = [];
+            let segField = 'segment';
+
+            const loadRFMData = async () => {
+                const seg = segDrop.value;
+                const limit = parseInt(rowLimitSelect.value, 10);
+                const rMin = recencyMin.value ? parseInt(recencyMin.value, 10) : undefined;
+                const rMax = recencyMax.value ? parseInt(recencyMax.value, 10) : undefined;
+                const mMin = monetaryMin.value ? parseFloat(monetaryMin.value) : undefined;
+                const mMax = monetaryMax.value ? parseFloat(monetaryMax.value) : undefined;
+
+                let url = `/api/rfm_segmentation?limit=${limit}&offset=0`;
+                if (rMin !== undefined) url += `&recency_min=${rMin}`;
+                if (rMax !== undefined) url += `&recency_max=${rMax}`;
+                if (mMin !== undefined) url += `&monetary_min=${mMin}`;
+                if (mMax !== undefined) url += `&monetary_max=${mMax}`;
+
                 try {
                     const data = await fetchJSON(url);
-                    rfmTbody.innerHTML = '';
-                    data.forEach(c => {
-                        const row = rfmTbody.insertRow();
-                        row.insertCell(0).innerText = c.customer_id;
-                        row.insertCell(1).innerText = c.recency_days;
-                        row.insertCell(2).innerText = c.frequency;
-                        row.insertCell(3).innerText = formatMoney(c.monetary);
-                        row.insertCell(4).innerText = c[segField] || 'N/A';
-                    });
+                    currentData = data;
+                    renderRFM(data);
                 } catch (e) {
                     rfmTbody.innerHTML = `<tr><td colspan="5">Error loading data</td></tr>`;
                 }
             };
 
-            rowLimitSelect.addEventListener('change', () => {
-                currentLimit = parseInt(rowLimitSelect.value, 10);
-                loadRFM();
+            const renderRFM = (data) => {
+                if (!data || !data.length) {
+                    rfmTbody.innerHTML = '<tr><td colspan="5">No data</td></tr>';
+                    scatterDiv.innerHTML = '<div class="insight-card">No data to display</div>';
+                    segPieDiv.innerHTML = '<div class="insight-card">No data</div>';
+                    statsDiv.innerHTML = '';
+                    return;
+                }
+
+                // Determine segment field
+                let segField = data[0].segment !== undefined ? 'segment' : (data[0].rfm_segment !== undefined ? 'rfm_segment' : null);
+                if (!segField) {
+                    // Fallback: compute segments on the fly (same logic as before)
+                    const recMedian = data.map(d => d.recency_days).sort((a,b)=>a-b)[Math.floor(data.length/2)];
+                    const monMedian = data.map(d => d.monetary).sort((a,b)=>a-b)[Math.floor(data.length/2)];
+                    data.forEach(d => {
+                        if (d.recency_days <= recMedian/2 && d.monetary >= monMedian*2) d.segment = 'Champions';
+                        else if (d.recency_days <= recMedian && d.monetary >= monMedian) d.segment = 'Loyal';
+                        else if (d.recency_days > recMedian*1.5 && d.monetary < monMedian) d.segment = 'At Risk';
+                        else if (d.recency_days > 180) d.segment = 'Lost';
+                        else d.segment = 'Others';
+                    });
+                    segField = 'segment';
+                }
+
+                // Populate segment dropdown options if not already
+                const segments = [...new Set(data.map(d => d[segField]))].sort();
+                const segColors = { Champions: '#ffd700', Loyal: '#2ecc71', 'At Risk': '#e74c3c', Lost: '#0728fe', Others: '#95a5a6'};
+                const getColor = s => segColors[s] || '#1e3c72';
+
+                // Update dropdown options (preserve selection)
+                const currentSeg = segDrop.value;
+                segDrop.innerHTML = '<option value="">All</option>' + segments.map(s => `<option value="${s}" ${currentSeg === s ? 'selected' : ''}>${s}</option>`).join('');
+
+                // Table
+                rfmTbody.innerHTML = '';
+                data.forEach(c => {
+                    const row = rfmTbody.insertRow();
+                    row.insertCell(0).innerText = c.customer_id;
+                    row.insertCell(1).innerText = c.recency_days;
+                    row.insertCell(2).innerText = c.frequency;
+                    row.insertCell(3).innerText = formatMoney(c.monetary);
+                    row.insertCell(4).innerText = c[segField] || 'N/A';
+                });
+
+                // Segment Statistics
+                const segStats = {};
+                segments.forEach(seg => {
+                    const custs = data.filter(d => d[segField] === seg);
+                    segStats[seg] = {
+                        count: custs.length,
+                        avgRecency: custs.reduce((s,c)=>s+c.recency_days,0)/custs.length,
+                        avgFreq: custs.reduce((s,c)=>s+c.frequency,0)/custs.length,
+                        avgMon: custs.reduce((s,c)=>s+c.monetary,0)/custs.length
+                    };
+                });
+                const statsHtml = '<table><thead><tr><th>Segment</th><th>Customers</th><th>Avg Recency</th><th>Avg Frequency</th><th>Avg Monetary</th></tr></thead><tbody>' +
+                    segments.map(seg => `<tr style="border-left:4px solid ${getColor(seg)};"><td>${seg}</td><td>${segStats[seg].count}</td><td>${segStats[seg].avgRecency.toFixed(1)}</td><td>${segStats[seg].avgFreq.toFixed(1)}</td><td>${formatMoney(segStats[seg].avgMon)}</td></tr>`).join('') +
+                    '</tbody></table>';
+                statsDiv.innerHTML = statsHtml;
+
+                // Scatter plot (Recency vs Monetary)
+                const scatterTraces = [];
+                const toShow = currentSeg ? [currentSeg] : segments;
+                toShow.forEach(seg => {
+                    const pts = data.filter(d => d[segField] === seg);
+                    if (!pts.length) return;
+                    scatterTraces.push({
+                        x: pts.map(p => p.recency_days),
+                        y: pts.map(p => p.monetary),
+                        mode: 'markers',
+                        name: seg,
+                        marker: { color: getColor(seg), size: 8, opacity: 0.7 },
+                        text: pts.map(p => `${getCustomerDisplay(p)}<br>Recency: ${p.recency_days} days<br>Freq: ${p.frequency}<br>Monetary: ${formatMoney(p.monetary)}`)
+                    });
+                });
+                Plotly.newPlot('rfm-scatter', scatterTraces, { title: 'Recency vs Monetary', height: 500, xaxis: { title: 'Recency (days)' }, yaxis: { title: 'Monetary ($)' } });
+
+                // Segment Pie
+                const segCounts = segments.reduce((a,s)=>{ a[s]=data.filter(d=>d[segField]===s).length; return a; }, {});
+                Plotly.newPlot('seg-pie2', [{
+                    labels: Object.keys(segCounts),
+                    values: Object.values(segCounts),
+                    type: 'pie',
+                    hole: 0.4,
+                    marker: { colors: Object.keys(segCounts).map(getColor) },
+                    textinfo: 'label+percent'
+                }], { title: 'Segment Distribution', height: 450 });
+                document.getElementById('seg-pie2').on('plotly_click', data => {
+                    if (data.points) {
+                        filterState.selectedSegment = data.points[0].label;
+                        updateFilterUI();
+                        refreshCurrentPage();
+                    }
+                });
+            };
+
+            // Event listeners
+            applyBtn.addEventListener('click', loadRFMData);
+            clearFiltersBtn.addEventListener('click', () => {
+                recencyMin.value = '';
+                recencyMax.value = '';
+                monetaryMin.value = '';
+                monetaryMax.value = '';
+                segDrop.value = '';
+                rowLimitSelect.value = '100';
+                loadRFMData();
             });
+            clearSeg.addEventListener('click', () => { segDrop.value = ''; loadRFMData(); });
+            segDrop.addEventListener('change', loadRFMData);
+            rowLimitSelect.addEventListener('change', loadRFMData);
 
-            await loadRFM();
+            // Initial load
+            await loadRFMData();
 
+            // Export button
             const rfmContainer = document.getElementById('rfm-full-table').parentNode;
-            const exportRFM = createExportButton('/api/rfm_segmentation?limit=100000', 'rfm_full.csv');
+            const exportRFM = createExportButton('/api/rfm_segmentation?limit=-1', 'rfm_full.csv');
             rfmContainer.appendChild(exportRFM);
         },
 

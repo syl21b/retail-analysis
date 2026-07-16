@@ -857,13 +857,38 @@ def time_to_purchase():
 @app.route('/api/rfm_segmentation')
 @require_auth
 def rfm_segmentation():
+    # Parse query parameters
     limit = request.args.get('limit', default=1000, type=int)
     offset = request.args.get('offset', default=0, type=int)
+    recency_min = request.args.get('recency_min', type=int)
+    recency_max = request.args.get('recency_max', type=int)
+    monetary_min = request.args.get('monetary_min', type=float)
+    monetary_max = request.args.get('monetary_max', type=float)
+
     df = friendly_data.get('RFM Segmentation')
-    if df is not None and not df.empty:
-        sliced = df.iloc[offset:offset+limit]
-        return jsonify(sanitize_output(loader.to_dict(sliced)))
-    return jsonify([])
+    if df is None or df.empty:
+        return jsonify([])
+
+    # Make a copy to avoid modifying cached data
+    df = df.copy()
+
+    # Apply filters
+    if recency_min is not None:
+        df = df[df['recency_days'] >= recency_min]
+    if recency_max is not None:
+        df = df[df['recency_days'] <= recency_max]
+    if monetary_min is not None:
+        df = df[df['monetary'] >= monetary_min]
+    if monetary_max is not None:
+        df = df[df['monetary'] <= monetary_max]
+
+    # Handle limit: if limit == -1, return all
+    if limit != -1:
+        df = df.iloc[offset:offset + limit]
+    else:
+        df = df.iloc[offset:]
+
+    return jsonify(sanitize_output(loader.to_dict(df)))
 
 @app.route('/api/cohort_retention')
 @require_auth
