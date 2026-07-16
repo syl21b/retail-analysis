@@ -165,9 +165,23 @@ def require_role(roles):
 # ------------------------------
 class SecureDatabase:
     def __init__(self, db_url, min_conn=1, max_conn=10):
+        # Ensure sslmode is set
+        if '?' in db_url:
+            db_url += '&sslmode=require'
+        else:
+            db_url += '?sslmode=require'
         self.pool = SimpleConnectionPool(min_conn, max_conn, db_url)
     def get_connection(self):
-        return self.pool.getconn()
+        conn = self.pool.getconn()
+        # Test the connection before returning
+        try:
+            with conn.cursor() as cur:
+                cur.execute("SELECT 1")
+        except Exception:
+            # Connection is dead; close it and get a fresh one
+            self.pool.putconn(conn, close=True)
+            conn = self.pool.getconn()
+        return conn
     def put_connection(self, conn):
         self.pool.putconn(conn)
     @contextmanager
