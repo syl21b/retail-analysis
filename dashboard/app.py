@@ -53,10 +53,6 @@ class Config:
     if not DATABASE_URL:
         logger.error("DATABASE_URL environment variable not set.")
         sys.exit(1)
-    # Add SSL mode if not present
-    if 'sslmode' not in DATABASE_URL.lower():
-        separator = '&' if '?' in DATABASE_URL else '?'
-        DATABASE_URL += f"{separator}sslmode=require"
     
     GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
     GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
@@ -438,13 +434,16 @@ friendly_data = loader.friendly_data
 def get_dataset(name):
     return loader.to_dict(friendly_data.get(name, pd.DataFrame()))
 
-# ========== Multi-Provider AI Setup ==========
+# ------------------------------
+#  Multi-Provider AI Setup
+# ------------------------------
 try:
-    import google.generativeai as genai
+    from google import genai
+    from google.genai import types
     GENAI_AVAILABLE = True
 except ImportError:
     GENAI_AVAILABLE = False
-    logger.warning("google-generativeai not installed. Gemini disabled.")
+    logger.warning("google-genai not installed. Gemini disabled.")
 
 try:
     from groq import Groq
@@ -457,14 +456,8 @@ genai_client = None
 groq_client = None
 
 if Config.GEMINI_API_KEY and GENAI_AVAILABLE:
-    try:
-        genai.configure(api_key=Config.GEMINI_API_KEY)
-        genai_client = genai  # store the module for later use
-        logger.info("✅ Gemini AI ready.")
-    except Exception as e:
-        logger.error(f"Failed to initialise Gemini: {e}")
-        genai_client = None
-
+    genai_client = genai.Client(api_key=Config.GEMINI_API_KEY)
+    logger.info("✅ Gemini AI ready.")
 if Config.GROQ_API_KEY and GROQ_AVAILABLE:
     try:
         groq_client = Groq(api_key=Config.GROQ_API_KEY)
@@ -476,8 +469,9 @@ if Config.GROQ_API_KEY and GROQ_AVAILABLE:
 def call_ai_provider(prompt):
     if genai_client:
         try:
-            model = genai_client.GenerativeModel("gemini-1.5-flash")  # use a valid model name
-            response = model.generate_content(prompt)
+            response = genai_client.models.generate_content(
+                model="gemini-2.5-flash", contents=prompt,
+                config=types.GenerateContentConfig(temperature=0.7, max_output_tokens=8192, top_p=0.95))
             logger.info("✅ AI response from Gemini.")
             return response.text
         except Exception as e:
