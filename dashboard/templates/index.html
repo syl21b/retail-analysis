@@ -2,1318 +2,1480 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Enterprise BI Dashboard | AI Analyst</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>RetailPulse · AI Analytics</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%231e3c72'/%3E%3Crect x='12' y='32' width='10' height='20' fill='%23ffffff' opacity='0.9'/%3E%3Crect x='27' y='20' width='10' height='32' fill='%23ffffff' opacity='0.9'/%3E%3Crect x='42' y='8' width='10' height='44' fill='%23ffffff' opacity='0.9'/%3E%3Ccircle cx='32' cy='56' r='4' fill='%23facc15'/%3E%3Ctext x='32' y='58' font-size='10' font-family='Arial' font-weight='bold' fill='%231e3c72' text-anchor='middle'%3EBI%3C/text%3E%3C/svg%3E">
-    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9TpUUqDnYQcchQnSyIijhKFYtgobQVWnUwufQLmjQkKS6OgmvBwY/FqoOLs64OroIg+AHi5uak6CIl/i8ptIjx4Lgf7+497t4BQr3MNKtrAtB020wl4mImuyoGXxHBGPoRkBmRZc45S5JSNO7bswY91UWeZ31v/ZU+JWcywCcQzzDdtIhXiWc2bZ3zPnGYlSSF+Jx41KALEj9yXXb5jXPRYYFnhowsNUs8Ih7LdbHcxaxsqsRTxJFU1ShfyLqscd7irJZrrHlP/sJgTltZ4jrNISSxiCQkiFBQRhnl2EjSrpNiIU3nCR//kOuXyKWQqwRGjgWUoUF2/eB/8Hu2VmFqzEsKJYDuF8f5GAVCu0Cj5jjfx47TOAH8z8CV3vZX6sDsJ+n1thY5AkK7wMV1W1P2gMsdYPDJkE3ZlYI0hUIB+D6jbs4DvbtAZ833rXMcP4CkSlW9BhwcAiNFyl73eXd3Z9/+bWn27wcNqXKldaoK9QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+cFFwQoIHSnM1sAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAABnRFWHRTb2Z0d2FyZQBnbm9tZS1zY3JlZW5zaG907wO/PgAAAixJREFUeJztm71rFEEYh5+dhGCCYCHaBC1UwV8gxU0ba22jYhG0sdPG4h+wUvS/iFqoIEpQi69VUBAhEDQY94WgzUZisYsuxzWL+yXNuoPmZnbenc8Dw8zuzrM77DvsfDszl2KMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHG/NdcA+ZgF1gCFoEfwCTwsmP58w7GvgHcq+huA1gCtuf4DfaBReBVB/+lYdzP2wXGRvQ/+AzMAtMd+nwArvZcp5+AdWBhhP/twBnQp5pR+b8No/pcAYae1Q3KoJN4A1wYp33gaEXdy8ADYK2i+j1gYcDYrwOPS+quAS96zPEj8K6i7sfA+QH6vwUutPp8Bp61+vx6DvhkYfZ+ZBd4XIz3RgO4K3OjWADm2jl3gKvAP2BWrGYiXbdK+ZPMZmV1UjIPPO7gOwycT9f3RKq8lCzzcUjHSnF8PvWb0Da+I9u/xP1kHvYowN9IHwHPipobwHmpyGSyILZhtDzg+NNS4TzwkO+76pMu66qknwBrc/axAPyWlfcsU/EOeFUy+Fty78t8IrQj5c2L0vIAdiIzMI5U2Yq03AK2E3E9CT2LSNUyYS0iHd+ItKXfyCOkzqQhT6Xn+ZtG+rYCvAduE1r4DnA9W/5+Qp+3Uv1bUv2RdNrWkA0HpdK/TLp+P0Y6Py2VTgP36T6O3gCfkXbdjPD8GePM/geG3yVnTq0NWAAAAABJRU5ErkJggg==">
     <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%231e3c72'/%3E%3Crect x='2' y='12' width='4' height='10' fill='%23ffffff'/%3E%3Crect x='8' y='6' width='4' height='16' fill='%23ffffff'/%3E%3Crect x='14' y='2' width='4' height='20' fill='%23ffffff'/%3E%3C/svg%3E">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.24.1/plotly.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #f8fafc; color: #0f172a; }
-        .dashboard { display: flex; min-height: 100vh; }
-        .sidebar { width: 280px; background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); border-right: 1px solid #e2e8f0; padding: 1.5rem 1rem; position: fixed; height: 100vh; overflow-y: auto; z-index: 10; box-shadow: 4px 0 12px rgba(0,0,0,0.02); }
-        .sidebar-header { display: flex; align-items: center; gap: 10px; margin-bottom: 1.5rem; padding-bottom: 0.75rem; border-bottom: 2px solid #eef2ff; }
-        .sidebar-header .logo-text { font-size: 1.3rem; font-weight: 700; background: linear-gradient(135deg, #1e3c72, #2a5298); -webkit-background-clip: text; background-clip: text; color: transparent; letter-spacing: -0.3px; }
-        .sidebar-header svg { transition: transform 0.2s ease; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05)); }
-        .sidebar-header:hover svg { transform: scale(1.02); }
-        .nav-item { padding: 0.7rem 1rem; margin: 0.2rem 0; border-radius: 12px; cursor: pointer; font-weight: 500; color: #334155; transition: all 0.2s; display: flex; align-items: center; gap: 10px; }
-        .nav-item:hover { background: #eef2ff; color: #1e3c72; transform: translateX(4px); }
-        .nav-item.active { background: #1e3c72; color: white; box-shadow: 0 2px 8px rgba(30,60,114,0.2); }
-        .main-content { flex: 1; margin-left: 280px; padding: 1.5rem; }
-        .intro-section { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); border-radius: 28px; padding: 1.5rem 2rem; margin-bottom: 1.5rem; color: white; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
-        .intro-content h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.5px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-        .intro-content p { font-size: 0.9rem; opacity: 0.9; margin-bottom: 1rem; line-height: 1.4; }
-        .intro-stats { display: flex; gap: 1rem; flex-wrap: wrap; }
-        .stat-badge { background: rgba(255,255,255,0.15); backdrop-filter: blur(4px); padding: 0.3rem 1rem; border-radius: 40px; font-size: 0.75rem; font-weight: 500; border: 1px solid rgba(255,255,255,0.2); }
-        .filter-bar { background: white; border-radius: 24px; padding: 1rem 1.5rem; margin-bottom: 1.5rem; display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid #eef2ff; }
-        .filter-group { display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap; }
-        .filter-label { font-size: 0.75rem; font-weight: 600; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; }
-        .filter-input { padding: 0.4rem 0.8rem; border-radius: 12px; border: 1px solid #cbd5e1; font-size: 0.8rem; background: white; transition: 0.2s; }
-        .filter-input:focus { outline: none; border-color: #1e3c72; box-shadow: 0 0 0 2px rgba(30,60,114,0.1); }
-        .btn-clear { background: #f1f5f9; border: none; padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.8rem; cursor: pointer; transition: 0.2s; font-weight: 500; }
-        .btn-clear:hover { background: #e2e8f0; transform: scale(0.98); }
-        .btn-ai { background: #1e3c72; color: white; border: none; padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.8rem; cursor: pointer; transition: 0.2s; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
-        .btn-ai:hover { background: #2a5298; transform: scale(0.98); }
-        .metric-btn.active { background: #2a5298; border: 1px solid white; transform: scale(0.98); }
-        .active-filter { background: #1e3c72; color: white; border-radius: 20px; padding: 0.2rem 0.8rem; font-size: 0.7rem; display: inline-flex; align-items: center; gap: 8px; animation: fadeIn 0.2s; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-        .active-filter .remove { cursor: pointer; font-weight: bold; opacity: 0.8; transition: 0.2s; }
-        .active-filter .remove:hover { opacity: 1; transform: scale(1.2); }
-        .section-header { font-size: 1.3rem; font-weight: 700; color: #0f172a; margin: 1.2rem 0 1rem 0; padding-bottom: 0.3rem; border-bottom: 3px solid #1e3c72; display: inline-block; }
-        .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
-        .metric-card { background: white; padding: 1rem; border-radius: 24px; text-align: center; border: 1px solid #eef2ff; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
-        .metric-card:hover { transform: translateY(-3px); box-shadow: 0 12px 24px rgba(0,0,0,0.05); border-color: #cbd5e1; }
-        .metric-value { font-size: 1.8rem; font-weight: 800; color: #1e3c72; letter-spacing: -0.5px; }
-        .metric-label { font-size: 0.7rem; color: #64748b; margin-top: 0.3rem; text-transform: uppercase; }
-        .chart-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 1.2rem; margin-bottom: 1.2rem; }
-        .chart-card { background: white; border-radius: 24px; padding: 0.8rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03); border: 1px solid #edf2f7; transition: all 0.2s; }
-        .chart-card:hover { box-shadow: 0 8px 20px rgba(0,0,0,0.05); border-color: #e2e8f0; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #f4f6fa; color: #0b1a33; line-height: 1.5; }
+        a { text-decoration: none; color: inherit; }
+        .topnav {
+            background: white;
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid #e9edf4;
+        }
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #1e3c72;
+            letter-spacing: -0.3px;
+        }
+        .nav-brand svg { height: 28px; width: 28px; }
+        .nav-menu {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .nav-menu .nav-item {
+            padding: 0.4rem 0.9rem;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #4a5b7a;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: transparent;
+            border: none;
+            white-space: nowrap;
+        }
+        .nav-menu .nav-item:hover { background: #eef2f9; color: #1e3c72; }
+        .nav-menu .nav-item.active {
+            background: #1e3c72;
+            color: white;
+            box-shadow: 0 2px 8px rgba(30,60,114,0.15);
+        }
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            padding: 5px;
+            background: none;
+            border: none;
+        }
+        .hamburger span {
+            width: 25px;
+            height: 2.5px;
+            background: #1e3c72;
+            border-radius: 4px;
+            transition: 0.2s;
+        }
+        .nav-drawer {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 280px;
+            height: 100vh;
+            background: white;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.08);
+            z-index: 200;
+            padding: 2rem 1.5rem;
+            transform: translateX(-100%);
+            transition: transform 0.25s ease;
+            overflow-y: auto;
+        }
+        .nav-drawer.open { transform: translateX(0); }
+        .nav-drawer .close-drawer {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            color: #4a5b7a;
+            cursor: pointer;
+        }
+        .nav-drawer .nav-item {
+            display: block;
+            padding: 0.8rem 0;
+            font-weight: 500;
+            color: #1e2a44;
+            border-bottom: 1px solid #edf2f9;
+            cursor: pointer;
+        }
+        .nav-drawer .nav-item.active { color: #1e3c72; font-weight: 600; }
+        .main {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 1.2rem 1.5rem 3rem;
+        }
+        .banner {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            border-radius: 28px;
+            padding: 1.5rem 2rem;
+            color: white;
+            margin-bottom: 1.8rem;
+            box-shadow: 0 8px 24px rgba(30,60,114,0.15);
+        }
+        .banner h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .banner p {
+            opacity: 0.9;
+            margin-top: 0.3rem;
+            font-size: 0.95rem;
+            max-width: 700px;
+        }
+        .banner-stats {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 0.8rem;
+        }
+        .banner-stats span {
+            background: rgba(255,255,255,0.12);
+            backdrop-filter: blur(2px);
+            padding: 0.2rem 1rem;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+        .filter-bar {
+            background: white;
+            border-radius: 20px;
+            padding: 1rem 1.2rem;
+            margin-bottom: 1.8rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.8rem 1.2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            border: 1px solid #e9edf4;
+        }
+        .filter-group {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .filter-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #6b7a9a;
+            letter-spacing: 0.3px;
+        }
+        .filter-input, .filter-select {
+            padding: 0.3rem 0.7rem;
+            border-radius: 30px;
+            border: 1px solid #dbe0e9;
+            background: white;
+            font-size: 0.8rem;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+        .filter-input:focus, .filter-select:focus {
+            outline: none;
+            border-color: #1e3c72;
+            box-shadow: 0 0 0 2px rgba(30,60,114,0.08);
+        }
+        .btn {
+            padding: 0.3rem 1.2rem;
+            border-radius: 30px;
+            border: none;
+            font-weight: 500;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: 0.15s;
+            background: #eef2f9;
+            color: #1e2a44;
+        }
+        .btn:hover { transform: scale(0.96); }
+        .btn-primary {
+            background: #1e3c72;
+            color: white;
+        }
+        .btn-primary:hover { background: #2a5298; }
+        .btn-outline { background: transparent; border: 1px solid #dbe0e9; }
+        .btn-danger { background: #fee2e2; color: #b91c1c; }
+        .btn-danger:hover { background: #fecaca; }
+        .active-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+        .filter-tag {
+            background: #1e3c72;
+            color: white;
+            border-radius: 40px;
+            padding: 0.15rem 0.8rem;
+            font-size: 0.7rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .filter-tag .remove {
+            cursor: pointer;
+            font-weight: 700;
+            opacity: 0.8;
+        }
+        .filter-tag .remove:hover { opacity: 1; }
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #0b1a33;
+            margin: 1.5rem 0 1rem;
+            padding-bottom: 0.3rem;
+            border-bottom: 3px solid #1e3c72;
+            display: inline-block;
+        }
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .metric-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 20px;
+            text-align: center;
+            border: 1px solid #e9edf4;
+            transition: 0.2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+        .metric-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.04); border-color: #d0d9e8; }
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #1e3c72;
+            letter-spacing: -0.5px;
+        }
+        .metric-label {
+            font-size: 0.7rem;
+            color: #6b7a9a;
+            text-transform: uppercase;
+            margin-top: 0.2rem;
+        }
+        .chart-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.2rem;
+            margin-bottom: 1.2rem;
+        }
+        .chart-card {
+            background: white;
+            border-radius: 24px;
+            padding: 0.8rem;
+            border: 1px solid #e9edf4;
+            transition: 0.2s;
+        }
+        .chart-card:hover { box-shadow: 0 6px 18px rgba(0,0,0,0.02); border-color: #d0d9e8; }
+        .chart-card .caption {
+            font-size: 0.7rem;
+            color: #7a8aa8;
+            text-align: center;
+            margin-top: 0.5rem;
+        }
         .full-width { grid-column: 1 / -1; }
-        .insight-card { background: #fefce8; border-left: 4px solid #eab308; padding: 0.8rem 1rem; border-radius: 16px; margin: 1rem 0; font-size: 0.85rem; color: #854d0e; }
-        .warning-card { background: #fee2e2; border-left: 4px solid #ef4444; padding: 0.8rem 1rem; border-radius: 16px; margin: 1rem 0; font-size: 0.85rem; color: #991b1b; }
-        .info-card { background: #e0f2fe; border-left: 4px solid #0284c7; padding: 0.8rem 1rem; border-radius: 16px; margin: 1rem 0; font-size: 0.85rem; color: #0c4a6e; }
-        .segment-select { padding: 0.5rem; border-radius: 12px; border: 1px solid #cbd5e1; background: white; margin: 0.5rem 0; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
-        th, td { border: 1px solid #e2e8f0; padding: 8px; text-align: left; }
-        th { background: #f1f5f9; font-weight: 600; }
-        .use-case-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin: 1rem 0; }
-        .use-case-card { background: white; border-radius: 20px; padding: 1rem; border: 1px solid #e2e8f0; transition: 0.2s; }
-        .use-case-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .use-case-title { font-weight: 700; font-size: 1rem; margin-bottom: 0.5rem; color: #1e3c72; }
-        .use-case-desc { font-size: 0.75rem; color: #475569; margin-bottom: 0.5rem; }
+        .info-card, .insight-card, .warning-card {
+            padding: 0.8rem 1rem;
+            border-radius: 16px;
+            margin: 1rem 0;
+            font-size: 0.85rem;
+        }
+        .insight-card { background: #fefce8; border-left: 4px solid #eab308; color: #854d0e; }
+        .warning-card { background: #fee2e2; border-left: 4px solid #ef4444; color: #991b1b; }
+        .info-card { background: #e0f2fe; border-left: 4px solid #0284c7; color: #0c4a6e; }
+        .table-responsive {
+            overflow-x: auto;
+            border-radius: 16px;
+            border: 1px solid #e9edf4;
+            background: white;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+        th, td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #e9edf4;
+            text-align: left;
+        }
+        th { background: #f8fafd; font-weight: 600; color: #1e2a44; }
+        tr:hover td { background: #fafbfd; }
+        .use-case-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .use-case-card {
+            background: white;
+            padding: 1.2rem;
+            border-radius: 20px;
+            border: 1px solid #e9edf4;
+            transition: 0.2s;
+        }
+        .use-case-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.02); }
+        .use-case-title { font-weight: 700; color: #1e3c72; }
+        .use-case-desc { font-size: 0.8rem; color: #4a5b7a; }
         .use-case-action { font-size: 0.7rem; color: #eab308; font-weight: 500; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; }
-        .modal-content { background: white; border-radius: 32px; max-width: 1000px; width: 90%; max-height: 85vh; overflow-y: auto; padding: 0; position: relative; box-shadow: 0 25px 40px -12px rgba(0,0,0,0.25); }
-        .modal-header { position: sticky; top: 0; background: white; z-index: 10; display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 1.8rem; border-bottom: 2px solid #eef2ff; }
-        .modal-header h2 { font-size: 1.4rem; font-weight: 700; color: #1e3c72; margin: 0; }
-        .modal-close { cursor: pointer; font-size: 1.8rem; background: none; border: none; color: #94a3b8; transition: 0.2s; line-height: 1; }
-        .modal-close:hover { color: #1e3c72; transform: scale(1.1); }
-        .ai-insights-text { padding: 1.8rem; font-size: 0.95rem; line-height: 1.6; color: #1e293b; }
-        .ai-insights-text ol, .ai-insights-text ul { margin: 0.75rem 0 0.75rem 1.8rem; padding-left: 0; }
-        .ai-insights-text li { margin: 0.4rem 0; }
-        .ai-insights-text ol li { margin: 0.5rem 0; line-height: 1.5; }
-        .ai-insights-text ol li::marker { font-weight: 600; color: #1e3c72; }
-        .ai-insights-text ul li { list-style-type: disc; }
-        .ai-insights-text ol ol, .ai-insights-text ul ul,
-        .ai-insights-text ol ul, .ai-insights-text ul ol { margin-left: 1.5rem; }
-        .ai-insights-text h1, .ai-insights-text h2, .ai-insights-text h3, .ai-insights-text h4 { margin-top: 1.2em; margin-bottom: 0.6em; }
-        .ai-insights-text p { margin: 0.8em 0; }
-        .ai-insights-text blockquote { background: #f1f5f9; border-left: 4px solid #1e3c72; margin: 1rem 0; padding: 0.75rem 1rem; border-radius: 12px; }
-        .ai-insights-text code { background: #f1f5f9; padding: 2px 6px; border-radius: 8px; font-size: 0.85rem; }
-        .ai-footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; color: #64748b; flex-wrap: wrap; gap: 1rem; }
-        .copy-btn, .feedback-btn, .export-btn { background: #eef2ff; border: none; padding: 5px 14px; border-radius: 30px; cursor: pointer; font-size: 0.75rem; font-weight: 500; color: #1e3c72; transition: 0.2s; }
-        .copy-btn:hover, .feedback-btn:hover, .export-btn:hover { background: #e2e8f0; transform: scale(0.98); }
-        .loader { text-align: center; padding: 3rem; display: flex; flex-direction: column; align-items: center; gap: 1rem; }
-        .spinner { width: 40px; height: 40px; border: 3px solid #e2e8f0; border-top-color: #1e3c72; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        .nlq-area {
+            display: flex;
+            gap: 0.8rem;
+            margin: 1.5rem 0;
+            flex-wrap: wrap;
+        }
+        .nlq-area input {
+            flex: 1;
+            padding: 0.7rem 1rem;
+            border-radius: 40px;
+            border: 1px solid #dbe0e9;
+            font-size: 0.9rem;
+            min-width: 200px;
+        }
+        .nlq-area input:focus { outline: none; border-color: #1e3c72; box-shadow: 0 0 0 2px rgba(30,60,114,0.08); }
+        .sql-block {
+            background: #f1f4fa;
+            padding: 0.8rem;
+            border-radius: 12px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 300;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(2px);
+        }
+        .modal-content {
+            background: white;
+            border-radius: 32px;
+            max-width: 900px;
+            width: 94%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 0;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.15);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem 1.8rem;
+            border-bottom: 2px solid #eef2f9;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 2;
+        }
+        .modal-header h2 { font-size: 1.3rem; font-weight: 700; color: #1e3c72; }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            line-height: 1;
+            color: #94a3b8;
+            cursor: pointer;
+        }
+        .modal-close:hover { color: #1e3c72; }
+        .modal-body { padding: 1.8rem; }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #fee2e2;
+            border-left: 4px solid #ef4444;
+            padding: 0.8rem 1.2rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            z-index: 400;
+            display: none;
+            max-width: 360px;
+        }
+        .sim-card {
+            background: white;
+            border-radius: 24px;
+            padding: 1.2rem;
+            border: 1px solid #e9edf4;
+            margin: 1rem 0;
+        }
+        .sim-metrics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .sim-metrics button {
+            background: #eef2f9;
+            border: none;
+            padding: 0.4rem 1rem;
+            border-radius: 40px;
+            font-weight: 500;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .sim-metrics button.active {
+            background: #1e3c72;
+            color: white;
+        }
+        .sim-metrics button:hover { transform: scale(0.96); }
+        @media (max-width: 768px) {
+            .nav-menu { display: none; }
+            .hamburger { display: flex; }
+            .nav-drawer.open { display: block; }
+            .main { padding: 0.8rem 1rem; }
+            .banner { padding: 1.2rem 1.5rem; }
+            .banner h1 { font-size: 1.3rem; }
+            .filter-bar { flex-direction: column; align-items: stretch; gap: 0.8rem; }
+            .filter-group { flex-wrap: wrap; }
+            .filter-input { width: 100%; }
+            .chart-row { grid-template-columns: 1fr; }
+            .metric-grid { grid-template-columns: repeat(2, 1fr); }
+            .modal-content { width: 98%; }
+            .modal-body { padding: 1rem; }
+        }
+        @media (max-width: 480px) {
+            .metric-grid { grid-template-columns: 1fr 1fr; }
+            .metric-value { font-size: 1.4rem; }
+        }
+        .loader {
+            text-align: center;
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+        .spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #1e3c72;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .caption { font-size: 0.7rem; color: #64748b; text-align: center; margin-top: 0.5rem; }
-        .error-message { background: #fee2e2; padding: 1rem; border-radius: 16px; color: #991b1b; text-align: center; margin: 1rem; }
-        .nlq-input-area { display: flex; gap: 0.8rem; margin: 1.5rem 0; align-items: center; flex-wrap: wrap; }
-        .nlq-input { flex: 1; padding: 0.8rem 1rem; border-radius: 24px; border: 1px solid #cbd5e1; font-size: 0.9rem; background: white; }
-        .nlq-input:focus { outline: none; border-color: #1e3c72; box-shadow: 0 0 0 2px rgba(30,60,114,0.1); }
-        .sql-block { background: #f1f5f9; padding: 0.8rem; border-radius: 12px; font-family: monospace; font-size: 0.8rem; margin: 1rem 0; overflow-x: auto; }
-        .cached-badge { background: #dcfce7; color: #166534; border-radius: 30px; padding: 2px 10px; font-size: 0.7rem; margin-left: 8px; }
-        .simulate-card { background: white; border-radius: 24px; padding: 1.5rem; margin: 1rem 0; border: 1px solid #e2e8f0; }
-        .simulate-slider { width: 100%; margin: 1rem 0; }
-        .alert-toast { position: fixed; bottom: 20px; right: 20px; background: #fee2e2; border-left: 4px solid #ef4444; padding: 0.8rem 1.2rem; border-radius: 12px; z-index: 2000; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: none; }
-        .table-responsive { max-height: 500px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 16px; }
-        .export-csv-btn { background: #10b981; color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.7rem; cursor: pointer; margin-left: 1rem; }
-        .export-csv-btn:hover { background: #059669; }
-        .row-limit-dropdown { padding: 0.3rem 0.6rem; border-radius: 12px; border: 1px solid #cbd5e1; font-size: 0.8rem; }
-        @media (max-width: 768px) { .sidebar { width: 100%; position: relative; height: auto; } .main-content { margin-left: 0; } .chart-row { grid-template-columns: 1fr; } }
-        footer { text-align: center; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; font-size: 0.7rem; color: #64748b; }
+        .mt-1 { margin-top: 1rem; }
+        .mb-1 { margin-bottom: 1rem; }
+        .flex { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
     </style>
 </head>
 <body>
-<div class="dashboard">
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Enterprise BI logo">
-                <rect x="2" y="12" width="4" height="10" fill="#1e3c72" rx="0.8" />
-                <rect x="8" y="6" width="4" height="16" fill="#2a5298" rx="0.8" />
-                <rect x="14" y="2" width="4" height="20" fill="#3b82f6" rx="0.8" />
-                <line x1="2" y1="22" x2="22" y2="22" stroke="#94a3b8" stroke-width="1.2" stroke-linecap="round"/>
-            </svg>
-            <span class="logo-text">ENTERPRISE BI</span>
+    <!-- Top Navigation -->
+    <nav class="topnav">
+        <div class="nav-brand">
+            <svg viewBox="0 0 24 24" fill="none" width="28" height="28"><rect x="2" y="12" width="4" height="10" fill="#1e3c72" rx="0.8"/><rect x="8" y="6" width="4" height="16" fill="#2a5298" rx="0.8"/><rect x="14" y="2" width="4" height="20" fill="#3b82f6" rx="0.8"/><line x1="2" y1="22" x2="22" y2="22" stroke="#94a3b8" stroke-width="1.2" stroke-linecap="round"/></svg>
+            <span>RetailPulse</span>
         </div>
-        <div id="nav-container">
-            <div class="nav-item active" data-page="overview">📈 Executive Dashboard</div>
-            <div class="nav-item" data-page="revenue">💰 Revenue Analytics</div>
-            <div class="nav-item" data-page="customers">👥 Customer Intelligence</div>
-            <div class="nav-item" data-page="products">🏷️ Product Performance</div>
-            <div class="nav-item" data-page="rfm">⭐ RFM Segmentation</div>
-            <div class="nav-item" data-page="cohort">📉 Cohort Retention</div>
-            <div class="nav-item" data-page="insights">📖 Project Insights</div>
-            <div class="nav-item" data-page="nlq">🗣️ Ask AI (NLQ)</div>
-            <div class="nav-item" data-page="simulate">🎲 What-If Simulator</div>
+        <div class="nav-menu" id="navMenu">
+            <button class="nav-item active" data-page="overview">📊 Overview</button>
+            <button class="nav-item" data-page="revenue">💰 Revenue</button>
+            <button class="nav-item" data-page="customers">👥 Customers</button>
+            <button class="nav-item" data-page="products">🏷️ Products</button>
+            <button class="nav-item" data-page="rfm">⭐ RFM</button>
+            <button class="nav-item" data-page="cohort">📉 Cohort</button>
+            <button class="nav-item" data-page="insights">📖 Features</button>
+            <button class="nav-item" data-page="nlq">🗣️ Ask AI</button>
+            <button class="nav-item" data-page="simulate">🎲 Simulate</button>
         </div>
-        <div style="margin-top: 2rem; font-size: 0.7rem; color: #64748b; padding: 0 1rem;">
-            <p>✨ <strong>Interactive Features</strong><br>
-            • Click bars/pie slices → filter entire dashboard<br>
-            • Drag on daily chart → set date range<br>
-            • Adjust value slider → filter customer & revenue data<br>
-            • 🤖 AI Business Analyst provides deep insights</p>
-        </div>
+        <button class="hamburger" id="hamburger" aria-label="Menu">
+            <span></span><span></span><span></span>
+        </button>
+    </nav>
+
+    <!-- Mobile Drawer -->
+    <div class="nav-drawer" id="navDrawer">
+        <button class="close-drawer" id="closeDrawer">&times;</button>
+        <button class="nav-item active" data-page="overview">📊 Overview</button>
+        <button class="nav-item" data-page="revenue">💰 Revenue</button>
+        <button class="nav-item" data-page="customers">👥 Customers</button>
+        <button class="nav-item" data-page="products">🏷️ Products</button>
+        <button class="nav-item" data-page="rfm">⭐ RFM</button>
+        <button class="nav-item" data-page="cohort">📉 Cohort</button>
+        <button class="nav-item" data-page="insights">📖 Features</button>
+        <button class="nav-item" data-page="nlq">🗣️ Ask AI</button>
+        <button class="nav-item" data-page="simulate">🎲 Simulate</button>
     </div>
-    <div class="main-content">
-        <div class="intro-section">
-            <div class="intro-content">
-                <h1><span>📊 AI-Powered Retail Analytics</span></h1>
-                <p>End-to-end ETL pipeline processing <strong>4M+ records</strong> with <strong>99.8% data validity</strong>. Cross-filter charts, ask questions in plain English, simulate business decisions, and export reports.</p>
-                <div class="intro-stats">
-                    <div class="stat-badge">🎯 9 Analytical Use Cases</div>
-                    <div class="stat-badge">⚡ Cross-Filtering Charts</div>
-                    <div class="stat-badge">📈 Real-Time Drill-Down</div>
-                    <div class="stat-badge">🤖 AI-Powered Insights</div>
-                </div>
+
+    <!-- Main Content -->
+    <div class="main">
+        <div class="banner">
+            <h1>📊 AI-Powered Retail Analytics</h1>
+            <p>End-to-end ETL pipeline processing <strong>4M+ records</strong> with <strong>99.8% data validity</strong>. Cross-filter charts, ask questions in plain English, simulate decisions, and export reports.</p>
+            <div class="banner-stats">
+                <span>🎯 9 Use Cases</span>
+                <span>⚡ Cross-Filtering</span>
+                <span>📈 Real-Time Drill-Down</span>
+                <span>🤖 AI Insights</span>
             </div>
         </div>
-        <div class="filter-bar" id="global-filter-bar">
+
+        <div class="filter-bar" id="globalFilterBar">
             <div class="filter-group">
-                <span class="filter-label">📅 Date Range:</span>
+                <span class="filter-label">📅 Date</span>
                 <input type="date" id="date-min" class="filter-input" style="width:130px">
                 <span>→</span>
                 <input type="date" id="date-max" class="filter-input" style="width:130px">
-                <span class="filter-label">💰 Value ($):</span>
-                <input type="range" id="value-slider" min="0" max="10000" step="100" style="width:160px">
-                <span id="value-range-display" class="filter-label">0 - 10k</span>
-                <button id="clear-filters" class="btn-clear">🗑️ Clear All</button>
-                <select id="persona-select" class="segment-select" style="margin-left: 0.5rem;">
-                    <option value="balanced_analyst">⚖️ Balanced Analyst</option>
-                    <option value="conservative_cfo">📉 Conservative CFO</option>
-                    <option value="growth_cmo">🚀 Growth CMO</option>
+                <span class="filter-label">💰 Value</span>
+                <input type="range" id="value-slider" min="0" max="10000" step="100" style="width:140px">
+                <span id="value-range-display" class="filter-label" style="min-width:60px;">0 – 10k</span>
+                <button id="clear-filters" class="btn btn-outline">Clear All</button>
+                <select id="persona-select" class="filter-select" style="margin-left:0.2rem;">
+                    <option value="balanced_analyst">⚖️ Balanced</option>
+                    <option value="conservative_cfo">📉 Conservative</option>
+                    <option value="growth_cmo">🚀 Growth</option>
                 </select>
-                <button id="ai-insights-btn" class="btn-ai">🤖 AI Business Analyst</button>
-                <button id="check-alerts-btn" class="btn-ai">⚠️ Check Alerts</button>
+                <button id="ai-insights-btn" class="btn btn-primary">🤖 AI Analyst</button>
+                <button id="check-alerts-btn" class="btn btn-danger">⚠️ Alerts</button>
             </div>
-            <div id="active-filters" style="display: flex; gap: 0.5rem; flex-wrap: wrap;"></div>
+            <div class="active-filters" id="activeFilters"></div>
         </div>
-        <div id="page-content"><div class="loader"><div class="spinner"></div>Loading dashboard...</div></div>
-        <footer>Cross-filtering enabled | Click any chart to drill down | Global filters affect all pages</footer>
+
+        <div id="pageContent"><div class="loader"><div class="spinner"></div>Loading dashboard...</div></div>
+
+        <footer style="margin-top: 2rem; text-align: center; font-size: 0.7rem; color: #7a8aa8; border-top: 1px solid #e9edf4; padding-top: 1.2rem;">
+            Cross-filtering enabled · Click charts to drill down · Global filters apply to all pages
+        </footer>
     </div>
-</div>
 
-<div id="ai-modal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>🤖 AI Business Insights</h2>
-            <button class="modal-close" id="close-modal">&times;</button>
-        </div>
-        <div id="ai-insights-body" class="ai-insights-text">
-            <div class="loader"><div class="spinner"></div>Generating insights using AI...</div>
-        </div>
-        <div style="padding: 0 1.8rem 1.8rem 1.8rem; display: flex; gap: 1rem;">
-            <button id="export-pdf" class="export-btn">📄 Export as PDF</button>
-            <button id="export-pptx" class="export-btn">📊 Export to PowerPoint</button>
+    <!-- AI Insights Modal -->
+    <div id="aiModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🤖 AI Business Insights</h2>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body" id="aiInsightsBody">
+                <div class="loader"><div class="spinner"></div>Generating insights...</div>
+            </div>
+            <div style="padding: 0 1.8rem 1.8rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                <button id="exportPdf" class="btn btn-primary">📄 PDF</button>
+                <button id="exportPptx" class="btn btn-primary">📊 PowerPoint</button>
+            </div>
         </div>
     </div>
-</div>
 
-<div id="alert-toast" class="alert-toast">⚠️ Alert triggered! Check console logs.</div>
+    <div id="toast" class="toast"></div>
 
-<script>
-    // ========== GLOBAL STATE ==========
-    let filterState = {
-        dateRange: { min: null, max: null },
-        valueRange: { min: null, max: null },
-        selectedCity: null,
-        selectedCategory: null,
-        selectedSegment: null
-    };
-    let currentPage = 'overview';
-    let currentPersona = 'balanced_analyst';
-    let lastInsightsHtml = '';
-
-    // ========== HELPER FUNCTIONS ==========
-    async function fetchJSON(url) {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-    }
-
-    function formatCompactNumber(num) {
-        if (num === null || num === undefined) return 'N/A';
-        const absNum = Math.abs(num);
-        if (absNum >= 1_000_000) return (num / 1_000_000).toFixed(1) + 'M';
-        if (absNum >= 1_000) return (num / 1_000).toFixed(1) + 'K';
-        return num.toLocaleString();
-    }
-    function formatMoney(value) {
-        if (value === null || value === undefined) return '$0';
-        return '$' + formatCompactNumber(value);
-    }
-    function getCustomerDisplay(cust) {
-        if (cust && cust.customer_id != null) return `ID: ${cust.customer_id}`;
-        if (cust && cust.full_name) return cust.full_name;
-        return 'Unknown';
-    }
-
-    // ========== MARKDOWN RENDERER ==========
-    function renderMarkdown(text) {
-        if (!text) return '';
-        let html = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        html = html.replace(/^### (.*?)$/gm, '<h3>$1</h3>');
-        html = html.replace(/^## (.*?)$/gm, '<h2>$1</h2>');
-        html = html.replace(/^# (.*?)$/gm, '<h1>$1</h1>');
-        html = html.replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>');
-        html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
-        
-        let lines = html.split('\n');
-        let result = [];
-        let inList = false;
-        let listStack = [];
-        for (let i = 0; i < lines.length; i++) {
-            let line = lines[i];
-            let trimmed = line.trim();
-            let olMatch = trimmed.match(/^(\d+)\.\s+(.*)/);
-            let ulMatch = trimmed.match(/^[\*\-]\s+(.*)/);
-            if (olMatch || ulMatch) {
-                let indent = line.search(/\S/);
-                let type = olMatch ? 'ol' : 'ul';
-                let content = olMatch ? olMatch[2] : ulMatch[1];
-                if (!inList) {
-                    result.push(`<${type}>`);
-                    listStack = [{ type, indent }];
-                    inList = true;
-                } else {
-                    let top = listStack[listStack.length - 1];
-                    if (indent > top.indent) {
-                        result.push(`<${type}>`);
-                        listStack.push({ type, indent });
-                    } else if (indent < top.indent) {
-                        while (listStack.length > 0 && listStack[listStack.length - 1].indent > indent) {
-                            result.push(`</${listStack.pop().type}>`);
-                        }
-                        if (listStack.length && listStack[listStack.length - 1].type !== type) {
-                            result.push(`</${listStack.pop().type}>`);
-                            result.push(`<${type}>`);
-                            listStack.push({ type, indent });
-                        } else if (listStack.length && listStack[listStack.length - 1].type === type) {
-                            // same level
-                        } else {
-                            result.push(`<${type}>`);
-                            listStack.push({ type, indent });
-                        }
-                    } else if (indent === top.indent && top.type !== type) {
-                        result.push(`</${top.type}>`);
-                        listStack.pop();
-                        result.push(`<${type}>`);
-                        listStack.push({ type, indent });
-                    }
-                }
-                result.push(`<li>${content}</li>`);
-            } else {
-                if (inList) {
-                    while (listStack.length) result.push(`</${listStack.pop().type}>`);
-                    inList = false;
-                }
-                if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
-                    let rows = [];
-                    let j = i;
-                    while (j < lines.length && lines[j].trim().startsWith('|') && lines[j].trim().endsWith('|')) {
-                        rows.push(lines[j].trim());
-                        j++;
-                    }
-                    i = j - 1;
-                    let tableHtml = '<table>';
-                    let headerRows = rows.filter(r => !/^[\|\s\-:]+$/.test(r));
-                    if (headerRows.length) {
-                        let cells = headerRows[0].slice(1, -1).split('|').map(c => c.trim());
-                        tableHtml += '<thead><tr>' + cells.map(c => `<th>${c}</th>`).join('') + '</tr></thead><tbody>';
-                        for (let k = 1; k < headerRows.length; k++) {
-                            let rowCells = headerRows[k].slice(1, -1).split('|').map(c => c.trim());
-                            tableHtml += '<tr>' + rowCells.map(c => `<td>${c}</td>`).join('') + '</tr>';
-                        }
-                        tableHtml += '</tbody>';
-                    }
-                    tableHtml += '</table>';
-                    result.push(tableHtml);
-                } else if (trimmed === '') {
-                    result.push('<br>');
-                } else if (!trimmed.match(/^<h[1-3]/) && !trimmed.match(/^<table/)) {
-                    result.push(`<p>${line}</p>`);
-                } else {
-                    result.push(line);
-                }
-            }
-        }
-        if (inList) {
-            while (listStack.length) result.push(`</${listStack.pop().type}>`);
-        }
-        let finalHtml = result.join('\n');
-        finalHtml = finalHtml.replace(/<td><p>(.*?)<\/p><\/td>/g, '<td>$1</td>');
-        finalHtml = finalHtml.replace(/<th><p>(.*?)<\/p><\/th>/g, '<th>$1</th>');
-        return finalHtml;
-    }
-
-    function updateFilterUI() {
-        const container = document.getElementById('active-filters');
-        if (!container) return;
-        let html = '';
-        if (filterState.dateRange.min && filterState.dateRange.max)
-            html += `<div class="active-filter">📅 ${filterState.dateRange.min} → ${filterState.dateRange.max} <span class="remove" data-filter="dateRange">✖</span></div>`;
-        if (filterState.valueRange.min !== null && filterState.valueRange.max !== null)
-            html += `<div class="active-filter">💰 ${formatMoney(filterState.valueRange.min)} – ${formatMoney(filterState.valueRange.max)} <span class="remove" data-filter="valueRange">✖</span></div>`;
-        if (filterState.selectedCity)
-            html += `<div class="active-filter">📍 ${filterState.selectedCity} <span class="remove" data-filter="selectedCity">✖</span></div>`;
-        if (filterState.selectedCategory)
-            html += `<div class="active-filter">🏷️ ${filterState.selectedCategory} <span class="remove" data-filter="selectedCategory">✖</span></div>`;
-        if (filterState.selectedSegment)
-            html += `<div class="active-filter">⭐ ${filterState.selectedSegment} <span class="remove" data-filter="selectedSegment">✖</span></div>`;
-        container.innerHTML = html;
-        document.querySelectorAll('.remove').forEach(el => {
-            el.addEventListener('click', e => {
-                const key = el.getAttribute('data-filter');
-                if (key === 'dateRange') { filterState.dateRange = { min: null, max: null }; document.getElementById('date-min').value = ''; document.getElementById('date-max').value = ''; }
-                else if (key === 'valueRange') { filterState.valueRange = { min: null, max: null }; document.getElementById('value-slider').value = 0; document.getElementById('value-range-display').innerText = '0 - 10k'; }
-                else if (key === 'selectedCity') filterState.selectedCity = null;
-                else if (key === 'selectedCategory') filterState.selectedCategory = null;
-                else if (key === 'selectedSegment') filterState.selectedSegment = null;
-                refreshCurrentPage();
-            });
-        });
-    }
-
-    async function refreshCurrentPage() {
-        if (currentPage && pages[currentPage]) await pages[currentPage]();
-    }
-
-    function renderChart(elementId, traces, layout) {
-        const el = document.getElementById(elementId);
-        if (!el) return;
-        if (!traces || traces.length === 0) {
-            el.innerHTML = '<div class="insight-card" style="text-align:center;">No data available for this chart.</div>';
-            return;
-        }
-        const trace = traces[0];
-        if (trace.x && trace.y && trace.x.length > 0 && trace.y.length > 0) {
-            Plotly.newPlot(elementId, traces, layout || { height: 400, title: 'Chart' }, { responsive: true });
-        }
-        else if (trace.labels && trace.values && trace.labels.length > 0 && trace.values.length > 0) {
-            Plotly.newPlot(elementId, traces, layout || { height: 400, title: 'Chart' }, { responsive: true });
-        }
-        else if (trace.x && trace.y && trace.x.length > 0) {
-            Plotly.newPlot(elementId, traces, layout || { height: 400, title: 'Chart' }, { responsive: true });
-        }
-        else {
-            el.innerHTML = '<div class="insight-card" style="text-align:center;">No data available for this chart.</div>';
-        }
-    }
-
-    function attachCrossFilterEvents(chartDivId, type) {
-        const div = document.getElementById(chartDivId);
-        if (!div) return;
-        div.on('plotly_click', data => {
-            if (!data.points || !data.points.length) return;
-            const point = data.points[0];
-            if (type === 'city') {
-                filterState.selectedCity = point.x || point.label;
-                filterState.selectedCategory = null;
-                refreshCurrentPage();
-            } else if (type === 'category') {
-                filterState.selectedCategory = point.label || point.x;
-                filterState.selectedCity = null;
-                refreshCurrentPage();
-            } else if (type === 'segment') {
-                filterState.selectedSegment = point.label || point.x;
-                refreshCurrentPage();
-            }
-            updateFilterUI();
-        });
-    }
-
-    function createExportButton(endpoint, filename) {
-        const btn = document.createElement('button');
-        btn.innerText = '📥 Export CSV';
-        btn.className = 'export-csv-btn';
-        btn.onclick = async () => {
-            try {
-                const res = await fetch(endpoint);
-                const blob = await res.blob();
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                a.click();
-                URL.revokeObjectURL(url);
-            } catch(e) { alert('Export failed: ' + e.message); }
+    <script>
+        // ========== GLOBAL STATE ==========
+        let filterState = {
+            dateRange: { min: null, max: null },
+            valueRange: { min: null, max: null },
+            selectedCity: null,
+            selectedCategory: null,
+            selectedSegment: null
         };
-        return btn;
-    }
+        let currentPage = 'overview';
+        let currentPersona = 'balanced_analyst';
+        let lastInsightsHtml = '';
 
-    // ========== PAGE DEFINITIONS ==========
-    const pages = {
-        overview: async () => {
-            document.getElementById('page-content').innerHTML = '<div class="loader"><div class="spinner"></div>Loading executive dashboard...</div>';
-            const [kpis, monthlyTrend, cities, categories, subcategories, repeat, orderStatus, paymentMethods, anomalies] = await Promise.all([
-                fetchJSON('/api/kpis'),
-                fetchJSON('/api/revenue_trend?granularity=month'),
-                fetchJSON('/api/top_cities?limit=10'),
-                fetchJSON('/api/revenue_by_category?limit=100'),
-                fetchJSON('/api/revenue_by_subcategory?limit=20'),
-                fetchJSON('/api/repeat_vs_onetime').catch(() => []),
-                fetchJSON('/api/order_status').catch(() => []),
-                fetchJSON('/api/payment_methods').catch(() => []),
-                fetchJSON('/api/revenue_anomalies').catch(() => [])
-            ]);
-            let html = `<div class="metric-grid">
-                            <div class="metric-card"><div class="metric-value">${formatMoney(kpis.total_revenue)}</div><div class="metric-label">Total Revenue</div></div>
+        // ========== HELPERS ==========
+        async function fetchJSON(url) {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res.json();
+        }
+
+        function formatCompactNumber(num) {
+            if (num == null) return 'N/A';
+            const abs = Math.abs(num);
+            if (abs >= 1_000_000) return (num / 1_000_000).toFixed(1) + 'M';
+            if (abs >= 1_000) return (num / 1_000).toFixed(1) + 'K';
+            return num.toLocaleString();
+        }
+        function formatMoney(v) { return v != null ? '$' + formatCompactNumber(v) : '$0'; }
+        function getCustomerDisplay(c) {
+            if (c && c.customer_id != null) return 'ID: ' + c.customer_id;
+            if (c && c.full_name) return c.full_name;
+            return 'Unknown';
+        }
+        function escapeHtml(str) { return String(str).replace(/[&<>]/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;' }[m])); }
+
+        // ========== MARKDOWN RENDERER ==========
+        function renderMarkdown(text) {
+            if (!text) return '';
+            let html = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+            html = html.replace(/^### (.*?)$/gm, '<h3>$1</h3>');
+            html = html.replace(/^## (.*?)$/gm, '<h2>$1</h2>');
+            html = html.replace(/^# (.*?)$/gm, '<h1>$1</h1>');
+            html = html.replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>');
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            let lines = html.split('\n');
+            let result = [], inList = false, listStack = [];
+            for (let line of lines) {
+                let trimmed = line.trim();
+                let ol = trimmed.match(/^(\d+)\.\s+(.*)/);
+                let ul = trimmed.match(/^[\*\-]\s+(.*)/);
+                if (ol || ul) {
+                    let indent = line.search(/\S/);
+                    let type = ol ? 'ol' : 'ul';
+                    let content = ol ? ol[2] : ul[1];
+                    if (!inList) { result.push(`<${type}>`); listStack = [{type, indent}]; inList = true; }
+                    else {
+                        let top = listStack[listStack.length-1];
+                        if (indent > top.indent) { result.push(`<${type}>`); listStack.push({type, indent}); }
+                        else if (indent < top.indent) {
+                            while (listStack.length && listStack[listStack.length-1].indent > indent) result.push(`</${listStack.pop().type}>`);
+                            if (listStack.length && listStack[listStack.length-1].type !== type) {
+                                result.push(`</${listStack.pop().type}>`);
+                                result.push(`<${type}>`);
+                                listStack.push({type, indent});
+                            } else if (!listStack.length) { result.push(`<${type}>`); listStack.push({type, indent}); }
+                        } else if (top.type !== type) {
+                            result.push(`</${top.type}>`);
+                            listStack.pop();
+                            result.push(`<${type}>`);
+                            listStack.push({type, indent});
+                        }
+                    }
+                    result.push(`<li>${content}</li>`);
+                } else {
+                    if (inList) { while(listStack.length) result.push(`</${listStack.pop().type}>`); inList = false; }
+                    if (trimmed === '') result.push('<br>');
+                    else if (!trimmed.match(/^<h[1-3]/) && !trimmed.match(/^<table/)) result.push(`<p>${line}</p>`);
+                    else result.push(line);
+                }
+            }
+            if (inList) while(listStack.length) result.push(`</${listStack.pop().type}>`);
+            return result.join('\n');
+        }
+
+        // ========== FILTER UI ==========
+        function updateFilterUI() {
+            const container = document.getElementById('activeFilters');
+            if (!container) return;
+            let html = '';
+            if (filterState.dateRange.min && filterState.dateRange.max)
+                html += `<span class="filter-tag">📅 ${filterState.dateRange.min} → ${filterState.dateRange.max} <span class="remove" data-filter="dateRange">✖</span></span>`;
+            if (filterState.valueRange.min !== null && filterState.valueRange.max !== null)
+                html += `<span class="filter-tag">💰 ${formatMoney(filterState.valueRange.min)} – ${formatMoney(filterState.valueRange.max)} <span class="remove" data-filter="valueRange">✖</span></span>`;
+            if (filterState.selectedCity)
+                html += `<span class="filter-tag">📍 ${filterState.selectedCity} <span class="remove" data-filter="selectedCity">✖</span></span>`;
+            if (filterState.selectedCategory)
+                html += `<span class="filter-tag">🏷️ ${filterState.selectedCategory} <span class="remove" data-filter="selectedCategory">✖</span></span>`;
+            if (filterState.selectedSegment)
+                html += `<span class="filter-tag">⭐ ${filterState.selectedSegment} <span class="remove" data-filter="selectedSegment">✖</span></span>`;
+            container.innerHTML = html;
+            document.querySelectorAll('.remove').forEach(el => {
+                el.addEventListener('click', e => {
+                    const key = el.getAttribute('data-filter');
+                    if (key === 'dateRange') { filterState.dateRange = { min: null, max: null }; document.getElementById('date-min').value = ''; document.getElementById('date-max').value = ''; }
+                    else if (key === 'valueRange') { filterState.valueRange = { min: null, max: null }; document.getElementById('value-slider').value = 0; document.getElementById('value-range-display').innerText = '0 – 10k'; }
+                    else if (key === 'selectedCity') filterState.selectedCity = null;
+                    else if (key === 'selectedCategory') filterState.selectedCategory = null;
+                    else if (key === 'selectedSegment') filterState.selectedSegment = null;
+                    refreshCurrentPage();
+                });
+            });
+        }
+
+        async function refreshCurrentPage() {
+            if (currentPage && pages[currentPage]) await pages[currentPage]();
+        }
+
+        // ========== CHART HELPERS ==========
+        function renderChart(elementId, traces, layout) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            if (!traces || traces.length === 0 || !traces[0] || (traces[0].x && traces[0].x.length === 0 && traces[0].labels && traces[0].labels.length === 0)) {
+                el.innerHTML = '<div class="insight-card" style="text-align:center;">No data available</div>';
+                return;
+            }
+            Plotly.newPlot(elementId, traces, layout || { height: 400, title: 'Chart' }, { responsive: true });
+        }
+
+        function attachCrossFilterEvents(chartDivId, type) {
+            const div = document.getElementById(chartDivId);
+            if (!div) return;
+            div.on('plotly_click', data => {
+                if (!data.points || !data.points.length) return;
+                const point = data.points[0];
+                if (type === 'city') {
+                    filterState.selectedCity = point.x || point.label;
+                    filterState.selectedCategory = null;
+                    refreshCurrentPage();
+                } else if (type === 'category') {
+                    filterState.selectedCategory = point.label || point.x;
+                    filterState.selectedCity = null;
+                    refreshCurrentPage();
+                } else if (type === 'segment') {
+                    filterState.selectedSegment = point.label || point.x;
+                    refreshCurrentPage();
+                }
+                updateFilterUI();
+            });
+        }
+
+        function createExportButton(endpoint, filename) {
+            const btn = document.createElement('button');
+            btn.innerText = '📥 Export CSV';
+            btn.className = 'btn btn-primary';
+            btn.style.marginLeft = '0.5rem';
+            btn.onclick = async () => {
+                try {
+                    const res = await fetch(endpoint);
+                    const blob = await res.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                } catch(e) { alert('Export failed: ' + e.message); }
+            };
+            return btn;
+        }
+
+        // ========== PAGE DEFINITIONS ==========
+        const pages = {
+            overview: async () => {
+                document.getElementById('pageContent').innerHTML = '<div class="loader"><div class="spinner"></div>Loading overview...</div>';
+                const [kpis, monthlyTrend, cities, categories, subcategories, repeat, orderStatus, paymentMethods, anomalies] = await Promise.all([
+                    fetchJSON('/api/kpis'),
+                    fetchJSON('/api/revenue_trend?granularity=month'),
+                    fetchJSON('/api/top_cities?limit=10'),
+                    fetchJSON('/api/revenue_by_category?limit=100'),
+                    fetchJSON('/api/revenue_by_subcategory?limit=20'),
+                    fetchJSON('/api/repeat_vs_onetime').catch(() => []),
+                    fetchJSON('/api/order_status').catch(() => []),
+                    fetchJSON('/api/payment_methods').catch(() => []),
+                    fetchJSON('/api/revenue_anomalies').catch(() => [])
+                ]);
+                let html = `<div class="metric-grid">
+                            <div class="metric-card"><div class="metric-value">${formatMoney(kpis.total_revenue)}</div><div class="metric-label">Revenue</div></div>
                             <div class="metric-card"><div class="metric-value">${kpis.total_orders.toLocaleString()}</div><div class="metric-label">Orders</div></div>
                             <div class="metric-card"><div class="metric-value">${kpis.total_customers.toLocaleString()}</div><div class="metric-label">Customers</div></div>
-                            <div class="metric-card"><div class="metric-value">${formatMoney(kpis.avg_order_value)}</div><div class="metric-label">Avg Order Value</div></div>
+                            <div class="metric-card"><div class="metric-value">${formatMoney(kpis.avg_order_value)}</div><div class="metric-label">AOV</div></div>
                         </div>
-                        <div class="insight-card">🔍 <strong>Active Filters:</strong> ${filterState.selectedCity ? `City: ${filterState.selectedCity}` : ''} ${filterState.selectedCategory ? `Category: ${filterState.selectedCategory}` : ''} ${filterState.dateRange.min ? `Date: ${filterState.dateRange.min} → ${filterState.dateRange.max}` : ''}<br>💡 Click any bar or pie slice to drill down. Drag on daily chart to set date range.</div>
-                        <div class="chart-row"><div class="chart-card"><div id="daily-chart"></div><div class="caption">⚡ Daily revenue (last 90 days) – red markers show anomalies</div></div><div class="chart-card"><div id="monthly-chart"></div><div class="caption">📆 Monthly revenue trend</div></div></div>
-                        <div class="chart-row"><div class="chart-card"><div id="cities-chart"></div><div class="caption">📍 Top cities – click bar to filter</div></div><div class="chart-card"><div id="category-chart"></div><div class="caption">🏷️ Revenue by category – click slice to filter</div></div></div>
-                        <div class="chart-row"><div class="chart-card"><div id="subcat-chart"></div><div class="caption">📦 Top subcategories (by revenue)</div></div><div class="chart-card"><div id="repeat-chart"></div><div class="caption">🔄 Repeat vs one-time customers</div></div></div>
-                        <div class="chart-row"><div class="chart-card"><div id="status-chart"></div><div class="caption">📋 Order status distribution</div></div><div class="chart-card"><div id="payment-chart"></div><div class="caption">💳 Revenue by payment method</div></div></div>`;
-            document.getElementById('page-content').innerHTML = html;
-            if (monthlyTrend.length) {
-                const months = monthlyTrend.map(m => m.period.slice(0,7));
-                const revenue = monthlyTrend.map(m => m.revenue);
-                renderChart('monthly-chart', [{ x: months, y: revenue, type: 'bar', marker: { color: '#1e3c72' }, text: revenue.map(v => formatMoney(v)), textposition: 'outside' }], { title: 'Monthly Revenue', height: 380 });
-            }
-            const dailyTrend = await fetchJSON('/api/revenue_trend?granularity=day');
-            if (dailyTrend.length) {
-                const dates = dailyTrend.map(d => d.period);
-                const revenues = dailyTrend.map(d => d.revenue);
-                const traceMain = { x: dates, y: revenues, type: 'scatter', mode: 'lines+markers', line: { color: '#1e3c72', width: 2 }, name: 'Revenue', marker: { color: '#1e3c72', size: 4 } };
-                let anomalyX = [], anomalyY = [], anomalyLabels = [];
-                if (anomalies.length) {
-                    const anomalyMap = new Map();
-                    anomalies.forEach(a => { anomalyMap.set(a.date, { revenue: a.revenue, drop: a.drop_percent }); });
-                    for (let i = 0; i < dates.length; i++) {
-                        const dt = dates[i].split('T')[0];
-                        if (anomalyMap.has(dt)) {
-                            anomalyX.push(dates[i]);
-                            anomalyY.push(revenues[i]);
-                            anomalyLabels.push(`⚠️ Anomaly on ${dt}: drop ${Math.abs(anomalyMap.get(dt).drop).toFixed(1)}%`);
+                        <div class="insight-card">🔍 <strong>Active Filters:</strong> ${filterState.selectedCity ? 'City: '+filterState.selectedCity : ''} ${filterState.selectedCategory ? 'Category: '+filterState.selectedCategory : ''} ${filterState.dateRange.min ? 'Date: '+filterState.dateRange.min+' → '+filterState.dateRange.max : ''}<br>💡 Click any bar or pie slice to drill down. Drag on daily chart to set date range.</div>
+                        <div class="chart-row"><div class="chart-card"><div id="daily-chart"></div><div class="caption">Daily revenue – red markers show anomalies</div></div><div class="chart-card"><div id="monthly-chart"></div><div class="caption">Monthly revenue trend</div></div></div>
+                        <div class="chart-row"><div class="chart-card"><div id="cities-chart"></div><div class="caption">Top cities – click bar to filter</div></div><div class="chart-card"><div id="category-chart"></div><div class="caption">Revenue by category – click slice to filter</div></div></div>
+                        <div class="chart-row"><div class="chart-card"><div id="subcat-chart"></div><div class="caption">Top subcategories</div></div><div class="chart-card"><div id="repeat-chart"></div><div class="caption">Repeat vs one-time</div></div></div>
+                        <div class="chart-row"><div class="chart-card"><div id="status-chart"></div><div class="caption">Order status</div></div><div class="chart-card"><div id="payment-chart"></div><div class="caption">Payment methods</div></div></div>`;
+                document.getElementById('pageContent').innerHTML = html;
+                if (monthlyTrend.length) {
+                    const months = monthlyTrend.map(m => m.period.slice(0,7));
+                    const revenue = monthlyTrend.map(m => m.revenue);
+                    renderChart('monthly-chart', [{ x: months, y: revenue, type: 'bar', marker: { color: '#1e3c72' }, text: revenue.map(v => formatMoney(v)), textposition: 'outside' }], { title: 'Monthly Revenue', height: 380 });
+                }
+                const dailyTrend = await fetchJSON('/api/revenue_trend?granularity=day');
+                if (dailyTrend.length) {
+                    const dates = dailyTrend.map(d => d.period);
+                    const revenues = dailyTrend.map(d => d.revenue);
+                    const traceMain = { x: dates, y: revenues, type: 'scatter', mode: 'lines+markers', line: { color: '#1e3c72', width: 2 }, name: 'Revenue', marker: { color: '#1e3c72', size: 4 } };
+                    let anomalyX = [], anomalyY = [], anomalyLabels = [];
+                    if (anomalies.length) {
+                        const anomalyMap = new Map();
+                        anomalies.forEach(a => { anomalyMap.set(a.date, { revenue: a.revenue, drop: a.drop_percent }); });
+                        for (let i = 0; i < dates.length; i++) {
+                            const dt = dates[i].split('T')[0];
+                            if (anomalyMap.has(dt)) {
+                                anomalyX.push(dates[i]);
+                                anomalyY.push(revenues[i]);
+                                anomalyLabels.push(`⚠️ Anomaly on ${dt}: drop ${Math.abs(anomalyMap.get(dt).drop).toFixed(1)}%`);
+                            }
                         }
                     }
-                }
-                const traces = [traceMain];
-                if (anomalyX.length) {
-                    traces.push({ x: anomalyX, y: anomalyY, type: 'scatter', mode: 'markers', marker: { color: '#e74c3c', size: 10, symbol: 'circle' }, name: '⚠️ Anomaly', hoverinfo: 'text', text: anomalyLabels });
-                }
-                const layout = {
-                    title: 'Daily Revenue',
-                    height: 380,
-                    xaxis: { rangeslider: { visible: true }, tickformat: '%Y-%m-%d', type: 'date' },
-                    yaxis: { title: '$' },
-                    legend: {
-                        orientation: 'h',
-                        yanchor: 'bottom',
-                        y: -10,
-                        xanchor: 'center',
-                        x: 0.5,
-                        bgcolor: 'rgba(255,255,255,0.8)'
+                    const traces = [traceMain];
+                    if (anomalyX.length) {
+                        traces.push({ x: anomalyX, y: anomalyY, type: 'scatter', mode: 'markers', marker: { color: '#e74c3c', size: 10, symbol: 'circle' }, name: '⚠️ Anomaly', hoverinfo: 'text', text: anomalyLabels });
                     }
-                };
-                Plotly.newPlot('daily-chart', traces, layout);
-                document.getElementById('daily-chart').on('plotly_relayout', ev => {
-                    if (ev['xaxis.range']) {
-                        let r = ev['xaxis.range'];
-                        let minDate = r[0].split(' ')[0].split('T')[0];
-                        let maxDate = r[1].split(' ')[0].split('T')[0];
-                        filterState.dateRange = { min: minDate, max: maxDate };
-                        document.getElementById('date-min').value = filterState.dateRange.min;
-                        document.getElementById('date-max').value = filterState.dateRange.max;
-                        updateFilterUI();
-                        refreshCurrentPage();
-                    }
-                });
-            } else {
-                document.getElementById('daily-chart').innerHTML = '<div class="error-message">No daily data</div>';
-            }
-            if (cities.length) renderChart('cities-chart', [{ x: cities.map(c => c.city), y: cities.map(c => c.total_revenue), type: 'bar', marker: { color: '#1e3c72' }, text: cities.map(c => formatMoney(c.total_revenue)), textposition: 'outside' }], { title: 'Top Cities', height: 400 });
-            attachCrossFilterEvents('cities-chart', 'city');
-            if (categories.length) renderChart('category-chart', [{ labels: categories.map(c => c.category), values: categories.map(c => c.revenue), type: 'pie', hole: 0.3, marker: { colors: ['#1e3c72', '#3b82f6', '#94a3b8'] }, textinfo: 'label+percent' }], { title: 'Category Share', height: 400 });
-            attachCrossFilterEvents('category-chart', 'category');
-            if (subcategories.length) renderChart('subcat-chart', [{ x: subcategories.map(s => s.subcategory || s.product_subcategory), y: subcategories.map(s => s.revenue || s.total_revenue), type: 'bar', marker: { color: '#3b82f6' }, text: subcategories.map(s => formatMoney(s.revenue || s.total_revenue)), textposition: 'outside' }], { title: 'Top Subcategories', height: 400 });
-            if (repeat.length) renderChart('repeat-chart', [{ labels: repeat.map(r => r.customer_type), values: repeat.map(r => r.customer_count), type: 'pie', hole: 0.3, marker: { colors: ['#2ecc71', '#e74c3c'] }, textinfo: 'label+percent' }], { title: 'Repeat vs One-Time', height: 400 });
-            if (orderStatus.length) renderChart('status-chart', [{ labels: orderStatus.map(s => s.order_status), values: orderStatus.map(s => s.order_count), type: 'pie', hole: 0.3, marker: { colors: ['#1e3c72', '#3b82f6', '#94a3b8', '#cbd5e1'] }, textinfo: 'label+percent' }], { title: 'Order Status', height: 400 });
-            if (paymentMethods.length) renderChart('payment-chart', [{ x: paymentMethods.map(p => p.payment_method), y: paymentMethods.map(p => p.revenue), type: 'bar', marker: { color: '#1e3c72' }, text: paymentMethods.map(p => formatMoney(p.revenue)), textposition: 'outside' }], { title: 'Revenue by Payment Method', height: 400 });
-        },
-
-        revenue: async () => {
-            document.getElementById('page-content').innerHTML = '<div class="loader"><div class="spinner"></div>Loading revenue analytics...</div>';
-            const [monthlyTrend, contrib, orderVal] = await Promise.all([
-                fetchJSON('/api/revenue_trend?granularity=month'),
-                fetchJSON('/api/revenue_contribution?limit=20'),
-                fetchJSON('/api/order_value_distribution')
-            ]);
-            let html = `<div class="section-header">💰 Revenue Deep Dive</div>
-                        <div class="insight-card">🔍 Value filter: ${filterState.valueRange.min !== null ? formatMoney(filterState.valueRange.min) + ' – ' + formatMoney(filterState.valueRange.max) : 'No filter'} | Adjust slider above to see top customers.</div>
-                        <div class="chart-row"><div class="chart-card"><div id="rev-monthly"></div></div></div>
-                        <div class="section-header">📊 Pareto & Top Customers</div>
-                        <div class="chart-row"><div class="chart-card"><div id="pareto-chart"></div></div>
-                        <div class="chart-card">
-                            <div style="display:flex; align-items:center; gap:0.8rem; flex-wrap:wrap; margin-bottom:0.5rem;">
-                                <span class="filter-label">🔎 Search Customer ID:</span>
-                                <input type="text" id="customer-search" class="filter-input" placeholder="e.g. 12345" style="flex:1; min-width:120px;">
-                                <span class="filter-label">Rows:</span>
-                                <select id="revenue-row-limit" class="row-limit-dropdown">
-                                    <option value="10">10</option>
-                                    <option value="100" selected>100</option>
-                                    <option value="1000">1000</option>
-                                    <option value="10000">10000</option>
-                                    <option value="100000">All</option>
-                                </select>
-                                <button id="clear-customer-search" class="btn-clear">Clear</button>
-                            </div>
-                            <div id="top-customers-container">
-                                <div class="table-responsive" id="top-customers-table" style="max-height:500px; overflow-y:auto;">
-                                    <table style="width:100%">
-                                        <thead><tr><th>Customer ID</th><th>Revenue</th><th>Cumulative %</th></tr></thead>
-                                        <tbody id="top-customers-tbody"></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div></div>`;
-            if (orderVal.length) html += `<div class="insight-card">📦 Order Value Stats: Min ${formatMoney(orderVal[0].min_order_value)}, Max ${formatMoney(orderVal[0].max_order_value)}, Median ${formatMoney(orderVal[0].median_order_value)}</div>`;
-            document.getElementById('page-content').innerHTML = html;
-
-            if (monthlyTrend.length) {
-                const months = monthlyTrend.map(m => m.period.slice(0,7));
-                const revenue = monthlyTrend.map(m => m.revenue);
-                renderChart('rev-monthly', [{ x: months, y: revenue, type: 'bar', text: revenue.map(v => formatMoney(v)), textposition: 'outside' }], { title: 'Monthly Revenue', height: 400 });
-            }
-
-            if (contrib.length) {
-                const total = contrib.reduce((s, v) => s + v.total_revenue, 0);
-                let cumsum = [];
-                let sum = 0;
-                for (let i = 0; i < contrib.length; i++) { sum += contrib[i].total_revenue; cumsum.push((sum / total) * 100); }
-                renderChart('pareto-chart', [{ x: contrib.map((_, i) => i+1), y: cumsum, mode: 'lines', name: 'Cumulative %' }], { title: 'Revenue Concentration (Pareto)', height: 400 });
-            }
-
-            // Top Customers table with search and row limit
-            const tbody = document.getElementById('top-customers-tbody');
-            const searchInput = document.getElementById('customer-search');
-            const clearBtn = document.getElementById('clear-customer-search');
-            const rowLimitSelect = document.getElementById('revenue-row-limit');
-            let allCustomers = [];
-            let searchTerm = '';
-            let currentLimit = parseInt(rowLimitSelect.value, 10);
-
-            const renderTable = (data) => {
-                tbody.innerHTML = '';
-                data.forEach(c => {
-                    const row = tbody.insertRow();
-                    row.insertCell(0).innerText = c.customer_id;
-                    row.insertCell(1).innerText = formatMoney(c.total_revenue);
-                    row.insertCell(2).innerText = c.cumulative_percentage.toFixed(1) + '%';
-                });
-            };
-
-            const loadData = async () => {
-                const limit = currentLimit;
-                const url = `/api/revenue_contribution?limit=${limit}&offset=0`;
-                try {
-                    const data = await fetchJSON(url);
-                    allCustomers = data;
-                    applyFilter();
-                } catch (e) {
-                    tbody.innerHTML = `<tr><td colspan="3">Error loading data</td></tr>`;
+                    const layout = {
+                        title: 'Daily Revenue',
+                        height: 380,
+                        xaxis: { rangeslider: { visible: true }, tickformat: '%Y-%m-%d', type: 'date' },
+                        yaxis: { title: '$' },
+                        legend: { orientation: 'h', yanchor: 'bottom', y: -10, xanchor: 'center', x: 0.5, bgcolor: 'rgba(255,255,255,0.8)' }
+                    };
+                    Plotly.newPlot('daily-chart', traces, layout);
+                    document.getElementById('daily-chart').on('plotly_relayout', ev => {
+                        if (ev['xaxis.range']) {
+                            let r = ev['xaxis.range'];
+                            let minDate = r[0].split(' ')[0].split('T')[0];
+                            let maxDate = r[1].split(' ')[0].split('T')[0];
+                            filterState.dateRange = { min: minDate, max: maxDate };
+                            document.getElementById('date-min').value = filterState.dateRange.min;
+                            document.getElementById('date-max').value = filterState.dateRange.max;
+                            updateFilterUI();
+                            refreshCurrentPage();
+                        }
+                    });
+                } else {
+                    document.getElementById('daily-chart').innerHTML = '<div class="error-message">No daily data</div>';
                 }
-            };
+                if (cities.length) renderChart('cities-chart', [{ x: cities.map(c => c.city), y: cities.map(c => c.total_revenue), type: 'bar', marker: { color: '#1e3c72' }, text: cities.map(c => formatMoney(c.total_revenue)), textposition: 'outside' }], { title: 'Top Cities', height: 400 });
+                attachCrossFilterEvents('cities-chart', 'city');
+                if (categories.length) renderChart('category-chart', [{ labels: categories.map(c => c.category), values: categories.map(c => c.revenue), type: 'pie', hole: 0.3, marker: { colors: ['#1e3c72','#3b82f6','#94a3b8'] }, textinfo: 'label+percent' }], { title: 'Category Share', height: 400 });
+                attachCrossFilterEvents('category-chart', 'category');
+                if (subcategories.length) renderChart('subcat-chart', [{ x: subcategories.map(s => s.subcategory || s.product_subcategory), y: subcategories.map(s => s.revenue || s.total_revenue), type: 'bar', marker: { color: '#3b82f6' }, text: subcategories.map(s => formatMoney(s.revenue || s.total_revenue)), textposition: 'outside' }], { title: 'Top Subcategories', height: 400 });
+                if (repeat.length) renderChart('repeat-chart', [{ labels: repeat.map(r => r.customer_type), values: repeat.map(r => r.customer_count), type: 'pie', hole: 0.3, marker: { colors: ['#2ecc71','#e74c3c'] }, textinfo: 'label+percent' }], { title: 'Repeat vs One-Time', height: 400 });
+                if (orderStatus.length) renderChart('status-chart', [{ labels: orderStatus.map(s => s.order_status), values: orderStatus.map(s => s.order_count), type: 'pie', hole: 0.3, marker: { colors: ['#1e3c72','#3b82f6','#94a3b8','#cbd5e1'] }, textinfo: 'label+percent' }], { title: 'Order Status', height: 400 });
+                if (paymentMethods.length) renderChart('payment-chart', [{ x: paymentMethods.map(p => p.payment_method), y: paymentMethods.map(p => p.revenue), type: 'bar', marker: { color: '#1e3c72' }, text: paymentMethods.map(p => formatMoney(p.revenue)), textposition: 'outside' }], { title: 'Revenue by Payment Method', height: 400 });
+            },
 
-            const applyFilter = () => {
-                let filtered = allCustomers;
-                if (searchTerm.trim() !== '') {
-                    const term = searchTerm.trim().toLowerCase();
-                    filtered = allCustomers.filter(c => String(c.customer_id).toLowerCase().includes(term));
-                }
-                renderTable(filtered);
-            };
-
-            searchInput.addEventListener('input', applyFilter);
-            clearBtn.addEventListener('click', () => {
-                searchInput.value = '';
-                searchTerm = '';
-                applyFilter();
-            });
-            rowLimitSelect.addEventListener('change', () => {
-                currentLimit = parseInt(rowLimitSelect.value, 10);
-                loadData();
-            });
-
-            await loadData();
-
-            // Export button
-            const container = document.getElementById('top-customers-container');
-            const exportBtn = createExportButton('/api/revenue_contribution?limit=100000', 'top_customers.csv');
-            container.appendChild(exportBtn);
-        },
-
-        customers: async () => {
-            document.getElementById('page-content').innerHTML = '<div class="loader"><div class="spinner"></div>Loading customer insights...</div>';
-            const [clvData, repeat, seg, highRisk] = await Promise.all([
-                fetchJSON('/api/customer_clv'),
-                fetchJSON('/api/repeat_vs_onetime'),
-                fetchJSON('/api/customer_segmentation?limit=100'),
-                fetchJSON('/api/high_risk_customers?limit=20')
-            ]);
-            
-            const highestCLV = clvData.highest || [];
-            const lowestCLV = clvData.lowest || [];
-            
-            let filteredSeg = seg;
-            if (filterState.valueRange.min !== null && filterState.valueRange.max !== null)
-                filteredSeg = seg.filter(c => c.total_revenue >= filterState.valueRange.min && c.total_revenue <= filterState.valueRange.max);
-            
-            let highRiskHtml = `<div class="section-header">⚠️ High-Risk VIP Customers</div>
-                                <div style="display:flex; align-items:center; gap:0.8rem; flex-wrap:wrap; margin-bottom:0.5rem;">
-                                    <span class="filter-label">🎯 Filter by Segment:</span>
-                                    <select id="highrisk-seg-drop" class="segment-select">
-                                        <option value="">All</option>
-                                        <option value="Champions">Champions</option>
-                                        <option value="Loyal">Loyal</option>
-                                        <option value="At Risk">At Risk</option>
-                                        <option value="Lost">Lost</option>
-                                        <option value="Others">Others</option>
-                                    </select>
+            revenue: async () => {
+                document.getElementById('pageContent').innerHTML = '<div class="loader"><div class="spinner"></div>Loading revenue analytics...</div>';
+                const [monthlyTrend, contrib, orderVal] = await Promise.all([
+                    fetchJSON('/api/revenue_trend?granularity=month'),
+                    fetchJSON('/api/revenue_contribution?limit=20'),
+                    fetchJSON('/api/order_value_distribution')
+                ]);
+                let html = `<div class="section-title">💰 Revenue Deep Dive</div>
+                            <div class="insight-card">🔍 Value filter: ${filterState.valueRange.min !== null ? formatMoney(filterState.valueRange.min) + ' – ' + formatMoney(filterState.valueRange.max) : 'No filter'} | Adjust slider above to see top customers.</div>
+                            <div class="chart-row"><div class="chart-card"><div id="rev-monthly"></div></div></div>
+                            <div class="section-title">📊 Pareto & Top Customers</div>
+                            <div class="chart-row"><div class="chart-card"><div id="pareto-chart"></div></div>
+                            <div class="chart-card">
+                                <div class="flex" style="margin-bottom:0.5rem;">
+                                    <span class="filter-label">🔎 Search ID:</span>
+                                    <input type="text" id="customer-search" class="filter-input" placeholder="e.g. 12345" style="flex:1; min-width:120px;">
                                     <span class="filter-label">Rows:</span>
-                                    <select id="highrisk-row-limit" class="row-limit-dropdown">
-                                        <option value="10">10</option>
-                                        <option value="100" selected>100</option>
+                                    <select id="revenue-row-limit" class="filter-select">
+                                        <option value="10" selected>10</option>
+                                        <option value="100">100</option>
                                         <option value="1000">1000</option>
                                         <option value="10000">10000</option>
                                         <option value="100000">All</option>
                                     </select>
-                                    <button id="clear-highrisk-seg" class="btn-clear">Clear</button>
+                                    <button id="clear-customer-search" class="btn btn-outline">Clear</button>
                                 </div>
-                                <div class="chart-card full-width">
-                                    <div class="table-responsive" id="high-risk-table" style="max-height:500px; overflow-y:auto;">
-                                        <table style="width:100%"><thead><tr><th>Customer ID</th><th>Name</th><th>Recency (days)</th><th>Frequency</th><th>Monetary</th><th>Segment</th></tr></thead><tbody id="high-risk-tbody"></tbody></table>
+                                <div id="top-customers-container">
+                                    <div class="table-responsive" id="top-customers-table" style="max-height:500px; overflow-y:auto;">
+                                        <table><thead><tr><th>Customer ID</th><th>Revenue</th><th>Cumulative %</th></tr></thead><tbody id="top-customers-tbody"></tbody></table>
                                     </div>
-                                </div>`;
-            
-            let html = `<div class="section-header">👥 Customer Intelligence</div>
-                        <div class="chart-row">
-                            <div class="chart-card"><div id="clv-highest-chart"></div><div class="caption">🏆 Top 5 Highest Lifetime Value</div></div>
-                            <div class="chart-card"><div id="clv-lowest-chart"></div><div class="caption">⚠️ Bottom 5 Lowest Lifetime Value</div></div>
-                        </div>
-                        <div class="chart-row">
-                            <div class="chart-card"><div id="repeat-chart"></div></div>
-                            <div class="chart-card"><div id="seg-pie"></div></div>
-                        </div>${highRiskHtml}`;
-            document.getElementById('page-content').innerHTML = html;
-            
-            // Highest CLV chart
-            if (highestCLV.length > 0) {
-                const xVals = highestCLV.map(c => getCustomerDisplay(c));
-                const yVals = highestCLV.map(c => parseFloat(c.total_net_amount || c.total_revenue || 0));
-                renderChart('clv-highest-chart', [{
-                    x: xVals, y: yVals, type: 'bar', marker: { color: '#2ecc71' },
-                    text: yVals.map(v => formatMoney(v)), textposition: 'outside'
-                }], { title: 'Highest CLV Customers', height: 450 });
-            } else {
-                document.getElementById('clv-highest-chart').innerHTML = '<div class="insight-card">No CLV data available</div>';
-            }
-            
-            // Lowest CLV chart
-            if (lowestCLV.length > 0) {
-                const xVals = lowestCLV.map(c => getCustomerDisplay(c));
-                const yVals = lowestCLV.map(c => parseFloat(c.total_net_amount || c.total_revenue || 0));
-                renderChart('clv-lowest-chart', [{
-                    x: xVals, y: yVals, type: 'bar', marker: { color: '#e74c3c' },
-                    text: yVals.map(v => formatMoney(v)), textposition: 'outside'
-                }], { title: 'Lowest CLV Customers', height: 450 });
-            } else {
-                document.getElementById('clv-lowest-chart').innerHTML = '<div class="insight-card">No lowest CLV data available</div>';
-            }
-            
-            // Repeat chart
-            if (repeat && repeat.length) {
-                renderChart('repeat-chart', [{
-                    labels: repeat.map(r => r.customer_type), values: repeat.map(r => r.customer_count),
-                    type: 'pie', hole: 0.3
-                }], { title: 'Repeat vs One-Time', height: 450 });
-            } else {
-                document.getElementById('repeat-chart').innerHTML = '<div class="insight-card">No repeat data</div>';
-            }
-            
-            // Segmentation pie
-            if (filteredSeg && filteredSeg.length) {
-                const segAgg = filteredSeg.reduce((acc, s) => { acc[s.segment] = (acc[s.segment] || 0) + 1; return acc; }, {});
-                if (Object.keys(segAgg).length > 0) {
-                    renderChart('seg-pie', [{
-                        labels: Object.keys(segAgg), values: Object.values(segAgg),
-                        type: 'pie', textinfo: 'label+percent',
-                        marker: { colors: ['#1e3c72', '#3b82f6', '#94a3b8', '#cbd5e1'] }
-                    }], { title: 'Customer Segments', height: 450 });
-                    attachCrossFilterEvents('seg-pie', 'segment');
-                } else {
-                    document.getElementById('seg-pie').innerHTML = '<div class="insight-card">No segment data</div>';
+                                </div>
+                            </div></div>`;
+                if (orderVal.length) html += `<div class="insight-card">📦 Order Value: Min ${formatMoney(orderVal[0].min_order_value)}, Max ${formatMoney(orderVal[0].max_order_value)}, Median ${formatMoney(orderVal[0].median_order_value)}</div>`;
+                document.getElementById('pageContent').innerHTML = html;
+                if (monthlyTrend.length) {
+                    const months = monthlyTrend.map(m => m.period.slice(0,7));
+                    const revenue = monthlyTrend.map(m => m.revenue);
+                    renderChart('rev-monthly', [{ x: months, y: revenue, type: 'bar', text: revenue.map(v => formatMoney(v)), textposition: 'outside' }], { title: 'Monthly Revenue', height: 400 });
                 }
-            } else {
-                document.getElementById('seg-pie').innerHTML = '<div class="insight-card">No segmentation data</div>';
-            }
-            
-            // High-risk table with segment filter and row limit
-            const highRiskTbody = document.getElementById('high-risk-tbody');
-            const segDrop = document.getElementById('highrisk-seg-drop');
-            const clearSeg = document.getElementById('clear-highrisk-seg');
-            const rowLimitSelect = document.getElementById('highrisk-row-limit');
-            let currentLimit = parseInt(rowLimitSelect.value, 10);
-
-            const loadHighRisk = async () => {
-                const seg = segDrop.value;
-                const limit = currentLimit;
-                const url = `/api/high_risk_customers?limit=${limit}&offset=0` + (seg ? `&segment=${encodeURIComponent(seg)}` : '');
-                try {
-                    const data = await fetchJSON(url);
-                    highRiskTbody.innerHTML = '';
+                if (contrib.length) {
+                    const total = contrib.reduce((s,v) => s + v.total_revenue, 0);
+                    let cumsum = [], sum = 0;
+                    for (let i=0; i<contrib.length; i++) { sum += contrib[i].total_revenue; cumsum.push((sum/total)*100); }
+                    renderChart('pareto-chart', [{ x: contrib.map((_,i)=>i+1), y: cumsum, mode: 'lines', name: 'Cumulative %' }], { title: 'Revenue Concentration (Pareto)', height: 400 });
+                }
+                const tbody = document.getElementById('top-customers-tbody');
+                const searchInput = document.getElementById('customer-search');
+                const clearBtn = document.getElementById('clear-customer-search');
+                const rowLimitSelect = document.getElementById('revenue-row-limit');
+                let allCustomers = [], currentLimit = parseInt(rowLimitSelect.value, 10);
+                const renderTable = (data) => {
+                    tbody.innerHTML = '';
                     data.forEach(c => {
-                        const row = highRiskTbody.insertRow();
+                        const row = tbody.insertRow();
                         row.insertCell(0).innerText = c.customer_id;
-                        row.insertCell(1).innerText = c.full_name || 'N/A';
-                        row.insertCell(2).innerText = c.recency_days;
-                        row.insertCell(3).innerText = c.frequency;
-                        row.insertCell(4).innerText = formatMoney(c.monetary);
-                        row.insertCell(5).innerText = c.segment || 'N/A';
+                        row.insertCell(1).innerText = formatMoney(c.total_revenue);
+                        row.insertCell(2).innerText = c.cumulative_percentage.toFixed(1) + '%';
                     });
-                } catch (e) {
-                    highRiskTbody.innerHTML = `<tr><td colspan="6">Error loading data</td></tr>`;
-                }
-            };
+                };
+                const loadData = async () => {
+                    const url = `/api/revenue_contribution?limit=${currentLimit}&offset=0`;
+                    try { allCustomers = await fetchJSON(url); applyFilter(); } catch(e) { tbody.innerHTML = '<tr><td colspan="3">Error loading data</td></tr>'; }
+                };
+                const applyFilter = () => {
+                    let filtered = allCustomers;
+                    const term = searchInput.value.trim().toLowerCase();
+                    if (term) filtered = allCustomers.filter(c => String(c.customer_id).toLowerCase().includes(term));
+                    renderTable(filtered);
+                };
+                searchInput.addEventListener('input', applyFilter);
+                clearBtn.addEventListener('click', () => { searchInput.value = ''; applyFilter(); });
+                rowLimitSelect.addEventListener('change', () => { currentLimit = parseInt(rowLimitSelect.value, 10); loadData(); });
+                await loadData();
+                const container = document.getElementById('top-customers-container');
+                container.appendChild(createExportButton('/api/revenue_contribution?limit=100000', 'top_customers.csv'));
+            },
 
-            segDrop.addEventListener('change', loadHighRisk);
-            clearSeg.addEventListener('click', () => { segDrop.value = ''; loadHighRisk(); });
-            rowLimitSelect.addEventListener('change', () => {
-                currentLimit = parseInt(rowLimitSelect.value, 10);
-                loadHighRisk();
-            });
-
-            await loadHighRisk();
-
-            const highRiskContainer = document.querySelector('#high-risk-table').parentNode;
-            const exportHighRisk = createExportButton('/api/high_risk_customers?limit=100000', 'high_risk_customers.csv');
-            highRiskContainer.appendChild(exportHighRisk);
-        },
-
-        products: async () => {
-            const [categories, subcategories, aovData, freqData] = await Promise.all([
-                fetchJSON('/api/revenue_by_category?limit=100'),
-                fetchJSON('/api/revenue_by_subcategory?limit=100'),
-                fetchJSON('/api/aov_by_category').catch(() => []),
-                fetchJSON('/api/frequency_by_category').catch(() => [])
-            ]);
-            let html = `<div class="section-header">🏷️ Product Performance</div><div class="insight-card">🔍 Click on any category bar/slice to filter subcategories.</div>
-                        <div class="chart-row"><div class="chart-card"><div id="prod-bar"></div></div><div class="chart-card"><div id="prod-pie"></div></div></div>
-                        <div class="section-header">📊 Category Deep Dive</div><div class="chart-row"><div class="chart-card"><div id="aov-chart"></div></div><div class="chart-card"><div id="freq-chart"></div></div></div>
-                        <div class="section-header">📦 Subcategory Revenue Breakdown</div><div class="chart-row full-width"><div class="chart-card"><div id="subcat-bar"></div></div></div>`;
-            document.getElementById('page-content').innerHTML = html;
-            if (categories.length) {
-                renderChart('prod-bar', [{ x: categories.map(c => c.category), y: categories.map(c => c.revenue), type: 'bar', marker: { color: '#1e3c72' }, text: categories.map(c => formatMoney(c.revenue)), textposition: 'outside' }], { title: 'Revenue by Category', height: 450 });
-                renderChart('prod-pie', [{ labels: categories.map(c => c.category), values: categories.map(c => c.revenue), type: 'pie', hole: 0.3, marker: { colors: ['#1e3c72', '#3b82f6', '#94a3b8'] }, textinfo: 'label+percent' }], { title: 'Category Share', height: 450 });
-                attachCrossFilterEvents('prod-bar', 'category');
-                attachCrossFilterEvents('prod-pie', 'category');
-            }
-            if (aovData.length) renderChart('aov-chart', [{ x: aovData.map(d => d.category), y: aovData.map(d => d.aov), type: 'bar', marker: { color: '#f39c12' }, text: aovData.map(d => formatMoney(d.aov)), textposition: 'outside' }], { title: 'Average Order Value', height: 450 });
-            if (freqData.length) renderChart('freq-chart', [{ x: freqData.map(d => d.category), y: freqData.map(d => d.frequency), type: 'bar', marker: { color: '#16a085' }, text: freqData.map(d => d.frequency.toFixed(1)), textposition: 'outside' }], { title: 'Avg Orders per Customer', height: 450 });
-            if (subcategories.length) {
-                let filteredSub = subcategories;
-                if (filterState.selectedCategory) filteredSub = filteredSub.filter(s => (s.category || s.product_category) === filterState.selectedCategory);
-                if (filterState.valueRange.min !== null && filterState.valueRange.max !== null) filteredSub = filteredSub.filter(s => (s.revenue || s.total_revenue) >= filterState.valueRange.min && (s.revenue || s.total_revenue) <= filterState.valueRange.max);
-                const subcatField = subcategories[0].subcategory !== undefined ? 'subcategory' : 'product_subcategory';
-                const revField = subcategories[0].revenue !== undefined ? 'revenue' : 'total_revenue';
-                renderChart('subcat-bar', [{ x: filteredSub.map(s => s[subcatField]), y: filteredSub.map(s => s[revField]), type: 'bar', marker: { color: '#3b82f6' }, text: filteredSub.map(s => formatMoney(s[revField])), textposition: 'outside' }], { title: filterState.selectedCategory ? `Subcategories in ${filterState.selectedCategory}` : 'Revenue by Subcategory', height: 500 });
-            }
-        },
-
-        rfm: async () => {
-            document.getElementById('page-content').innerHTML = '<div class="loader"><div class="spinner"></div>Loading RFM analysis...</div>';
-            
-            // Build filter UI
-            let html = `
-                <div class="section-header">⭐ RFM Segmentation</div>
-                <div class="insight-card">📊 RFM groups: <span style="color:#ffd700;">● Champions</span> · <span style="color:#e74c3c;">● At Risk</span> · <span style="color:#2ecc71;">● Loyal</span> · <span style="color:#0728fe;">● Lost</span></div>
-                <div class="filter-group" style="flex-wrap:wrap; gap:0.5rem; margin-bottom:0.5rem;">
-                    <span class="filter-label">🎯 Segment:</span>
-                    <select id="seg-drop" class="segment-select"><option value="">All</option>...</select>
-                    <button id="clear-seg" class="btn-clear">Clear</button>
-                    <span class="filter-label">📏 Recency (days):</span>
-                    <input type="number" id="recency-min" class="filter-input" placeholder="min" style="width:80px;">
-                    <span>–</span>
-                    <input type="number" id="recency-max" class="filter-input" placeholder="max" style="width:80px;">
-                    <span class="filter-label">💰 Monetary ($):</span>
-                    <input type="number" id="monetary-min" class="filter-input" placeholder="min" style="width:100px;">
-                    <span>–</span>
-                    <input type="number" id="monetary-max" class="filter-input" placeholder="max" style="width:100px;">
-                    <span class="filter-label">Rows:</span>
-                    <select id="rfm-row-limit" class="row-limit-dropdown">
-                        <option value="10">10</option>
-                        <option value="50">50</option>
-                        <option value="100" selected>100</option>
-                        <option value="500">500</option>
-                        <option value="1000">1000</option>
-                        <option value="-1">All</option>
-                    </select>
-                    <button id="rfm-apply-filters" class="btn-ai">Apply Filters</button>
-                    <button id="rfm-clear-filters" class="btn-clear">Clear Filters</button>
-                </div>
-                <div class="chart-row"><div class="chart-card"><div id="rfm-scatter"></div></div><div class="chart-card"><div id="seg-pie2"></div></div></div>
-                <div class="section-header">📋 Segment Statistics</div>
-                <div class="chart-card full-width"><div class="table-responsive" id="seg-stats-table" style="max-height:300px; overflow-y:auto;"></div></div>
-                <div class="section-header">📋 All Customers (RFM)</div>
-                <div class="chart-card full-width">
-                    <div class="table-responsive" id="rfm-full-table" style="max-height:500px; overflow-y:auto;">
-                        <table style="width:100%"><thead><tr><th>Customer ID</th><th>Recency</th><th>Frequency</th><th>Monetary</th><th>Segment</th></tr></thead><tbody id="rfm-full-tbody"></tbody></table>
-                    </div>
-                </div>
-            `;
-            document.getElementById('page-content').innerHTML = html;
-
-            // Now we need to load data with filters.
-            // We'll define a function loadRFMData() that reads all filter values and fetches.
-
-            const segDrop = document.getElementById('seg-drop');
-            const clearSeg = document.getElementById('clear-seg');
-            const recencyMin = document.getElementById('recency-min');
-            const recencyMax = document.getElementById('recency-max');
-            const monetaryMin = document.getElementById('monetary-min');
-            const monetaryMax = document.getElementById('monetary-max');
-            const rowLimitSelect = document.getElementById('rfm-row-limit');
-            const applyBtn = document.getElementById('rfm-apply-filters');
-            const clearFiltersBtn = document.getElementById('rfm-clear-filters');
-            const rfmTbody = document.getElementById('rfm-full-tbody');
-            const scatterDiv = document.getElementById('rfm-scatter');
-            const segPieDiv = document.getElementById('seg-pie2');
-            const statsDiv = document.getElementById('seg-stats-table');
-
-            let currentData = [];
-            let segField = 'segment';
-
-            const loadRFMData = async () => {
-                const seg = segDrop.value;
-                const limit = parseInt(rowLimitSelect.value, 10);
-                const rMin = recencyMin.value ? parseInt(recencyMin.value, 10) : undefined;
-                const rMax = recencyMax.value ? parseInt(recencyMax.value, 10) : undefined;
-                const mMin = monetaryMin.value ? parseFloat(monetaryMin.value) : undefined;
-                const mMax = monetaryMax.value ? parseFloat(monetaryMax.value) : undefined;
-
-                let url = `/api/rfm_segmentation?limit=${limit}&offset=0`;
-                if (rMin !== undefined) url += `&recency_min=${rMin}`;
-                if (rMax !== undefined) url += `&recency_max=${rMax}`;
-                if (mMin !== undefined) url += `&monetary_min=${mMin}`;
-                if (mMax !== undefined) url += `&monetary_max=${mMax}`;
-
-                try {
-                    const data = await fetchJSON(url);
-                    currentData = data;
-                    renderRFM(data);
-                } catch (e) {
-                    rfmTbody.innerHTML = `<tr><td colspan="5">Error loading data</td></tr>`;
-                }
-            };
-
-            const renderRFM = (data) => {
-                if (!data || !data.length) {
-                    rfmTbody.innerHTML = '<tr><td colspan="5">No data</td></tr>';
-                    scatterDiv.innerHTML = '<div class="insight-card">No data to display</div>';
-                    segPieDiv.innerHTML = '<div class="insight-card">No data</div>';
-                    statsDiv.innerHTML = '';
-                    return;
-                }
-
-                // Determine segment field
-                let segField = data[0].segment !== undefined ? 'segment' : (data[0].rfm_segment !== undefined ? 'rfm_segment' : null);
-                if (!segField) {
-                    // Fallback: compute segments on the fly (same logic as before)
-                    const recMedian = data.map(d => d.recency_days).sort((a,b)=>a-b)[Math.floor(data.length/2)];
-                    const monMedian = data.map(d => d.monetary).sort((a,b)=>a-b)[Math.floor(data.length/2)];
-                    data.forEach(d => {
-                        if (d.recency_days <= recMedian/2 && d.monetary >= monMedian*2) d.segment = 'Champions';
-                        else if (d.recency_days <= recMedian && d.monetary >= monMedian) d.segment = 'Loyal';
-                        else if (d.recency_days > recMedian*1.5 && d.monetary < monMedian) d.segment = 'At Risk';
-                        else if (d.recency_days > 180) d.segment = 'Lost';
-                        else d.segment = 'Others';
-                    });
-                    segField = 'segment';
-                }
-
-                // Populate segment dropdown options if not already
-                const segments = [...new Set(data.map(d => d[segField]))].sort();
-                const segColors = { Champions: '#ffd700', Loyal: '#2ecc71', 'At Risk': '#e74c3c', Lost: '#0728fe', Others: '#95a5a6'};
-                const getColor = s => segColors[s] || '#1e3c72';
-
-                // Update dropdown options (preserve selection)
-                const currentSeg = segDrop.value;
-                segDrop.innerHTML = '<option value="">All</option>' + segments.map(s => `<option value="${s}" ${currentSeg === s ? 'selected' : ''}>${s}</option>`).join('');
-
-                // Table
-                rfmTbody.innerHTML = '';
-                data.forEach(c => {
-                    const row = rfmTbody.insertRow();
-                    row.insertCell(0).innerText = c.customer_id;
-                    row.insertCell(1).innerText = c.recency_days;
-                    row.insertCell(2).innerText = c.frequency;
-                    row.insertCell(3).innerText = formatMoney(c.monetary);
-                    row.insertCell(4).innerText = c[segField] || 'N/A';
-                });
-
-                // Segment Statistics
-                const segStats = {};
-                segments.forEach(seg => {
-                    const custs = data.filter(d => d[segField] === seg);
-                    segStats[seg] = {
-                        count: custs.length,
-                        avgRecency: custs.reduce((s,c)=>s+c.recency_days,0)/custs.length,
-                        avgFreq: custs.reduce((s,c)=>s+c.frequency,0)/custs.length,
-                        avgMon: custs.reduce((s,c)=>s+c.monetary,0)/custs.length
-                    };
-                });
-                const statsHtml = '<table><thead><tr><th>Segment</th><th>Customers</th><th>Avg Recency</th><th>Avg Frequency</th><th>Avg Monetary</th></tr></thead><tbody>' +
-                    segments.map(seg => `<tr style="border-left:4px solid ${getColor(seg)};"><td>${seg}</td><td>${segStats[seg].count}</td><td>${segStats[seg].avgRecency.toFixed(1)}</td><td>${segStats[seg].avgFreq.toFixed(1)}</td><td>${formatMoney(segStats[seg].avgMon)}</td></tr>`).join('') +
-                    '</tbody></table>';
-                statsDiv.innerHTML = statsHtml;
-
-                // Scatter plot (Recency vs Monetary)
-                const scatterTraces = [];
-                const toShow = currentSeg ? [currentSeg] : segments;
-                toShow.forEach(seg => {
-                    const pts = data.filter(d => d[segField] === seg);
-                    if (!pts.length) return;
-                    scatterTraces.push({
-                        x: pts.map(p => p.recency_days),
-                        y: pts.map(p => p.monetary),
-                        mode: 'markers',
-                        name: seg,
-                        marker: { color: getColor(seg), size: 8, opacity: 0.7 },
-                        text: pts.map(p => `${getCustomerDisplay(p)}<br>Recency: ${p.recency_days} days<br>Freq: ${p.frequency}<br>Monetary: ${formatMoney(p.monetary)}`)
-                    });
-                });
-                Plotly.newPlot('rfm-scatter', scatterTraces, { title: 'Recency vs Monetary', height: 500, xaxis: { title: 'Recency (days)' }, yaxis: { title: 'Monetary ($)' } });
-
-                // Segment Pie
-                const segCounts = segments.reduce((a,s)=>{ a[s]=data.filter(d=>d[segField]===s).length; return a; }, {});
-                Plotly.newPlot('seg-pie2', [{
-                    labels: Object.keys(segCounts),
-                    values: Object.values(segCounts),
-                    type: 'pie',
-                    hole: 0.4,
-                    marker: { colors: Object.keys(segCounts).map(getColor) },
-                    textinfo: 'label+percent'
-                }], { title: 'Segment Distribution', height: 450 });
-                document.getElementById('seg-pie2').on('plotly_click', data => {
-                    if (data.points) {
-                        filterState.selectedSegment = data.points[0].label;
-                        updateFilterUI();
-                        refreshCurrentPage();
-                    }
-                });
-            };
-
-            // Event listeners
-            applyBtn.addEventListener('click', loadRFMData);
-            clearFiltersBtn.addEventListener('click', () => {
-                recencyMin.value = '';
-                recencyMax.value = '';
-                monetaryMin.value = '';
-                monetaryMax.value = '';
-                segDrop.value = '';
-                rowLimitSelect.value = '100';
-                loadRFMData();
-            });
-            clearSeg.addEventListener('click', () => { segDrop.value = ''; loadRFMData(); });
-            segDrop.addEventListener('change', loadRFMData);
-            rowLimitSelect.addEventListener('change', loadRFMData);
-
-            // Initial load
-            await loadRFMData();
-
-            // Export button
-            const rfmContainer = document.getElementById('rfm-full-table').parentNode;
-            const exportRFM = createExportButton('/api/rfm_segmentation?limit=-1', 'rfm_full.csv');
-            rfmContainer.appendChild(exportRFM);
-        },
-
-        cohort: async () => {
-            document.getElementById('page-content').innerHTML = '<div class="loader"><div class="spinner"></div>Loading cohort retention...</div>';
-            const cohort = await fetchJSON('/api/cohort_retention?limit=500');
-            let html = `<div class="section-header">📈 Cohort Retention Analysis</div><div class="chart-row full-width"><div class="chart-card"><div id="cohort-heatmap"></div></div></div><div class="chart-row full-width"><div class="chart-card"><div id="cohort-lines"></div></div></div>`;
-            document.getElementById('page-content').innerHTML = html;
-            if (cohort && cohort.length) {
-                const months = [...new Set(cohort.map(c => c.month_number))].sort((a,b)=>a-b);
-                const cohorts = [...new Set(cohort.map(c => c.cohort_month))].sort();
-                const z = cohorts.map(co => months.map(mo => { const v = cohort.find(c => c.cohort_month === co && c.month_number === mo); return v ? v.retention_rate * 100 : null; }));
-                const texts = z.map(row => row.map(v => v !== null ? `${v.toFixed(1)}%` : ''));
-                Plotly.newPlot('cohort-heatmap', [{ z, x: months, y: cohorts, type: 'heatmap', colorscale: 'Viridis', zmid: 50, text: texts, texttemplate: '%{text}', textfont: { size: 11, color: 'white' }, hovertemplate: 'Cohort: %{y}<br>Month: %{x}<br>Retention: %{z:.1f}%<extra></extra>' }], { title: 'Retention % by Cohort', height: 550 });
-                const traces = cohorts.map(co => { const d = cohort.filter(c => c.cohort_month === co).sort((a,b)=>a.month_number - b.month_number); return { x: d.map(v => v.month_number), y: d.map(v => v.retention_rate * 100), mode: 'lines+markers', name: co }; });
-                renderChart('cohort-lines', traces, { title: 'Retention Curves (%)', height: 450 });
-            } else document.getElementById('cohort-heatmap').innerHTML = '<p class="caption">No cohort data</p>';
-        },
-
-        insights: async () => {
-            const html = `
-                <div class="section-header">📖 Project Insights: ETL Pipeline & Business Value</div>
-                <div class="info-card">
-                    <strong>🚀 About this Project</strong><br>
-                    4M+ records, 99.8% validity, PySpark, Databricks, Delta Lake. 9 analytical use cases.
-                </div>
-                
-                <div class="section-header">🎯 Business Problems Solved</div>
-                <div class="use-case-grid">
-                    <div class="use-case-card">
-                        <div class="use-case-title">💰 Revenue Leakage & Growth</div>
-                        <div class="use-case-desc">Identify underperforming cities/categories.</div>
-                        <div class="use-case-action">Reallocate marketing budget.</div>
-                    </div>
-                    <div class="use-case-card">
-                        <div class="use-case-title">👥 Customer Churn & Loyalty</div>
-                        <div class="use-case-desc">RFM and cohort retention highlight at-risk customers.</div>
-                        <div class="use-case-action">Launch reactivation campaigns.</div>
-                    </div>
-                    <div class="use-case-card">
-                        <div class="use-case-title">📦 Operational Efficiency</div>
-                        <div class="use-case-desc">Fulfillment gaps and payment method analysis.</div>
-                        <div class="use-case-action">Improve logistics & checkout.</div>
-                    </div>
-                    <div class="use-case-card">
-                        <div class="use-case-title">🏷️ Product Mix Optimization</div>
-                        <div class="use-case-desc">Category/subcategory revenue guides inventory.</div>
-                        <div class="use-case-action">Bundle or promote accordingly.</div>
-                    </div>
-                </div>
-                
-                <div class="section-header">📊 Analytical Use Cases (3 Levels)</div>
-                <div class="chart-card full-width">
-                    <div class="table-responsive">
-                        <table style="width:100%; border-collapse: collapse; background: white;">
-                            <thead>
-                                <tr style="background: #f1f5f9;">
-                                    <th style="padding: 10px; border: 1px solid #e2e8f0; text-align: left;">Level</th>
-                                    <th style="padding: 10px; border: 1px solid #e2e8f0; text-align: left;">Use Case</th>
-                                    <th style="padding: 10px; border: 1px solid #e2e8f0; text-align: left;">Business Question</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Level 1 -->
-                                <tr>
-                                    <td rowspan="3" style="vertical-align: top; padding: 10px; border: 1px solid #e2e8f0; background: #f8fafc;"><strong>Level 1</strong></td>
-                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">CLV</td>
-                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">Highest lifetime value customers?</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">Daily Revenue Trends</td>
-                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">Seasonality or growth?</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">Top Cities</td>
-                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">Where to expand?</td>
-                                </tr>
-                                
-                                <!-- Level 2 -->
-                                <tr>
-                                    <td rowspan="3" style="vertical-align: top; padding: 10px; border: 1px solid #e2e8f0; background: #f8fafc;"><strong>Level 2</strong></td>
-                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">Repeat vs One-Time</td>
-                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">Conversion to loyal?</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">Order Fulfillment</td>
-                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">Shipping delays impact?</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">Payment Methods</td>
-                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">Which drive revenue?</td>
-                                </tr>
-                                
-                                <!-- Level 3 -->
-                                <tr>
-                                    <td rowspan="3" style="vertical-align: top; padding: 10px; border: 1px solid #e2e8f0; background: #f8fafc;"><strong>Level 3</strong></td>
-                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">Product Subcategory</td>
-                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">Cash cows vs underperformers?</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">RFM Segmentation</td>
-                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">Personalized marketing?</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">Cohort Retention</td>
-                                    <td style="padding: 10px; border: 1px solid #e2e8f0;">New vs old customers?</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                
-                <div class="insight-card">
-                    <strong>🏆 Key Achievements</strong><br>
-                    4M+ records, 99.8% validity, factory pattern design, production-grade stack.
-                </div>
-            `;
-            document.getElementById('page-content').innerHTML = html;
-        },
-
-        nlq: async () => {
-            let html = `<div class="section-header">🗣️ Ask AI (Natural Language Query)</div><div class="info-card">💡 Ask business questions in plain English. The AI will convert your question to SQL, run it safely, and return results.</div><div class="nlq-input-area"><input type="text" id="nlq-question" class="nlq-input" placeholder="e.g., show me top 5 customers by revenue in March" /><button id="nlq-submit" class="btn-ai">🔍 Ask</button></div><div id="nlq-results" class="nlq-results"></div>`;
-            document.getElementById('page-content').innerHTML = html;
-            document.getElementById('nlq-submit').addEventListener('click', async () => {
-                const question = document.getElementById('nlq-question').value.trim();
-                if (!question) return;
-                const resultsDiv = document.getElementById('nlq-results');
-                resultsDiv.innerHTML = '<div class="loader"><div class="spinner"></div>Processing your question...</div>';
-                try {
-                    const resp = await fetch(`/api/ask?q=${encodeURIComponent(question)}`);
-                    const data = await resp.json();
-                    if (data.error) throw new Error(data.error);
-                    let cachedBadge = data.cached ? '<span class="cached-badge">⚡ Cached result</span>' : '';
-                    let sqlBlock = `<div class="sql-block"><strong>📝 Generated SQL:</strong><br><code>${escapeHtml(data.sql)}</code></div>`;
-                    let resultsHtml = '<table><thead><tr>';
-                    if (data.results && data.results.length > 0) {
-                        const cols = Object.keys(data.results[0]);
-                        cols.forEach(col => resultsHtml += `<th>${col}</th>`);
-                        resultsHtml += '</thead><tbody>';
-                        data.results.forEach(row => {
-                            resultsHtml += '<tr>';
-                            cols.forEach(col => { let val = row[col]; if (typeof val === 'number') val = formatMoney(val); resultsHtml += `<td>${escapeHtml(String(val))}</td>`; });
-                            resultsHtml += '</tr>';
+            customers: async () => {
+                document.getElementById('pageContent').innerHTML = '<div class="loader"><div class="spinner"></div>Loading customer insights...</div>';
+                const [clvData, repeat, seg, highRisk] = await Promise.all([
+                    fetchJSON('/api/customer_clv'),
+                    fetchJSON('/api/repeat_vs_onetime'),
+                    fetchJSON('/api/customer_segmentation?limit=100'),
+                    fetchJSON('/api/high_risk_customers?limit=20')
+                ]);
+                const highestCLV = clvData.highest || [];
+                const lowestCLV = clvData.lowest || [];
+                let filteredSeg = seg;
+                if (filterState.valueRange.min !== null && filterState.valueRange.max !== null)
+                    filteredSeg = seg.filter(c => c.total_revenue >= filterState.valueRange.min && c.total_revenue <= filterState.valueRange.max);
+                let highRiskHtml = `<div class="section-title">⚠️ High-Risk VIP Customers</div>
+                                    <div class="flex" style="margin-bottom:0.5rem;">
+                                        <span class="filter-label">Segment:</span>
+                                        <select id="highrisk-seg-drop" class="filter-select">
+                                            <option value="">All</option>
+                                            <option value="Champions">Champions</option>
+                                            <option value="Loyal">Loyal</option>
+                                            <option value="At Risk">At Risk</option>
+                                            <option value="Lost">Lost</option>
+                                            <option value="Others">Others</option>
+                                        </select>
+                                        <span class="filter-label">Rows:</span>
+                                        <select id="highrisk-row-limit" class="filter-select">
+                                            <option value="10" selected>10</option>
+                                            <option value="100">100</option>
+                                            <option value="1000">1000</option>
+                                            <option value="10000">10000</option>
+                                            <option value="100000">All</option>
+                                        </select>
+                                        <button id="clear-highrisk-seg" class="btn btn-outline">Clear</button>
+                                    </div>
+                                    <div class="chart-card full-width">
+                                        <div class="table-responsive" id="high-risk-table" style="max-height:500px; overflow-y:auto;">
+                                            <table><thead><tr><th>ID</th><th>Name</th><th>Recency</th><th>Frequency</th><th>Monetary</th><th>Segment</th></tr></thead><tbody id="high-risk-tbody"></tbody></table>
+                                        </div>
+                                    </div>`;
+                let html = `<div class="section-title">👥 Customer Intelligence</div>
+                            <div class="chart-row">
+                                <div class="chart-card"><div id="clv-highest-chart"></div><div class="caption">Top 5 CLV</div></div>
+                                <div class="chart-card"><div id="clv-lowest-chart"></div><div class="caption">Bottom 5 CLV</div></div>
+                            </div>
+                            <div class="chart-row">
+                                <div class="chart-card"><div id="repeat-chart"></div></div>
+                                <div class="chart-card"><div id="seg-pie"></div></div>
+                            </div>${highRiskHtml}`;
+                document.getElementById('pageContent').innerHTML = html;
+                if (highestCLV.length) {
+                    const xVals = highestCLV.map(c => getCustomerDisplay(c));
+                    const yVals = highestCLV.map(c => parseFloat(c.total_net_amount || c.total_revenue || 0));
+                    renderChart('clv-highest-chart', [{ x: xVals, y: yVals, type: 'bar', marker: { color: '#2ecc71' }, text: yVals.map(v => formatMoney(v)), textposition: 'outside' }], { title: 'Highest CLV', height: 450 });
+                } else document.getElementById('clv-highest-chart').innerHTML = '<div class="insight-card">No CLV data</div>';
+                if (lowestCLV.length) {
+                    const xVals = lowestCLV.map(c => getCustomerDisplay(c));
+                    const yVals = lowestCLV.map(c => parseFloat(c.total_net_amount || c.total_revenue || 0));
+                    renderChart('clv-lowest-chart', [{ x: xVals, y: yVals, type: 'bar', marker: { color: '#e74c3c' }, text: yVals.map(v => formatMoney(v)), textposition: 'outside' }], { title: 'Lowest CLV', height: 450 });
+                } else document.getElementById('clv-lowest-chart').innerHTML = '<div class="insight-card">No lowest CLV data</div>';
+                if (repeat && repeat.length) renderChart('repeat-chart', [{ labels: repeat.map(r => r.customer_type), values: repeat.map(r => r.customer_count), type: 'pie', hole: 0.3 }], { title: 'Repeat vs One-Time', height: 450 });
+                else document.getElementById('repeat-chart').innerHTML = '<div class="insight-card">No repeat data</div>';
+                if (filteredSeg && filteredSeg.length) {
+                    const segAgg = filteredSeg.reduce((acc, s) => { acc[s.segment] = (acc[s.segment]||0)+1; return acc; }, {});
+                    if (Object.keys(segAgg).length) {
+                        renderChart('seg-pie', [{ labels: Object.keys(segAgg), values: Object.values(segAgg), type: 'pie', textinfo: 'label+percent', marker: { colors: ['#1e3c72','#3b82f6','#94a3b8','#cbd5e1'] } }], { title: 'Customer Segments', height: 450 });
+                        attachCrossFilterEvents('seg-pie', 'segment');
+                    } else document.getElementById('seg-pie').innerHTML = '<div class="insight-card">No segment data</div>';
+                } else document.getElementById('seg-pie').innerHTML = '<div class="insight-card">No segmentation data</div>';
+                const highRiskTbody = document.getElementById('high-risk-tbody');
+                const segDrop = document.getElementById('highrisk-seg-drop');
+                const clearSeg = document.getElementById('clear-highrisk-seg');
+                const rowLimitSelect = document.getElementById('highrisk-row-limit');
+                let currentLimit = parseInt(rowLimitSelect.value, 10);
+                const loadHighRisk = async () => {
+                    const seg = segDrop.value;
+                    const limit = currentLimit;
+                    const url = `/api/high_risk_customers?limit=${limit}&offset=0` + (seg ? `&segment=${encodeURIComponent(seg)}` : '');
+                    try {
+                        const data = await fetchJSON(url);
+                        highRiskTbody.innerHTML = '';
+                        data.forEach(c => {
+                            const row = highRiskTbody.insertRow();
+                            row.insertCell(0).innerText = c.customer_id;
+                            row.insertCell(1).innerText = c.full_name || 'N/A';
+                            row.insertCell(2).innerText = c.recency_days;
+                            row.insertCell(3).innerText = c.frequency;
+                            row.insertCell(4).innerText = formatMoney(c.monetary);
+                            row.insertCell(5).innerText = c.segment || 'N/A';
                         });
-                        resultsHtml += '</tbody></table>';
-                    } else resultsHtml = '<div class="warning-card">No results found for your query.</div>';
-                    resultsDiv.innerHTML = `<div class="insight-card">✔️ Question: <strong>${escapeHtml(question)}</strong> ${cachedBadge}</div>${sqlBlock}<div class="section-header">📊 Results</div>${resultsHtml}`;
-                } catch (err) { resultsDiv.innerHTML = `<div class="warning-card">⚠️ Error: ${err.message}</div>`; }
-            });
-        },
+                    } catch(e) { highRiskTbody.innerHTML = '<tr><td colspan="6">Error loading data</td></tr>'; }
+                };
+                segDrop.addEventListener('change', loadHighRisk);
+                clearSeg.addEventListener('click', () => { segDrop.value = ''; loadHighRisk(); });
+                rowLimitSelect.addEventListener('change', () => { currentLimit = parseInt(rowLimitSelect.value, 10); loadHighRisk(); });
+                await loadHighRisk();
+                const highRiskContainer = document.querySelector('#high-risk-table').parentNode;
+                highRiskContainer.appendChild(createExportButton('/api/high_risk_customers?limit=100000', 'high_risk_customers.csv'));
+            },
 
-        simulate: async () => {
-            let currentRevenue = 0; try { const kpis = await fetchJSON('/api/kpis'); currentRevenue = kpis.total_revenue || 0; } catch(e) { console.warn(e); }
-            let html = `<div class="section-header">🎲 What-If Simulator</div>
-                        <div style="background: white; border-radius: 24px; padding: 1rem 1.5rem; margin-bottom: 1.2rem;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;"><div><span style="font-size: 0.75rem;">📊 Current total revenue</span><span style="font-size: 1.2rem; font-weight: 800; margin-left:0.5rem;">${formatMoney(currentRevenue)}</span></div>
-                            <div><button id="reset-history" class="btn-clear">Clear history</button><button id="retrain-model" class="btn-clear">Retrain model</button></div></div>
+            products: async () => {
+                const [categories, subcategories, aovData, freqData] = await Promise.all([
+                    fetchJSON('/api/revenue_by_category?limit=100'),
+                    fetchJSON('/api/revenue_by_subcategory?limit=100'),
+                    fetchJSON('/api/aov_by_category').catch(() => []),
+                    fetchJSON('/api/frequency_by_category').catch(() => [])
+                ]);
+                let html = `<div class="section-title">🏷️ Product Performance</div><div class="insight-card">🔍 Click on any category bar/slice to filter subcategories.</div>
+                            <div class="chart-row"><div class="chart-card"><div id="prod-bar"></div></div><div class="chart-card"><div id="prod-pie"></div></div></div>
+                            <div class="section-title">📊 Category Deep Dive</div><div class="chart-row"><div class="chart-card"><div id="aov-chart"></div></div><div class="chart-card"><div id="freq-chart"></div></div></div>
+                            <div class="section-title">📦 Subcategory Revenue</div><div class="chart-row full-width"><div class="chart-card"><div id="subcat-bar"></div></div></div>`;
+                document.getElementById('pageContent').innerHTML = html;
+                if (categories.length) {
+                    renderChart('prod-bar', [{ x: categories.map(c => c.category), y: categories.map(c => c.revenue), type: 'bar', marker: { color: '#1e3c72' }, text: categories.map(c => formatMoney(c.revenue)), textposition: 'outside' }], { title: 'Revenue by Category', height: 450 });
+                    renderChart('prod-pie', [{ labels: categories.map(c => c.category), values: categories.map(c => c.revenue), type: 'pie', hole: 0.3, marker: { colors: ['#1e3c72','#3b82f6','#94a3b8'] }, textinfo: 'label+percent' }], { title: 'Category Share', height: 450 });
+                    attachCrossFilterEvents('prod-bar', 'category');
+                    attachCrossFilterEvents('prod-pie', 'category');
+                }
+                if (aovData.length) renderChart('aov-chart', [{ x: aovData.map(d => d.category), y: aovData.map(d => d.aov), type: 'bar', marker: { color: '#f39c12' }, text: aovData.map(d => formatMoney(d.aov)), textposition: 'outside' }], { title: 'Avg Order Value', height: 450 });
+                if (freqData.length) renderChart('freq-chart', [{ x: freqData.map(d => d.category), y: freqData.map(d => d.frequency), type: 'bar', marker: { color: '#16a085' }, text: freqData.map(d => d.frequency.toFixed(1)), textposition: 'outside' }], { title: 'Avg Orders per Customer', height: 450 });
+                if (subcategories.length) {
+                    let filteredSub = subcategories;
+                    if (filterState.selectedCategory) filteredSub = filteredSub.filter(s => (s.category || s.product_category) === filterState.selectedCategory);
+                    if (filterState.valueRange.min !== null && filterState.valueRange.max !== null) filteredSub = filteredSub.filter(s => (s.revenue || s.total_revenue) >= filterState.valueRange.min && (s.revenue || s.total_revenue) <= filterState.valueRange.max);
+                    const subcatField = subcategories[0].subcategory !== undefined ? 'subcategory' : 'product_subcategory';
+                    const revField = subcategories[0].revenue !== undefined ? 'revenue' : 'total_revenue';
+                    renderChart('subcat-bar', [{ x: filteredSub.map(s => s[subcatField]), y: filteredSub.map(s => s[revField]), type: 'bar', marker: { color: '#3b82f6' }, text: filteredSub.map(s => formatMoney(s[revField])), textposition: 'outside' }], { title: filterState.selectedCategory ? `Subcategories in ${filterState.selectedCategory}` : 'Revenue by Subcategory', height: 500 });
+                }
+            },
+
+            rfm: async () => {
+                document.getElementById('pageContent').innerHTML = '<div class="loader"><div class="spinner"></div>Loading RFM...</div>';
+                let html = `
+                    <div class="section-title">⭐ RFM Segmentation</div>
+                    <div class="insight-card">📊 RFM groups: <span style="color:#ffd700;">● Champions</span> · <span style="color:#e74c3c;">● At Risk</span> · <span style="color:#2ecc71;">● Loyal</span> · <span style="color:#0728fe;">● Lost</span></div>
+                    <div class="flex" style="flex-wrap:wrap; gap:0.5rem; margin-bottom:0.5rem;">
+                        <span class="filter-label">Segment:</span>
+                        <select id="seg-drop" class="filter-select"><option value="">All</option>...</select>
+                        <button id="clear-seg" class="btn btn-outline">Clear</button>
+                        <span class="filter-label">Recency (days):</span>
+                        <input type="number" id="recency-min" class="filter-input" placeholder="min" style="width:80px;">
+                        <span>–</span>
+                        <input type="number" id="recency-max" class="filter-input" placeholder="max" style="width:80px;">
+                        <span class="filter-label">Monetary ($):</span>
+                        <input type="number" id="monetary-min" class="filter-input" placeholder="min" style="width:100px;">
+                        <span>–</span>
+                        <input type="number" id="monetary-max" class="filter-input" placeholder="max" style="width:100px;">
+                        <span class="filter-label">Rows:</span>
+                        <select id="rfm-row-limit" class="filter-select">
+                            <option value="10" selected>10</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                            <option value="500">500</option>
+                            <option value="1000">1000</option>
+                            <option value="-1">All</option>
+                        </select>
+                        <button id="rfm-apply-filters" class="btn btn-primary">Apply</button>
+                        <button id="rfm-clear-filters" class="btn btn-outline">Clear</button>
+                    </div>
+                    <div class="chart-row"><div class="chart-card"><div id="rfm-scatter"></div></div><div class="chart-card"><div id="seg-pie2"></div></div></div>
+                    <div class="section-title">📋 Segment Statistics</div>
+                    <div class="chart-card full-width"><div class="table-responsive" id="seg-stats-table" style="max-height:300px; overflow-y:auto;"></div></div>
+                    <div class="section-title">📋 All Customers (RFM)</div>
+                    <div class="chart-card full-width">
+                        <div class="table-responsive" id="rfm-full-table" style="max-height:500px; overflow-y:auto;">
+                            <table><thead><tr><th>ID</th><th>Recency</th><th>Frequency</th><th>Monetary</th><th>Segment</th></tr></thead><tbody id="rfm-full-tbody"></tbody></table>
                         </div>
-                        <div style="background: white; border-radius: 20px; padding: 1rem; margin-bottom: 1.2rem;">
-                            <div><button id="metric-repeat" class="btn-ai metric-btn active" data-metric="repeat_rate">🔄 Repeat Rate</button>
-                            <button id="metric-aov" class="btn-ai metric-btn" data-metric="aov">💰 AOV</button>
-                            <button id="metric-churn" class="btn-ai metric-btn" data-metric="churn_rate">⚠️ Churn (reduce)</button>
-                            <button id="metric-fulfillment" class="btn-ai metric-btn" data-metric="fulfillment_days">📦 Fulfillment (reduce)</button></div>
-                            <div id="metric-specific-control" style="margin-top:1rem;"></div>
-                            <div style="margin-top:1rem; display: flex; justify-content: space-between;"><button id="run-simulation" class="btn-ai">▶️ Simulate</button><div id="simulation-result" style="background:#f1f5f9; padding:0.4rem 0.8rem; border-radius:40px;"></div></div>
+                    </div>
+                `;
+                document.getElementById('pageContent').innerHTML = html;
+                const segDrop = document.getElementById('seg-drop');
+                const clearSeg = document.getElementById('clear-seg');
+                const recencyMin = document.getElementById('recency-min');
+                const recencyMax = document.getElementById('recency-max');
+                const monetaryMin = document.getElementById('monetary-min');
+                const monetaryMax = document.getElementById('monetary-max');
+                const rowLimitSelect = document.getElementById('rfm-row-limit');
+                const applyBtn = document.getElementById('rfm-apply-filters');
+                const clearFiltersBtn = document.getElementById('rfm-clear-filters');
+                const rfmTbody = document.getElementById('rfm-full-tbody');
+                const scatterDiv = document.getElementById('rfm-scatter');
+                const segPieDiv = document.getElementById('seg-pie2');
+                const statsDiv = document.getElementById('seg-stats-table');
+                let currentData = [];
+                const loadRFMData = async () => {
+                    const seg = segDrop.value;
+                    const limit = parseInt(rowLimitSelect.value, 10);
+                    const rMin = recencyMin.value ? parseInt(recencyMin.value, 10) : undefined;
+                    const rMax = recencyMax.value ? parseInt(recencyMax.value, 10) : undefined;
+                    const mMin = monetaryMin.value ? parseFloat(monetaryMin.value) : undefined;
+                    const mMax = monetaryMax.value ? parseFloat(monetaryMax.value) : undefined;
+                    let url = `/api/rfm_segmentation?limit=${limit}&offset=0`;
+                    if (rMin !== undefined) url += `&recency_min=${rMin}`;
+                    if (rMax !== undefined) url += `&recency_max=${rMax}`;
+                    if (mMin !== undefined) url += `&monetary_min=${mMin}`;
+                    if (mMax !== undefined) url += `&monetary_max=${mMax}`;
+                    try {
+                        const data = await fetchJSON(url);
+                        currentData = data;
+                        renderRFM(data);
+                    } catch (e) { rfmTbody.innerHTML = '<tr><td colspan="5">Error loading data</td></tr>'; }
+                };
+                const renderRFM = (data) => {
+                    if (!data || !data.length) {
+                        rfmTbody.innerHTML = '<tr><td colspan="5">No data</td></tr>';
+                        scatterDiv.innerHTML = '<div class="insight-card">No data</div>';
+                        segPieDiv.innerHTML = '<div class="insight-card">No data</div>';
+                        statsDiv.innerHTML = '';
+                        return;
+                    }
+                    let segField = data[0].segment !== undefined ? 'segment' : (data[0].rfm_segment !== undefined ? 'rfm_segment' : null);
+                    if (!segField) {
+                        const recMedian = data.map(d => d.recency_days).sort((a,b)=>a-b)[Math.floor(data.length/2)];
+                        const monMedian = data.map(d => d.monetary).sort((a,b)=>a-b)[Math.floor(data.length/2)];
+                        data.forEach(d => {
+                            if (d.recency_days <= recMedian/2 && d.monetary >= monMedian*2) d.segment = 'Champions';
+                            else if (d.recency_days <= recMedian && d.monetary >= monMedian) d.segment = 'Loyal';
+                            else if (d.recency_days > recMedian*1.5 && d.monetary < monMedian) d.segment = 'At Risk';
+                            else if (d.recency_days > 180) d.segment = 'Lost';
+                            else d.segment = 'Others';
+                        });
+                        segField = 'segment';
+                    }
+                    const segments = [...new Set(data.map(d => d[segField]))].sort();
+                    const segColors = { Champions: '#ffd700', Loyal: '#2ecc71', 'At Risk': '#e74c3c', Lost: '#0728fe', Others: '#95a5a6'};
+                    const getColor = s => segColors[s] || '#1e3c72';
+                    const currentSeg = segDrop.value;
+                    segDrop.innerHTML = '<option value="">All</option>' + segments.map(s => `<option value="${s}" ${currentSeg === s ? 'selected' : ''}>${s}</option>`).join('');
+                    rfmTbody.innerHTML = '';
+                    data.forEach(c => {
+                        const row = rfmTbody.insertRow();
+                        row.insertCell(0).innerText = c.customer_id;
+                        row.insertCell(1).innerText = c.recency_days;
+                        row.insertCell(2).innerText = c.frequency;
+                        row.insertCell(3).innerText = formatMoney(c.monetary);
+                        row.insertCell(4).innerText = c[segField] || 'N/A';
+                    });
+                    const segStats = {};
+                    segments.forEach(seg => {
+                        const custs = data.filter(d => d[segField] === seg);
+                        segStats[seg] = {
+                            count: custs.length,
+                            avgRecency: custs.reduce((s,c)=>s+c.recency_days,0)/custs.length,
+                            avgFreq: custs.reduce((s,c)=>s+c.frequency,0)/custs.length,
+                            avgMon: custs.reduce((s,c)=>s+c.monetary,0)/custs.length
+                        };
+                    });
+                    const statsHtml = '<table><thead><tr><th>Segment</th><th>Customers</th><th>Avg Recency</th><th>Avg Frequency</th><th>Avg Monetary</th></tr></thead><tbody>' +
+                        segments.map(seg => `<tr style="border-left:4px solid ${getColor(seg)};"><td>${seg}</td><td>${segStats[seg].count}</td><td>${segStats[seg].avgRecency.toFixed(1)}</td><td>${segStats[seg].avgFreq.toFixed(1)}</td><td>${formatMoney(segStats[seg].avgMon)}</td></tr>`).join('') +
+                        '</tbody></table>';
+                    statsDiv.innerHTML = statsHtml;
+                    const scatterTraces = [];
+                    const toShow = currentSeg ? [currentSeg] : segments;
+                    toShow.forEach(seg => {
+                        const pts = data.filter(d => d[segField] === seg);
+                        if (!pts.length) return;
+                        scatterTraces.push({
+                            x: pts.map(p => p.recency_days),
+                            y: pts.map(p => p.monetary),
+                            mode: 'markers',
+                            name: seg,
+                            marker: { color: getColor(seg), size: 8, opacity: 0.7 },
+                            text: pts.map(p => `${getCustomerDisplay(p)}<br>Recency: ${p.recency_days} days<br>Freq: ${p.frequency}<br>Monetary: ${formatMoney(p.monetary)}`)
+                        });
+                    });
+                    Plotly.newPlot('rfm-scatter', scatterTraces, { title: 'Recency vs Monetary', height: 500, xaxis: { title: 'Recency (days)' }, yaxis: { title: 'Monetary ($)' } });
+                    const segCounts = segments.reduce((a,s)=>{ a[s]=data.filter(d=>d[segField]===s).length; return a; }, {});
+                    Plotly.newPlot('seg-pie2', [{
+                        labels: Object.keys(segCounts),
+                        values: Object.values(segCounts),
+                        type: 'pie',
+                        hole: 0.4,
+                        marker: { colors: Object.keys(segCounts).map(getColor) },
+                        textinfo: 'label+percent'
+                    }], { title: 'Segment Distribution', height: 450 });
+                    document.getElementById('seg-pie2').on('plotly_click', data => {
+                        if (data.points) {
+                            filterState.selectedSegment = data.points[0].label;
+                            updateFilterUI();
+                            refreshCurrentPage();
+                        }
+                    });
+                };
+                applyBtn.addEventListener('click', loadRFMData);
+                clearFiltersBtn.addEventListener('click', () => {
+                    recencyMin.value = ''; recencyMax.value = ''; monetaryMin.value = ''; monetaryMax.value = '';
+                    segDrop.value = ''; rowLimitSelect.value = '10';
+                    loadRFMData();
+                });
+                clearSeg.addEventListener('click', () => { segDrop.value = ''; loadRFMData(); });
+                segDrop.addEventListener('change', loadRFMData);
+                rowLimitSelect.addEventListener('change', loadRFMData);
+                await loadRFMData();
+                const rfmContainer = document.getElementById('rfm-full-table').parentNode;
+                rfmContainer.appendChild(createExportButton('/api/rfm_segmentation?limit=-1', 'rfm_full.csv'));
+            },
+
+            cohort: async () => {
+                document.getElementById('pageContent').innerHTML = '<div class="loader"><div class="spinner"></div>Loading cohort retention...</div>';
+                const cohort = await fetchJSON('/api/cohort_retention?limit=500');
+                let html = `<div class="section-title">📈 Cohort Retention Analysis</div><div class="chart-row full-width"><div class="chart-card"><div id="cohort-heatmap"></div></div></div><div class="chart-row full-width"><div class="chart-card"><div id="cohort-lines"></div></div></div>`;
+                document.getElementById('pageContent').innerHTML = html;
+                if (cohort && cohort.length) {
+                    const months = [...new Set(cohort.map(c => c.month_number))].sort((a,b)=>a-b);
+                    const cohorts = [...new Set(cohort.map(c => c.cohort_month))].sort();
+                    const z = cohorts.map(co => months.map(mo => { const v = cohort.find(c => c.cohort_month === co && c.month_number === mo); return v ? v.retention_rate * 100 : null; }));
+                    const texts = z.map(row => row.map(v => v !== null ? `${v.toFixed(1)}%` : ''));
+                    Plotly.newPlot('cohort-heatmap', [{ z, x: months, y: cohorts, type: 'heatmap', colorscale: 'Viridis', zmid: 50, text: texts, texttemplate: '%{text}', textfont: { size: 11, color: 'white' }, hovertemplate: 'Cohort: %{y}<br>Month: %{x}<br>Retention: %{z:.1f}%<extra></extra>' }], { title: 'Retention % by Cohort', height: 550 });
+                    const traces = cohorts.map(co => { const d = cohort.filter(c => c.cohort_month === co).sort((a,b)=>a.month_number - b.month_number); return { x: d.map(v => v.month_number), y: d.map(v => v.retention_rate * 100), mode: 'lines+markers', name: co }; });
+                    renderChart('cohort-lines', traces, { title: 'Retention Curves (%)', height: 450 });
+                } else document.getElementById('cohort-heatmap').innerHTML = '<p class="caption">No cohort data</p>';
+            },
+
+            insights: async () => {
+                const html = `
+                    <div class="section-title">📖 Product Features</div>
+                    <div class="info-card"><strong>🚀 About RetailPulse</strong><br>4M+ records, 99.8% validity, PySpark, Databricks, Delta Lake. 9 analytical use cases.</div>
+                    <div class="section-title">🎯 Business Problems Solved</div>
+                    <div class="use-case-grid">
+                        <div class="use-case-card"><div class="use-case-title">💰 Revenue Leakage</div><div class="use-case-desc">Identify underperforming cities/categories.</div><div class="use-case-action">Reallocate marketing budget.</div></div>
+                        <div class="use-case-card"><div class="use-case-title">👥 Customer Churn</div><div class="use-case-desc">RFM and cohort retention highlight at-risk customers.</div><div class="use-case-action">Launch reactivation campaigns.</div></div>
+                        <div class="use-case-card"><div class="use-case-title">📦 Operational Efficiency</div><div class="use-case-desc">Fulfillment gaps and payment analysis.</div><div class="use-case-action">Improve logistics & checkout.</div></div>
+                        <div class="use-case-card"><div class="use-case-title">🏷️ Product Mix</div><div class="use-case-desc">Category/subcategory revenue guides inventory.</div><div class="use-case-action">Bundle or promote accordingly.</div></div>
+                    </div>
+                    <div class="section-title">📊 Analytical Use Cases (3 Levels)</div>
+                    <div class="chart-card full-width">
+                        <div class="table-responsive">
+                            <table>
+                                <thead><tr><th>Level</th><th>Use Case</th><th>Business Question</th></tr></thead>
+                                <tbody>
+                                    <tr><td rowspan="3"><strong>Level 1</strong></td><td>CLV</td><td>Highest lifetime value customers?</td></tr>
+                                    <tr><td>Daily Revenue Trends</td><td>Seasonality or growth?</td></tr>
+                                    <tr><td>Top Cities</td><td>Where to expand?</td></tr>
+                                    <tr><td rowspan="3"><strong>Level 2</strong></td><td>Repeat vs One-Time</td><td>Conversion to loyal?</td></tr>
+                                    <tr><td>Order Fulfillment</td><td>Shipping delays impact?</td></tr>
+                                    <tr><td>Payment Methods</td><td>Which drive revenue?</td></tr>
+                                    <tr><td rowspan="3"><strong>Level 3</strong></td><td>Product Subcategory</td><td>Cash cows vs underperformers?</td></tr>
+                                    <tr><td>RFM Segmentation</td><td>Personalized marketing?</td></tr>
+                                    <tr><td>Cohort Retention</td><td>New vs old customers?</td></tr>
+                                </tbody>
+                            </table>
                         </div>
-                        <div class="chart-card"><div id="simulation-chart" style="height:500px;"></div></div>`;
-            document.getElementById('page-content').innerHTML = html;
-            let currentMetric = 'repeat_rate', currentDelta = 5, simulationHistory = [];
-            function updateMetricUI() {
-                const cfg = { repeat_rate: { label: 'Repeat Rate', unit: 'pp', min:0, max:20, step:1, default:5 },
-                              aov: { label: 'AOV', unit: '%', min:0, max:30, step:1, default:10 },
-                              churn_rate: { label: 'Reduce Churn by', unit: '%', min:0, max:15, step:1, default:5 },
-                              fulfillment_days: { label: 'Reduce Fulfillment Days', unit: 'days', min:0, max:5, step:0.5, default:2 } }[currentMetric];
-                currentDelta = cfg.default;
-                document.getElementById('metric-specific-control').innerHTML = `<div><span>${cfg.label}:</span><input type="range" id="delta-slider" min="${cfg.min}" max="${cfg.max}" step="${cfg.step}" value="${cfg.default}" style="width:200px; margin:0 10px;"><span id="delta-value">${cfg.default}</span> ${cfg.unit}</div>`;
-                document.getElementById('delta-slider').oninput = (e) => { currentDelta = parseFloat(e.target.value); document.getElementById('delta-value').innerText = currentDelta; };
-                document.querySelectorAll('.metric-btn').forEach(btn => btn.classList.remove('active'));
-                document.getElementById(`metric-${currentMetric === 'repeat_rate' ? 'repeat' : (currentMetric === 'aov' ? 'aov' : (currentMetric === 'churn_rate' ? 'churn' : 'fulfillment'))}`).classList.add('active');
-            }
-            document.getElementById('metric-repeat').onclick = () => { currentMetric = 'repeat_rate'; updateMetricUI(); };
-            document.getElementById('metric-aov').onclick = () => { currentMetric = 'aov'; updateMetricUI(); };
-            document.getElementById('metric-churn').onclick = () => { currentMetric = 'churn_rate'; updateMetricUI(); };
-            document.getElementById('metric-fulfillment').onclick = () => { currentMetric = 'fulfillment_days'; updateMetricUI(); };
-            updateMetricUI();
-            async function runSimulation() {
-                const res = await fetch('/api/simulate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ metric: currentMetric, delta: currentDelta }) });
-                const data = await res.json();
-                if (data.error) alert(data.error);
-                else {
-                    simulationHistory.unshift({ metric: currentMetric, delta: currentDelta, uplift: data.estimated_revenue_uplift, percentUplift: data.uplift_percentage });
-                    if (simulationHistory.length > 6) simulationHistory.pop();
-                    document.getElementById('simulation-result').innerHTML = `<span>⬆️ ${formatMoney(data.estimated_revenue_uplift)} (${data.uplift_percentage.toFixed(1)}% uplift) | New revenue: ${formatMoney(data.new_total_revenue)}</span>`;
-                    const labels = simulationHistory.map(s => `${s.metric.replace('_',' ')}: ${s.delta}${s.metric==='repeat_rate'?'pp':(s.metric==='aov'?'%':'d')}`);
-                    const uplifts = simulationHistory.map(s => s.uplift);
-                    Plotly.newPlot('simulation-chart', [{ x: labels, y: uplifts, type: 'bar', marker: { color: '#1e3c72' }, text: uplifts.map(v=>formatMoney(v)), textposition: 'outside' }], { title: 'Revenue Uplift by Scenario', height: 500 });
+                    </div>
+                    <div class="insight-card"><strong>🏆 Key Achievements</strong><br>4M+ records, 99.8% validity, factory pattern design, production-grade stack.</div>
+                `;
+                document.getElementById('pageContent').innerHTML = html;
+            },
+
+            nlq: async () => {
+                let html = `<div class="section-title">🗣️ Ask AI (Natural Language Query)</div><div class="info-card">💡 Ask business questions in plain English. The AI will convert your question to SQL, run it safely, and return results.</div><div class="nlq-area"><input type="text" id="nlq-question" placeholder="e.g., show me top 5 customers by revenue in March" /><button id="nlq-submit" class="btn btn-primary">🔍 Ask</button></div><div id="nlq-results"></div>`;
+                document.getElementById('pageContent').innerHTML = html;
+                document.getElementById('nlq-submit').addEventListener('click', async () => {
+                    const question = document.getElementById('nlq-question').value.trim();
+                    if (!question) return;
+                    const resultsDiv = document.getElementById('nlq-results');
+                    resultsDiv.innerHTML = '<div class="loader"><div class="spinner"></div>Processing...</div>';
+                    try {
+                        const resp = await fetch(`/api/ask?q=${encodeURIComponent(question)}`);
+                        const data = await resp.json();
+                        if (data.error) throw new Error(data.error);
+                        let cachedBadge = data.cached ? '<span class="filter-tag" style="background:#dcfce7;color:#166534;">⚡ Cached</span>' : '';
+                        let sqlBlock = `<div class="sql-block"><strong>📝 Generated SQL:</strong><br><code>${escapeHtml(data.sql)}</code></div>`;
+                        let resultsHtml = '<table><thead><tr>';
+                        if (data.results && data.results.length) {
+                            const cols = Object.keys(data.results[0]);
+                            cols.forEach(col => resultsHtml += `<th>${col}</th>`);
+                            resultsHtml += '</thead><tbody>';
+                            data.results.forEach(row => {
+                                resultsHtml += '<tr>';
+                                cols.forEach(col => { let val = row[col]; if (typeof val === 'number') val = formatMoney(val); resultsHtml += `<td>${escapeHtml(String(val))}</td>`; });
+                                resultsHtml += '</tr>';
+                            });
+                            resultsHtml += '</tbody></table>';
+                        } else resultsHtml = '<div class="warning-card">No results found.</div>';
+                        resultsDiv.innerHTML = `<div class="insight-card">✔️ Question: <strong>${escapeHtml(question)}</strong> ${cachedBadge}</div>${sqlBlock}<div class="section-title">📊 Results</div>${resultsHtml}`;
+                    } catch (err) { resultsDiv.innerHTML = `<div class="warning-card">⚠️ Error: ${err.message}</div>`; }
+                });
+            },
+
+            simulate: async () => {
+                let currentRevenue = 0; try { const kpis = await fetchJSON('/api/kpis'); currentRevenue = kpis.total_revenue || 0; } catch(e) { console.warn(e); }
+                let html = `<div class="section-title">🎲 What-If Simulator</div>
+                            <div class="sim-card">
+                                <div class="flex" style="justify-content:space-between;">
+                                    <div><span style="font-size:0.75rem;">📊 Current revenue</span><span style="font-size:1.4rem;font-weight:700;margin-left:0.5rem;">${formatMoney(currentRevenue)}</span></div>
+                                    <div><button id="reset-history" class="btn btn-outline">Clear history</button><button id="retrain-model" class="btn btn-outline">Retrain model</button></div>
+                                </div>
+                            </div>
+                            <div class="sim-card">
+                                <div class="sim-metrics">
+                                    <button id="metric-repeat" class="active" data-metric="repeat_rate">🔄 Repeat Rate</button>
+                                    <button id="metric-aov" data-metric="aov">💰 AOV</button>
+                                    <button id="metric-churn" data-metric="churn_rate">⚠️ Churn (reduce)</button>
+                                    <button id="metric-fulfillment" data-metric="fulfillment_days">📦 Fulfillment (reduce)</button>
+                                </div>
+                                <div id="metric-specific-control" style="margin-top:0.8rem;"></div>
+                                <div style="margin-top:0.8rem; display:flex; justify-content:space-between; flex-wrap:wrap;">
+                                    <button id="run-simulation" class="btn btn-primary">▶️ Simulate</button>
+                                    <div id="simulation-result" style="background:#f1f4fa; padding:0.3rem 1rem; border-radius:40px;"></div>
+                                </div>
+                            </div>
+                            <div class="chart-card"><div id="simulation-chart" style="height:500px;"></div></div>`;
+                document.getElementById('pageContent').innerHTML = html;
+                let currentMetric = 'repeat_rate', currentDelta = 5, simulationHistory = [];
+                function updateMetricUI() {
+                    const cfg = { repeat_rate: { label: 'Repeat Rate', unit: 'pp', min:0, max:20, step:1, default:5 },
+                                  aov: { label: 'AOV', unit: '%', min:0, max:30, step:1, default:10 },
+                                  churn_rate: { label: 'Reduce Churn by', unit: '%', min:0, max:15, step:1, default:5 },
+                                  fulfillment_days: { label: 'Reduce Fulfillment Days', unit: 'days', min:0, max:5, step:0.5, default:2 } }[currentMetric];
+                    currentDelta = cfg.default;
+                    document.getElementById('metric-specific-control').innerHTML = `<div><span>${cfg.label}:</span><input type="range" id="delta-slider" min="${cfg.min}" max="${cfg.max}" step="${cfg.step}" value="${cfg.default}" style="width:200px; margin:0 10px;"><span id="delta-value">${cfg.default}</span> ${cfg.unit}</div>`;
+                    document.getElementById('delta-slider').oninput = (e) => { currentDelta = parseFloat(e.target.value); document.getElementById('delta-value').innerText = currentDelta; };
+                    document.querySelectorAll('.sim-metrics button').forEach(btn => btn.classList.remove('active'));
+                    document.getElementById(`metric-${currentMetric === 'repeat_rate' ? 'repeat' : (currentMetric === 'aov' ? 'aov' : (currentMetric === 'churn_rate' ? 'churn' : 'fulfillment'))}`).classList.add('active');
+                }
+                document.getElementById('metric-repeat').onclick = () => { currentMetric = 'repeat_rate'; updateMetricUI(); };
+                document.getElementById('metric-aov').onclick = () => { currentMetric = 'aov'; updateMetricUI(); };
+                document.getElementById('metric-churn').onclick = () => { currentMetric = 'churn_rate'; updateMetricUI(); };
+                document.getElementById('metric-fulfillment').onclick = () => { currentMetric = 'fulfillment_days'; updateMetricUI(); };
+                updateMetricUI();
+                async function runSimulation() {
+                    const res = await fetch('/api/simulate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ metric: currentMetric, delta: currentDelta }) });
+                    const data = await res.json();
+                    if (data.error) alert(data.error);
+                    else {
+                        simulationHistory.unshift({ metric: currentMetric, delta: currentDelta, uplift: data.estimated_revenue_uplift, percentUplift: data.uplift_percentage });
+                        if (simulationHistory.length > 6) simulationHistory.pop();
+                        document.getElementById('simulation-result').innerHTML = `<span>⬆️ ${formatMoney(data.estimated_revenue_uplift)} (${data.uplift_percentage.toFixed(1)}% uplift) | New: ${formatMoney(data.new_total_revenue)}</span>`;
+                        const labels = simulationHistory.map(s => `${s.metric.replace('_',' ')}: ${s.delta}${s.metric==='repeat_rate'?'pp':(s.metric==='aov'?'%':'d')}`);
+                        const uplifts = simulationHistory.map(s => s.uplift);
+                        Plotly.newPlot('simulation-chart', [{ x: labels, y: uplifts, type: 'bar', marker: { color: '#1e3c72' }, text: uplifts.map(v=>formatMoney(v)), textposition: 'outside' }], { title: 'Revenue Uplift by Scenario', height: 500 });
+                    }
+                }
+                document.getElementById('run-simulation').onclick = runSimulation;
+                document.getElementById('reset-history').onclick = () => { simulationHistory = []; Plotly.purge('simulation-chart'); document.getElementById('simulation-result').innerHTML = ''; };
+                document.getElementById('retrain-model').onclick = async () => {
+                    const btn = document.getElementById('retrain-model');
+                    btn.disabled = true; btn.innerText = '⏳ Training...';
+                    try {
+                        const res = await fetch('/api/simulate/train', { method: 'POST' });
+                        const data = await res.json();
+                        alert(`Model retrained!\nRepeat ${data.coefficients.repeat_rate?.toFixed(4)}, AOV ${data.coefficients.aov?.toFixed(4)}, Churn ${data.coefficients.churn_rate?.toFixed(4)}`);
+                    } catch(e) { alert('Training failed'); }
+                    finally { btn.disabled = false; btn.innerText = 'Retrain model'; }
                 }
             }
-            document.getElementById('run-simulation').onclick = runSimulation;
-            document.getElementById('reset-history').onclick = () => { simulationHistory = []; Plotly.purge('simulation-chart'); document.getElementById('simulation-result').innerHTML = ''; };
-            document.getElementById('retrain-model').onclick = async () => {
-                const btn = document.getElementById('retrain-model');
-                btn.disabled = true; btn.innerText = '⏳ Training...';
-                try {
-                    const res = await fetch('/api/simulate/train', { method: 'POST' });
-                    const data = await res.json();
-                    alert(`Model retrained!\nCoefficients: Repeat ${data.coefficients.repeat_rate?.toFixed(4)}, AOV ${data.coefficients.aov?.toFixed(4)}, Churn ${data.coefficients.churn_rate?.toFixed(4)}`);
-                } catch(e) { alert('Training failed'); }
-                finally { btn.disabled = false; btn.innerText = 'Retrain model'; }
-            }
+        };
+
+        // ========== NAVIGATION ==========
+        function setActiveNav(pageId) {
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.classList.remove('active');
+                if (el.getAttribute('data-page') === pageId) el.classList.add('active');
+            });
+            currentPage = pageId;
         }
-    };
+        async function loadPage(pageId) {
+            setActiveNav(pageId);
+            if (pages[pageId]) await pages[pageId]();
+            else pages.overview();
+            updateFilterUI();
+            document.getElementById('navDrawer').classList.remove('open');
+        }
 
-    function escapeHtml(str) { return String(str).replace(/[&<>]/g, function(m) { if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m; }); }
-
-    // AI Insights
-    async function getAIInsights() {
-        const [kpis, daily, monthly, cities, categories, repeatRaw, rfm, cohort, anomalies, highRisk, clv] = await Promise.all([
-            fetchJSON('/api/kpis'), fetchJSON('/api/daily_revenue?limit=30'), fetchJSON('/api/monthly_revenue?limit=12'),
-            fetchJSON('/api/top_cities?limit=5'), fetchJSON('/api/revenue_by_category?limit=10'), fetchJSON('/api/repeat_vs_onetime').catch(() => []),
-            fetchJSON('/api/rfm_segmentation?limit=5').catch(() => []), fetchJSON('/api/cohort_retention?limit=5').catch(() => []),
-            fetchJSON('/api/revenue_anomalies').catch(() => []), fetchJSON('/api/high_risk_customers?limit=5').catch(() => []),
-            fetchJSON('/api/customer_clv').catch(() => ({}))
-        ]);
-        const repeat = repeatRaw.reduce((acc, r) => { acc[r.customer_type] = r.customer_count; return acc; }, {});
-        const payload = { filters: filterState, persona: currentPersona, kpis, daily_revenue: daily, monthly_revenue: monthly, top_cities: cities, revenue_categories: categories, repeat_customers: repeat, clv_data: clv, rfm_segments: rfm.slice(0,5), cohort_retention: cohort.slice(0,5), anomalies, high_risk_customers: highRisk };
-        const res = await fetch('/api/ai_insights', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-        const data = await res.json();
-        if (data.error) throw new Error(data.error);
-        return data.insights;
-    }
-
-    document.getElementById('ai-insights-btn').addEventListener('click', async () => {
-        const modal = document.getElementById('ai-modal');
-        const bodyDiv = document.getElementById('ai-insights-body');
-        modal.style.display = 'flex';
-        bodyDiv.innerHTML = '<div class="loader"><div class="spinner"></div>Generating AI insights...</div>';
-        try {
-            const insights = await getAIInsights();
-            const rendered = renderMarkdown(insights);
-            lastInsightsHtml = rendered;
-            bodyDiv.innerHTML = rendered + `<div class="ai-footer"><span>🤖 Persona: ${currentPersona} | Powered by AI</span><div><button class="feedback-btn" id="feedback-up">👍 Helpful</button><button class="feedback-btn" id="feedback-down">👎 Not helpful</button><button class="copy-btn" id="copy-report-btn">📋 Copy report</button></div></div>`;
-            document.getElementById('copy-report-btn').addEventListener('click', () => { navigator.clipboard.writeText(document.getElementById('ai-insights-body').innerText).then(() => alert('Report copied!')); });
-            document.getElementById('feedback-up').addEventListener('click', () => sendFeedback('up'));
-            document.getElementById('feedback-down').addEventListener('click', () => sendFeedback('down'));
-        } catch(err) { bodyDiv.innerHTML = `<div class="warning-card">⚠️ Error: ${err.message}. Please try again later.</div>`; }
-    });
-
-    async function sendFeedback(type) {
-        try { await fetch('/api/feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ persona: currentPersona, feedback: type }) }); alert(`Thank you! (${type === 'up' ? '👍' : '👎'})`); } catch(e) { console.error(e); }
-    }
-
-    document.getElementById('close-modal').addEventListener('click', () => { document.getElementById('ai-modal').style.display = 'none'; });
-    window.addEventListener('click', e => { if (e.target === document.getElementById('ai-modal')) document.getElementById('ai-modal').style.display = 'none'; });
-    document.getElementById('export-pdf').addEventListener('click', () => alert('PDF export: connect to backend.'));
-    document.getElementById('export-pptx').addEventListener('click', () => alert('PPTX export: connect to backend.'));
-    document.getElementById('check-alerts-btn').addEventListener('click', async () => {
-        const toast = document.getElementById('alert-toast');
-        try {
-            const res = await fetch('/api/check_anomalies', { method: 'POST' });
+        // ========== AI INSIGHTS ==========
+        async function getAIInsights() {
+            const [kpis, daily, monthly, cities, categories, repeatRaw, rfm, cohort, anomalies, highRisk, clv] = await Promise.all([
+                fetchJSON('/api/kpis'), fetchJSON('/api/daily_revenue?limit=30'), fetchJSON('/api/monthly_revenue?limit=12'),
+                fetchJSON('/api/top_cities?limit=5'), fetchJSON('/api/revenue_by_category?limit=10'), fetchJSON('/api/repeat_vs_onetime').catch(()=>[]),
+                fetchJSON('/api/rfm_segmentation?limit=5').catch(()=>[]), fetchJSON('/api/cohort_retention?limit=5').catch(()=>[]),
+                fetchJSON('/api/revenue_anomalies').catch(()=>[]), fetchJSON('/api/high_risk_customers?limit=5').catch(()=>[]),
+                fetchJSON('/api/customer_clv').catch(()=>({}))
+            ]);
+            const repeat = repeatRaw.reduce((acc,r)=>{ acc[r.customer_type]=r.customer_count; return acc; }, {});
+            const payload = { filters: filterState, persona: currentPersona, kpis, daily_revenue: daily, monthly_revenue: monthly, top_cities: cities, revenue_categories: categories, repeat_customers: repeat, clv_data: clv, rfm_segments: rfm.slice(0,5), cohort_retention: cohort.slice(0,5), anomalies, high_risk_customers: highRisk };
+            const res = await fetch('/api/ai_insights', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             const data = await res.json();
-            if (data.alerts && data.alerts.length) {
-                toast.innerText = `⚠️ ${data.alerts.length} alert(s) triggered!`;
-                toast.style.backgroundColor = '#fee2e2';
-                toast.style.borderLeftColor = '#ef4444';
-                toast.style.display = 'block';
-                setTimeout(() => toast.style.display = 'none', 5000);
-            } else {
-                toast.innerText = '✅ No anomalies detected.';
-                toast.style.backgroundColor = '#dcfce7';
-                toast.style.borderLeftColor = '#22c55e';
-                toast.style.display = 'block';
-                setTimeout(() => toast.style.display = 'none', 3000);
-            }
-        } catch(err) { alert('Alert check failed: ' + err.message); }
-    });
-    document.getElementById('persona-select').addEventListener('change', (e) => { currentPersona = e.target.value; });
+            if (data.error) throw new Error(data.error);
+            return data.insights;
+        }
 
-    function setActiveNav(pageId) {
-        document.querySelectorAll('.nav-item').forEach(el => { el.classList.remove('active'); if (el.getAttribute('data-page') === pageId) el.classList.add('active'); });
-        currentPage = pageId;
-    }
-    async function loadPage(pageId) { setActiveNav(pageId); if (pages[pageId]) await pages[pageId](); else pages.overview(); updateFilterUI(); }
-
-    async function initFilters() {
-        try {
-            const range = await fetchJSON('/api/date_range');
-            if (range.min_date) { document.getElementById('date-min').value = range.min_date; document.getElementById('date-max').value = range.max_date; filterState.dateRange = { min: range.min_date, max: range.max_date }; }
-        } catch(e) {}
-        const slider = document.getElementById('value-slider');
-        slider.addEventListener('input', (e) => { const val = parseInt(e.target.value); document.getElementById('value-range-display').innerText = `0 - ${val}`; filterState.valueRange = { min: 0, max: val }; updateFilterUI(); refreshCurrentPage(); });
-        document.getElementById('date-min').addEventListener('change', e => { filterState.dateRange.min = e.target.value; if (filterState.dateRange.max) refreshCurrentPage(); updateFilterUI(); });
-        document.getElementById('date-max').addEventListener('change', e => { filterState.dateRange.max = e.target.value; if (filterState.dateRange.min) refreshCurrentPage(); updateFilterUI(); });
-        document.getElementById('clear-filters').addEventListener('click', () => {
-            filterState = { dateRange: { min: null, max: null }, valueRange: { min: null, max: null }, selectedCity: null, selectedCategory: null, selectedSegment: null };
-            document.getElementById('date-min').value = ''; document.getElementById('date-max').value = '';
-            document.getElementById('value-slider').value = document.getElementById('value-slider').max;
-            refreshCurrentPage(); updateFilterUI();
+        document.getElementById('ai-insights-btn').addEventListener('click', async () => {
+            const modal = document.getElementById('aiModal');
+            const bodyDiv = document.getElementById('aiInsightsBody');
+            modal.style.display = 'flex';
+            bodyDiv.innerHTML = '<div class="loader"><div class="spinner"></div>Generating insights...</div>';
+            try {
+                const insights = await getAIInsights();
+                const rendered = renderMarkdown(insights);
+                lastInsightsHtml = rendered;
+                bodyDiv.innerHTML = rendered + `<div class="flex" style="margin-top:1.5rem; justify-content:space-between; flex-wrap:wrap; border-top:1px solid #e9edf4; padding-top:1rem;">
+                    <span style="font-size:0.7rem;color:#7a8aa8;">🤖 Persona: ${currentPersona}</span>
+                    <div class="flex">
+                        <button class="btn btn-outline" id="feedback-up">👍 Helpful</button>
+                        <button class="btn btn-outline" id="feedback-down">👎 Not helpful</button>
+                        <button class="btn btn-outline" id="copy-report-btn">📋 Copy</button>
+                    </div>
+                </div>`;
+                document.getElementById('copy-report-btn').addEventListener('click', () => { navigator.clipboard.writeText(document.getElementById('aiInsightsBody').innerText).then(() => alert('Report copied!')); });
+                document.getElementById('feedback-up').addEventListener('click', () => sendFeedback('up'));
+                document.getElementById('feedback-down').addEventListener('click', () => sendFeedback('down'));
+            } catch(err) { bodyDiv.innerHTML = `<div class="warning-card">⚠️ Error: ${err.message}</div>`; }
         });
-    }
 
-    document.querySelectorAll('.nav-item').forEach(item => item.addEventListener('click', () => loadPage(item.getAttribute('data-page'))));
-    initFilters();
-    loadPage('overview');
-</script>
+        async function sendFeedback(type) {
+            try { await fetch('/api/feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ persona: currentPersona, feedback: type }) }); alert(`Thank you!`); } catch(e) { console.error(e); }
+        }
+
+        // ========== EVENT BINDINGS ==========
+        document.getElementById('closeModal').addEventListener('click', () => { document.getElementById('aiModal').style.display = 'none'; });
+        window.addEventListener('click', e => { if (e.target === document.getElementById('aiModal')) document.getElementById('aiModal').style.display = 'none'; });
+        document.getElementById('exportPdf').addEventListener('click', () => alert('PDF export: connect to backend.'));
+        document.getElementById('exportPptx').addEventListener('click', () => alert('PPTX export: connect to backend.'));
+
+        document.getElementById('check-alerts-btn').addEventListener('click', async () => {
+            const toast = document.getElementById('toast');
+            try {
+                const res = await fetch('/api/check_anomalies', { method: 'POST' });
+                const data = await res.json();
+                if (data.alerts && data.alerts.length) {
+                    toast.innerText = `⚠️ ${data.alerts.length} alert(s) triggered!`;
+                    toast.style.background = '#fee2e2';
+                    toast.style.borderLeftColor = '#ef4444';
+                    toast.style.display = 'block';
+                    setTimeout(() => toast.style.display = 'none', 5000);
+                } else {
+                    toast.innerText = '✅ No anomalies detected.';
+                    toast.style.background = '#dcfce7';
+                    toast.style.borderLeftColor = '#22c55e';
+                    toast.style.display = 'block';
+                    setTimeout(() => toast.style.display = 'none', 3000);
+                }
+            } catch(err) { alert('Alert check failed: ' + err.message); }
+        });
+
+        document.getElementById('persona-select').addEventListener('change', (e) => { currentPersona = e.target.value; });
+
+        document.querySelectorAll('.nav-item[data-page]').forEach(el => {
+            el.addEventListener('click', () => loadPage(el.getAttribute('data-page')));
+        });
+
+        document.getElementById('hamburger').addEventListener('click', () => {
+            document.getElementById('navDrawer').classList.toggle('open');
+        });
+        document.getElementById('closeDrawer').addEventListener('click', () => {
+            document.getElementById('navDrawer').classList.remove('open');
+        });
+
+        async function initFilters() {
+            try {
+                const range = await fetchJSON('/api/date_range');
+                if (range.min_date) { document.getElementById('date-min').value = range.min_date; document.getElementById('date-max').value = range.max_date; filterState.dateRange = { min: range.min_date, max: range.max_date }; }
+            } catch(e) {}
+            const slider = document.getElementById('value-slider');
+            slider.addEventListener('input', (e) => { const val = parseInt(e.target.value); document.getElementById('value-range-display').innerText = `0 – ${val}`; filterState.valueRange = { min: 0, max: val }; updateFilterUI(); refreshCurrentPage(); });
+            document.getElementById('date-min').addEventListener('change', e => { filterState.dateRange.min = e.target.value; if (filterState.dateRange.max) refreshCurrentPage(); updateFilterUI(); });
+            document.getElementById('date-max').addEventListener('change', e => { filterState.dateRange.max = e.target.value; if (filterState.dateRange.min) refreshCurrentPage(); updateFilterUI(); });
+            document.getElementById('clear-filters').addEventListener('click', () => {
+                filterState = { dateRange: { min: null, max: null }, valueRange: { min: null, max: null }, selectedCity: null, selectedCategory: null, selectedSegment: null };
+                document.getElementById('date-min').value = ''; document.getElementById('date-max').value = '';
+                document.getElementById('value-slider').value = document.getElementById('value-slider').max;
+                refreshCurrentPage(); updateFilterUI();
+            });
+        }
+
+        initFilters();
+        loadPage('overview');
+    </script>
 </body>
 </html>
