@@ -170,7 +170,20 @@ class SecureDatabase:
             db_url += '&sslmode=require'
         else:
             db_url += '?sslmode=require'
+
+        # Add keepalive settings
+        keepalive_params = [
+            'keepalives_idle=60',
+            'keepalives_interval=10',
+            'keepalives_count=5',
+            'connect_timeout=10',
+            'tcp_user_timeout=10000'
+        ]
+        for p in keepalive_params:
+            db_url += f'&{p}'
+
         self.pool = SimpleConnectionPool(min_conn, max_conn, db_url)
+        
     def get_connection(self):
         conn = self.pool.getconn()
         # Test the connection before returning
@@ -200,33 +213,52 @@ class SecureDatabase:
         finally:
             if conn:
                 self.put_connection(conn)
-    def execute_query(self, query, params=None):
-        with self.get_cursor() as cur:
-            cur.execute(query, params)
-            if query.strip().upper().startswith(('SELECT', 'WITH')):
-                return cur.fetchall()
-            return cur.rowcount
+    def execute_query(self, query, params=None, retries=2):
+        last_exception = None
+        for attempt in range(retries + 1):
+            try:
+                with self.get_cursor() as cur:
+                    cur.execute(query, params)
+                    if query.strip().upper().startswith(('SELECT', 'WITH')):
+                        return cur.fetchall()
+                    return cur.rowcount
+            except Exception as e:
+                last_exception = e
+                # Retry only if it's a connection issue
+                if 'connection' in str(e).lower() or 'closed' in str(e).lower():
+                    logger.warning(f"Query failed (attempt {attempt+1}): {e}. Retrying...")
+                    if attempt < retries:
+                        continue
+                # For other errors, raise immediately
+                raise
+        raise last_exception
 
 db = SecureDatabase(Config.DATABASE_URL)
 
 # ------------------------------
 #  Index creation (updated)
 # ------------------------------
+import time
+
 def create_performance_indexes():
-    try:
-        with db.get_cursor() as cur:
-            index_queries = [
-                "CREATE INDEX IF NOT EXISTS idx_fact_orders_order_date ON public.fact_orders(order_date);",
-                "CREATE INDEX IF NOT EXISTS idx_fact_orders_customer_id ON public.fact_orders(customer_id);",
-                "CREATE INDEX IF NOT EXISTS idx_fact_orders_net_amount ON public.fact_orders(net_amount);"
-            ]
-            for sql in index_queries:
-                try:
+    for attempt in range(3):
+        try:
+            with db.get_cursor() as cur:
+                index_queries = [
+                    "CREATE INDEX IF NOT EXISTS idx_fact_orders_order_date ON public.fact_orders(order_date);",
+                    "CREATE INDEX IF NOT EXISTS idx_fact_orders_customer_id ON public.fact_orders(customer_id);",
+                    "CREATE INDEX IF NOT EXISTS idx_fact_orders_net_amount ON public.fact_orders(net_amount);"
+                ]
+                for sql in index_queries:
                     cur.execute(sql)
-                except Exception as e:
-                    logger.warning(f"Index creation failed: {e}")
-    except Exception as e:
-        logger.warning(f"Could not check/create indexes: {e}")
+                logger.info("Performance indexes created/verified.")
+                return  # success
+        except Exception as e:
+            logger.warning(f"Index creation attempt {attempt+1} failed: {e}")
+            if attempt < 2:
+                time.sleep(2 ** attempt)  # 1s, 2s backoff
+            else:
+                logger.error("Index creation failed after 3 attempts.")
 
 # ------------------------------
 #  SQL helpers (updated)
@@ -243,13 +275,9 @@ def sanitize_output(data):
 def validate_nlq_input(question):
     if len(question) > 1000:
         return False, "Query too long"
-    dangerous = [
-        r';\s*DROP\s+TABLE', r';\s*DELETE\s+FROM', r';\s*UPDATE\s+.*SET',
-        r';\s*INSERT\s+INTO', r'UNION\s+SELECT', r'--\s*$', r'/\*.*\*/'
-    ]
-    for pattern in dangerous:
-        if re.search(pattern, question, re.IGNORECASE):
-            return False, "Potentially dangerous query blocked"
+    # Allow only alphanumeric, spaces, and common punctuation
+    if not re.match(r'^[a-zA-Z0-9\s.,?!\-:;()"\'/]+$', question):
+        return False, "Input contains disallowed characters"
     return True, ""
 
 def add_schema_prefix(sql_query, schema='public'):
@@ -1043,6 +1071,7 @@ nlq_cache = TTLCache(maxsize=50, ttl=3600)
 @rate_limit(limit=Config.RATELIMIT_NLQ, window=3600, by_ip=True)
 def natural_language_query():
     question = request.args.get('q', '').strip()
+    logger.info(f"NLQ received: {question}")  
     if not question:
         return jsonify({"error": "Missing 'q' parameter"}), 400
     is_valid, msg = validate_nlq_input(question)
@@ -1056,6 +1085,7 @@ def natural_language_query():
     sql = None
     for attempt in range(max_attempts):
         sql = generate_sql_from_question(question, previous_error=last_error)
+        logger.info(f"Generated SQL: {sql}") 
         if not sql or sql == '-- impossible request':
             return jsonify({"error": "Could not generate SQL", "question": question}), 400
         try:
