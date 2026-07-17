@@ -750,18 +750,16 @@
         const pages = {
             overview: async () => {
                 document.getElementById('pageContent').innerHTML = '<div class="loader"><div class="spinner"></div>Loading overview...</div>';
-                const [kpis, daily, monthly, cities, categories, repeatRaw, rfm, cohort, anomalies, highRisk, clv] = await Promise.all([
+                const [kpis, monthlyTrend, cities, categories, subcategories, repeat, orderStatus, paymentMethods, anomalies] = await Promise.all([
                     fetchJSON('/api/kpis'),
-                    fetchJSON('/api/daily_revenue?limit=30'),
-                    fetchJSON('/api/monthly_revenue?limit=12'),
-                    fetchJSON('/api/top_cities?limit=5'),
-                    fetchJSON('/api/revenue_by_category?limit=10'),
-                    fetchJSON('/api/repeat_vs_onetime').catch(()=>[]),
-                    fetchJSON('/api/rfm_segmentation?limit=5').catch(()=>[]),
-                    fetchJSON('/api/cohort_retention?limit=5').catch(()=>[]),
-                    fetchJSON('/api/revenue_anomalies').catch(()=>[]),
-                    fetchJSON('/api/high_risk_customers?limit=5').catch(()=>[]),
-                    fetchJSON('/api/customer_clv').catch(()=>({}))
+                    fetchJSON('/api/revenue_trend?granularity=month'),
+                    fetchJSON('/api/top_cities?limit=10'),
+                    fetchJSON('/api/revenue_by_category?limit=100'),
+                    fetchJSON('/api/revenue_by_subcategory?limit=20'),
+                    fetchJSON('/api/repeat_vs_onetime').catch(() => []),
+                    fetchJSON('/api/order_status').catch(() => []),
+                    fetchJSON('/api/payment_methods').catch(() => []),
+                    fetchJSON('/api/revenue_anomalies').catch(() => [])
                 ]);
                 let html = `<div class="metric-grid">
                             <div class="metric-card"><div class="metric-value">${formatMoney(kpis.total_revenue)}</div><div class="metric-label">Revenue</div></div>
@@ -1423,7 +1421,6 @@
         }
 
         document.getElementById('ai-insights-btn').addEventListener('click', async () => {
-            console.log('🖱️ AI Analyst button clicked');
             const modal = document.getElementById('aiModal');
             const bodyDiv = document.getElementById('aiInsightsBody');
             modal.style.display = 'flex';
@@ -1443,10 +1440,7 @@
                 document.getElementById('copy-report-btn').addEventListener('click', () => { navigator.clipboard.writeText(document.getElementById('aiInsightsBody').innerText).then(() => alert('Report copied!')); });
                 document.getElementById('feedback-up').addEventListener('click', () => sendFeedback('up'));
                 document.getElementById('feedback-down').addEventListener('click', () => sendFeedback('down'));
-            } catch(err) {
-                console.error('❌ AI error:', err);
-                bodyDiv.innerHTML = `<div class="warning-card">⚠️ Error: ${err.message}</div>`;
-            }
+            } catch(err) { bodyDiv.innerHTML = `<div class="warning-card">⚠️ Error: ${err.message}</div>`; }
         });
 
         async function sendFeedback(type) {
