@@ -1384,10 +1384,31 @@
             ]);
             const repeat = repeatRaw.reduce((acc,r)=>{ acc[r.customer_type]=r.customer_count; return acc; }, {});
             const payload = { filters: filterState, persona: currentPersona, kpis, daily_revenue: daily, monthly_revenue: monthly, top_cities: cities, revenue_categories: categories, repeat_customers: repeat, clv_data: clv, rfm_segments: rfm.slice(0,5), cohort_retention: cohort.slice(0,5), anomalies, high_risk_customers: highRisk };
-            const res = await fetch('/api/ai_insights', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            const data = await res.json();
-            if (data.error) throw new Error(data.error);
-            return data.insights;
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+            try {
+                const res = await fetch('/api/ai_insights', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                if (!res.ok) {
+                    const errorText = await res.text();
+                    throw new Error(`Server error (${res.status}): ${errorText}`);
+                }
+                const data = await res.json();
+                if (data.error) throw new Error(data.error);
+                return data.insights;
+            } catch (err) {
+                if (err.name === 'AbortError') {
+                    throw new Error('Request timed out. The AI service is taking too long.');
+                }
+                throw err;
+            }
         }
 
         document.getElementById('ai-insights-btn').addEventListener('click', async () => {

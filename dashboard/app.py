@@ -508,12 +508,19 @@ if Config.GROQ_API_KEY and GROQ_AVAILABLE:
         logger.error(f"Failed to initialise Groq client: {e}")
         groq_client = None
 
-def call_ai_provider(prompt):
+def call_ai_provider(prompt, timeout=60):
     if genai_client:
         try:
             response = genai_client.models.generate_content(
-                model="gemini-2.5-flash", contents=prompt,
-                config=types.GenerateContentConfig(temperature=0.7, max_output_tokens=8192, top_p=0.95))
+                model="gemini-2.5-flash",
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    temperature=0.7,
+                    max_output_tokens=8192,
+                    top_p=0.95
+                ),
+                timeout=timeout   
+            )
             logger.info("✅ AI response from Gemini.")
             return response.text
         except Exception as e:
@@ -523,7 +530,11 @@ def call_ai_provider(prompt):
             completion = groq_client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
                 messages=[{"role": "user", "content": prompt}],
-                temperature=0.7, max_tokens=8192, top_p=0.95)
+                temperature=0.7,
+                max_tokens=8192,
+                top_p=0.95,
+                timeout=timeout   
+            )
             logger.info("✅ AI response from Groq.")
             return completion.choices[0].message.content
         except Exception as e:
@@ -1625,14 +1636,26 @@ def ai_insights():
         insights = ai_insights_cache[cache_key]
     else:
         extra_metrics = _get_additional_metrics()
-        insights = generate_deep_insights_with_persona(
-            kpis=kpis_data, filters=filters, daily_revenue=daily_revenue,
-            monthly_revenue=monthly_revenue, top_cities=top_cities,
-            revenue_categories=revenue_categories, repeat_customers=repeat_customers,
-            clv_data=clv_data, rfm_segments=rfm_segments, cohort_retention=cohort_retention,
-            anomalies=anomalies, high_risk=high_risk, extra_metrics=extra_metrics,
-            persona=persona
-        )
+        try:
+            insights = generate_deep_insights_with_persona(
+                kpis=kpis_data, filters=filters, daily_revenue=daily_revenue,
+                monthly_revenue=monthly_revenue, top_cities=top_cities,
+                revenue_categories=revenue_categories, repeat_customers=repeat_customers,
+                clv_data=clv_data, rfm_segments=rfm_segments, cohort_retention=cohort_retention,
+                anomalies=anomalies, high_risk=high_risk, extra_metrics=extra_metrics,
+                persona=persona
+            )
+        except Exception as e:
+            logger.error(f"AI insights generation failed: {e}", exc_info=True)
+            # Fallback to local insights
+            insights = generate_local_deep_insights_fallback(
+                kpis=kpis_data, filters=filters, daily_revenue=daily_revenue,
+                monthly_revenue=monthly_revenue, top_cities=top_cities,
+                revenue_categories=revenue_categories, repeat_customers=repeat_customers,
+                clv_data=clv_data, rfm_segments=rfm_segments,
+                cohort_retention=cohort_retention, anomalies=anomalies,
+                high_risk=high_risk, extra_metrics=extra_metrics
+            )
         ai_insights_cache[cache_key] = insights
     insights = fix_list_numbering(insights)
     return jsonify({"insights": insights, "persona": persona})
