@@ -8,7 +8,7 @@ services:
     region: oregon
     buildCommand: |
       pip install -r requirements.txt
-    startCommand: gunicorn dashboard.app:app --bind 0.0.0.0:$PORT --workers 2 --threads 2 --timeout 120
+    startCommand: gunicorn dashboard.app:app --bind 0.0.0.0:$PORT --workers 2 --threads 2 --timeout 300
     envVars:
       - key: PYTHON_VERSION
         value: 3.13.5
