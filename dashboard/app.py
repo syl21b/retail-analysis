@@ -64,9 +64,9 @@ class Config:
     DEBUG = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
 
     # Memory optimisation settings
-    DATAFRAME_CACHE_SIZE = int(os.environ.get('DATAFRAME_CACHE_SIZE', 10))
-    DATAFRAME_CACHE_TTL = int(os.environ.get('DATAFRAME_CACHE_TTL', 300))
-    MAX_ROWS_PER_DATASET = int(os.environ.get('MAX_ROWS_PER_DATASET', 20000))
+    DATAFRAME_CACHE_SIZE = int(os.environ.get('DATAFRAME_CACHE_SIZE', 3))
+    DATAFRAME_CACHE_TTL = int(os.environ.get('DATAFRAME_CACHE_TTL', 60))
+    MAX_ROWS_PER_DATASET = int(os.environ.get('MAX_ROWS_PER_DATASET', 5000))
 
 # ------------------------------
 #  Flask app
@@ -475,6 +475,13 @@ loader = DataLoader()
 friendly_data = loader.friendly_data
 def get_dataset(name):
     return loader.to_dict(friendly_data.get(name, pd.DataFrame()))
+
+import threading
+def schedule_cache_clear():
+    while True:
+        time.sleep(300)  # 5 minutes
+        loader.clear_cache()
+threading.Thread(target=schedule_cache_clear, daemon=True).start()
 
 # ------------------------------
 #  Multi-Provider AI Setup
