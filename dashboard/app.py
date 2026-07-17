@@ -514,7 +514,7 @@ if Config.GROQ_API_KEY and GROQ_AVAILABLE:
         logger.error(f"Failed to initialise Groq client: {e}")
         groq_client = None
 
-def call_ai_provider(prompt, timeout=60):
+def call_ai_provider(prompt, timeout=30):   # reduced from 60
     if genai_client:
         try:
             response = genai_client.models.generate_content(
@@ -525,7 +525,7 @@ def call_ai_provider(prompt, timeout=60):
                     max_output_tokens=8192,
                     top_p=0.95
                 ),
-                timeout=timeout   
+                timeout=timeout   # now 30s
             )
             logger.info("✅ AI response from Gemini.")
             return response.text
@@ -539,7 +539,7 @@ def call_ai_provider(prompt, timeout=60):
                 temperature=0.7,
                 max_tokens=8192,
                 top_p=0.95,
-                timeout=timeout   
+                timeout=timeout   # pass timeout to Groq as well
             )
             logger.info("✅ AI response from Groq.")
             return completion.choices[0].message.content
