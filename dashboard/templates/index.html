@@ -750,16 +750,18 @@
         const pages = {
             overview: async () => {
                 document.getElementById('pageContent').innerHTML = '<div class="loader"><div class="spinner"></div>Loading overview...</div>';
-                const [kpis, monthlyTrend, cities, categories, subcategories, repeat, orderStatus, paymentMethods, anomalies] = await Promise.all([
+                const [kpis, daily, monthly, cities, categories, repeatRaw, rfm, cohort, anomalies, highRisk, clv] = await Promise.all([
                     fetchJSON('/api/kpis'),
-                    fetchJSON('/api/revenue_trend?granularity=month'),
-                    fetchJSON('/api/top_cities?limit=10'),
-                    fetchJSON('/api/revenue_by_category?limit=100'),
-                    fetchJSON('/api/revenue_by_subcategory?limit=20'),
-                    fetchJSON('/api/repeat_vs_onetime').catch(() => []),
-                    fetchJSON('/api/order_status').catch(() => []),
-                    fetchJSON('/api/payment_methods').catch(() => []),
-                    fetchJSON('/api/revenue_anomalies').catch(() => [])
+                    fetchJSON('/api/daily_revenue?limit=30'),
+                    fetchJSON('/api/monthly_revenue?limit=12'),
+                    fetchJSON('/api/top_cities?limit=5'),
+                    fetchJSON('/api/revenue_by_category?limit=10'),
+                    fetchJSON('/api/repeat_vs_onetime').catch(()=>[]),
+                    fetchJSON('/api/rfm_segmentation?limit=5').catch(()=>[]),
+                    fetchJSON('/api/cohort_retention?limit=5').catch(()=>[]),
+                    fetchJSON('/api/revenue_anomalies').catch(()=>[]),
+                    fetchJSON('/api/high_risk_customers?limit=5').catch(()=>[]),
+                    fetchJSON('/api/customer_clv').catch(()=>({}))
                 ]);
                 let html = `<div class="metric-grid">
                             <div class="metric-card"><div class="metric-value">${formatMoney(kpis.total_revenue)}</div><div class="metric-label">Revenue</div></div>
