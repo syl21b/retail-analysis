@@ -774,24 +774,28 @@ def order_value_distribution():
 @app.route('/api/customer_clv')
 @require_auth
 def customer_clv():
-    df = friendly_data.get('Customer Lifetime Value')
-    if df is None or df.empty:
+    try:
+        df = friendly_data.get('Customer Lifetime Value')
+        if df is None or df.empty:
+            return jsonify({'highest': [], 'lowest': []})
+        amount_col = None
+        for col in ['total_net_amount', 'total_revenue', 'clv', 'customer_lifetime_value']:
+            if col in df.columns:
+                amount_col = col
+                break
+        if not amount_col:
+            logger.warning("No amount column found in CLV data")
+            return jsonify({'highest': [], 'lowest': []})
+        df[amount_col] = pd.to_numeric(df[amount_col], errors='coerce').fillna(0)
+        highest = df.nlargest(5, amount_col)
+        lowest = df.nsmallest(5, amount_col)
+        return jsonify({
+            'highest': sanitize_output(loader.to_dict(highest)),
+            'lowest': sanitize_output(loader.to_dict(lowest))
+        })
+    except Exception as e:
+        logger.error(f"Error in customer_clv: {e}", exc_info=True)
         return jsonify({'highest': [], 'lowest': []})
-    amount_col = None
-    for col in ['total_net_amount', 'total_revenue', 'clv', 'customer_lifetime_value']:
-        if col in df.columns:
-            amount_col = col
-            break
-    if not amount_col:
-        logger.warning("No amount column found in CLV data")
-        return jsonify({'highest': [], 'lowest': []})
-    df[amount_col] = pd.to_numeric(df[amount_col], errors='coerce').fillna(0)
-    highest = df.nlargest(5, amount_col)
-    lowest = df.nsmallest(5, amount_col)
-    return jsonify({
-        'highest': sanitize_output(loader.to_dict(highest)),
-        'lowest': sanitize_output(loader.to_dict(lowest))
-    })
 
 @app.route('/api/repeat_vs_onetime')
 @require_auth
@@ -874,38 +878,37 @@ def time_to_purchase():
 @app.route('/api/rfm_segmentation')
 @require_auth
 def rfm_segmentation():
-    # Parse query parameters
-    limit = request.args.get('limit', default=1000, type=int)
-    offset = request.args.get('offset', default=0, type=int)
-    recency_min = request.args.get('recency_min', type=int)
-    recency_max = request.args.get('recency_max', type=int)
-    monetary_min = request.args.get('monetary_min', type=float)
-    monetary_max = request.args.get('monetary_max', type=float)
+    try:
+        limit = request.args.get('limit', default=1000, type=int)
+        offset = request.args.get('offset', default=0, type=int)
+        recency_min = request.args.get('recency_min', type=int)
+        recency_max = request.args.get('recency_max', type=int)
+        monetary_min = request.args.get('monetary_min', type=float)
+        monetary_max = request.args.get('monetary_max', type=float)
 
-    df = friendly_data.get('RFM Segmentation')
-    if df is None or df.empty:
-        return jsonify([])
+        df = friendly_data.get('RFM Segmentation')
+        if df is None or df.empty:
+            return jsonify([])
 
-    # Make a copy to avoid modifying cached data
-    df = df.copy()
+        df = df.copy()
+        if recency_min is not None:
+            df = df[df['recency_days'] >= recency_min]
+        if recency_max is not None:
+            df = df[df['recency_days'] <= recency_max]
+        if monetary_min is not None:
+            df = df[df['monetary'] >= monetary_min]
+        if monetary_max is not None:
+            df = df[df['monetary'] <= monetary_max]
 
-    # Apply filters
-    if recency_min is not None:
-        df = df[df['recency_days'] >= recency_min]
-    if recency_max is not None:
-        df = df[df['recency_days'] <= recency_max]
-    if monetary_min is not None:
-        df = df[df['monetary'] >= monetary_min]
-    if monetary_max is not None:
-        df = df[df['monetary'] <= monetary_max]
+        if limit != -1:
+            df = df.iloc[offset:offset + limit]
+        else:
+            df = df.iloc[offset:]
 
-    # Handle limit: if limit == -1, return all
-    if limit != -1:
-        df = df.iloc[offset:offset + limit]
-    else:
-        df = df.iloc[offset:]
-
-    return jsonify(sanitize_output(loader.to_dict(df)))
+        return jsonify(sanitize_output(loader.to_dict(df)))
+    except Exception as e:
+        logger.error(f"Error in rfm_segmentation: {e}", exc_info=True)
+        return jsonify([])   # <-- return empty on error
 
 @app.route('/api/cohort_retention')
 @require_auth
@@ -966,35 +969,39 @@ def revenue_anomalies():
 @app.route('/api/high_risk_customers')
 @require_auth
 def high_risk_customers():
-    limit = request.args.get('limit', default=20, type=int)
-    offset = request.args.get('offset', default=0, type=int)
-    segment_filter = request.args.get('segment', '').strip()   # NEW: accept segment filter
-    rfm_df = friendly_data.get('RFM Segmentation')
-    if rfm_df is None or rfm_df.empty:
-        return jsonify([])
-    required_cols = ['customer_id', 'recency_days', 'frequency', 'monetary']
-    for col in required_cols:
-        if col not in rfm_df.columns:
+    try:
+        limit = request.args.get('limit', default=20, type=int)
+        offset = request.args.get('offset', default=0, type=int)
+        segment_filter = request.args.get('segment', '').strip()   # NEW: accept segment filter
+        rfm_df = friendly_data.get('RFM Segmentation')
+        if rfm_df is None or rfm_df.empty:
             return jsonify([])
-    if 'segment' not in rfm_df.columns:
-        rec_median = rfm_df['recency_days'].median()
-        mon_median = rfm_df['monetary'].median()
-        rfm_df['segment'] = 'Others'
-        rfm_df.loc[(rfm_df['recency_days'] <= rec_median/2) & (rfm_df['monetary'] >= mon_median*2), 'segment'] = 'Champions'
-        rfm_df.loc[(rfm_df['recency_days'] <= rec_median) & (rfm_df['monetary'] >= mon_median), 'segment'] = 'Loyal'
-        rfm_df.loc[(rfm_df['recency_days'] > rec_median*1.5) & (rfm_df['monetary'] < mon_median), 'segment'] = 'At Risk'
-    monetary_90th = rfm_df['monetary'].quantile(0.9)
-    high_risk = rfm_df[(rfm_df['segment'] == 'At Risk') & (rfm_df['monetary'] > monetary_90th)]
-    if segment_filter:
-        high_risk = high_risk[high_risk['segment'] == segment_filter]   # apply filter
-    high_risk = high_risk.sort_values('monetary', ascending=False)
-    if 'full_name' in high_risk.columns:
-        high_risk['full_name'] = high_risk['full_name'].fillna(high_risk['customer_id'].apply(lambda x: f"Customer {x}"))
-    else:
-        high_risk['full_name'] = high_risk['customer_id'].apply(lambda x: f"Customer {x}")
-    result_cols = ['customer_id', 'full_name', 'recency_days', 'frequency', 'monetary', 'segment']
-    sliced = high_risk[result_cols].iloc[offset:offset+limit]
-    return jsonify(sanitize_output(loader.to_dict(sliced)))
+        required_cols = ['customer_id', 'recency_days', 'frequency', 'monetary']
+        for col in required_cols:
+            if col not in rfm_df.columns:
+                return jsonify([])
+        if 'segment' not in rfm_df.columns:
+            rec_median = rfm_df['recency_days'].median()
+            mon_median = rfm_df['monetary'].median()
+            rfm_df['segment'] = 'Others'
+            rfm_df.loc[(rfm_df['recency_days'] <= rec_median/2) & (rfm_df['monetary'] >= mon_median*2), 'segment'] = 'Champions'
+            rfm_df.loc[(rfm_df['recency_days'] <= rec_median) & (rfm_df['monetary'] >= mon_median), 'segment'] = 'Loyal'
+            rfm_df.loc[(rfm_df['recency_days'] > rec_median*1.5) & (rfm_df['monetary'] < mon_median), 'segment'] = 'At Risk'
+        monetary_90th = rfm_df['monetary'].quantile(0.9)
+        high_risk = rfm_df[(rfm_df['segment'] == 'At Risk') & (rfm_df['monetary'] > monetary_90th)]
+        if segment_filter:
+            high_risk = high_risk[high_risk['segment'] == segment_filter]   # apply filter
+        high_risk = high_risk.sort_values('monetary', ascending=False)
+        if 'full_name' in high_risk.columns:
+            high_risk['full_name'] = high_risk['full_name'].fillna(high_risk['customer_id'].apply(lambda x: f"Customer {x}"))
+        else:
+            high_risk['full_name'] = high_risk['customer_id'].apply(lambda x: f"Customer {x}")
+        result_cols = ['customer_id', 'full_name', 'recency_days', 'frequency', 'monetary', 'segment']
+        sliced = high_risk[result_cols].iloc[offset:offset+limit]
+        return jsonify(sanitize_output(loader.to_dict(sliced)))
+    except Exception as e:
+        logger.error(f"Error in high_risk_customers: {e}", exc_info=True)
+        return jsonify([])
 
 @app.route('/api/aov_by_category')
 @require_auth
