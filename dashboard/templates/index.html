@@ -1375,20 +1375,28 @@
 
         // ========== AI INSIGHTS ==========
         async function getAIInsights() {
+            console.log('🔍 AI Insights requested');
             const [kpis, daily, monthly, cities, categories, repeatRaw, rfm, cohort, anomalies, highRisk, clv] = await Promise.all([
-                fetchJSON('/api/kpis'), fetchJSON('/api/daily_revenue?limit=30'), fetchJSON('/api/monthly_revenue?limit=12'),
-                fetchJSON('/api/top_cities?limit=5'), fetchJSON('/api/revenue_by_category?limit=10'), fetchJSON('/api/repeat_vs_onetime').catch(()=>[]),
-                fetchJSON('/api/rfm_segmentation?limit=5').catch(()=>[]), fetchJSON('/api/cohort_retention?limit=5').catch(()=>[]),
-                fetchJSON('/api/revenue_anomalies').catch(()=>[]), fetchJSON('/api/high_risk_customers?limit=5').catch(()=>[]),
+                fetchJSON('/api/kpis'),
+                fetchJSON('/api/daily_revenue?limit=30'),
+                fetchJSON('/api/monthly_revenue?limit=12'),
+                fetchJSON('/api/top_cities?limit=5'),
+                fetchJSON('/api/revenue_by_category?limit=10'),
+                fetchJSON('/api/repeat_vs_onetime').catch(()=>[]),
+                fetchJSON('/api/rfm_segmentation?limit=5').catch(()=>[]),
+                fetchJSON('/api/cohort_retention?limit=5').catch(()=>[]),
+                fetchJSON('/api/revenue_anomalies').catch(()=>[]),
+                fetchJSON('/api/high_risk_customers?limit=5').catch(()=>[]),
                 fetchJSON('/api/customer_clv').catch(()=>({}))
             ]);
             const repeat = repeatRaw.reduce((acc,r)=>{ acc[r.customer_type]=r.customer_count; return acc; }, {});
             const payload = { filters: filterState, persona: currentPersona, kpis, daily_revenue: daily, monthly_revenue: monthly, top_cities: cities, revenue_categories: categories, repeat_customers: repeat, clv_data: clv, rfm_segments: rfm.slice(0,5), cohort_retention: cohort.slice(0,5), anomalies, high_risk_customers: highRisk };
 
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+            const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 seconds
 
             try {
+                console.log('📤 Sending AI request...');
                 const res = await fetch('/api/ai_insights', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1402,6 +1410,7 @@
                 }
                 const data = await res.json();
                 if (data.error) throw new Error(data.error);
+                console.log('✅ AI insights received');
                 return data.insights;
             } catch (err) {
                 if (err.name === 'AbortError') {
@@ -1412,6 +1421,7 @@
         }
 
         document.getElementById('ai-insights-btn').addEventListener('click', async () => {
+            console.log('🖱️ AI Analyst button clicked');
             const modal = document.getElementById('aiModal');
             const bodyDiv = document.getElementById('aiInsightsBody');
             modal.style.display = 'flex';
@@ -1431,7 +1441,10 @@
                 document.getElementById('copy-report-btn').addEventListener('click', () => { navigator.clipboard.writeText(document.getElementById('aiInsightsBody').innerText).then(() => alert('Report copied!')); });
                 document.getElementById('feedback-up').addEventListener('click', () => sendFeedback('up'));
                 document.getElementById('feedback-down').addEventListener('click', () => sendFeedback('down'));
-            } catch(err) { bodyDiv.innerHTML = `<div class="warning-card">⚠️ Error: ${err.message}</div>`; }
+            } catch(err) {
+                console.error('❌ AI error:', err);
+                bodyDiv.innerHTML = `<div class="warning-card">⚠️ Error: ${err.message}</div>`;
+            }
         });
 
         async function sendFeedback(type) {
