@@ -164,14 +164,13 @@ def require_role(roles):
 #  Database
 # ------------------------------
 class SecureDatabase:
-    def __init__(self, db_url, min_conn=1, max_conn=10):
+    def __init__(self, db_url, min_conn=2, max_conn=20):
         # Ensure sslmode is set
         if '?' in db_url:
             db_url += '&sslmode=require'
         else:
             db_url += '?sslmode=require'
 
-        # Add keepalive settings
         keepalive_params = [
             'keepalives_idle=60',
             'keepalives_interval=10',
@@ -183,20 +182,20 @@ class SecureDatabase:
             db_url += f'&{p}'
 
         self.pool = SimpleConnectionPool(min_conn, max_conn, db_url)
-        
+
     def get_connection(self):
         conn = self.pool.getconn()
-        # Test the connection before returning
         try:
             with conn.cursor() as cur:
                 cur.execute("SELECT 1")
         except Exception:
-            # Connection is dead; close it and get a fresh one
             self.pool.putconn(conn, close=True)
             conn = self.pool.getconn()
         return conn
+
     def put_connection(self, conn):
         self.pool.putconn(conn)
+
     @contextmanager
     def get_cursor(self):
         conn = None
@@ -213,7 +212,8 @@ class SecureDatabase:
         finally:
             if conn:
                 self.put_connection(conn)
-    def execute_query(self, query, params=None, retries=2):
+
+    def execute_query(self, query, params=None, retries=3):
         last_exception = None
         for attempt in range(retries + 1):
             try:
@@ -224,12 +224,11 @@ class SecureDatabase:
                     return cur.rowcount
             except Exception as e:
                 last_exception = e
-                # Retry only if it's a connection issue
                 if 'connection' in str(e).lower() or 'closed' in str(e).lower():
-                    logger.warning(f"Query failed (attempt {attempt+1}): {e}. Retrying...")
+                    logger.warning(f"Query failed (attempt {attempt+1}): {e}. Retrying in 0.5s...")
                     if attempt < retries:
+                        time.sleep(0.5)
                         continue
-                # For other errors, raise immediately
                 raise
         raise last_exception
 
