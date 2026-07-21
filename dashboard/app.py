@@ -11,7 +11,7 @@ from pathlib import Path
 from collections import defaultdict
 from contextlib import contextmanager
 import sys
-
+import concurrent.futures
 import pandas as pd
 import numpy as np
 import requests
@@ -514,9 +514,10 @@ if Config.GROQ_API_KEY and GROQ_AVAILABLE:
         logger.error(f"Failed to initialise Groq client: {e}")
         groq_client = None
 
-def call_ai_provider(prompt, timeout=30):   # reduced from 60
+def call_ai_provider(prompt, timeout=30):
     if genai_client:
         try:
+            # ✅ No 'timeout' parameter here – it's not supported in this version
             response = genai_client.models.generate_content(
                 model="gemini-2.5-flash",
                 contents=prompt,
@@ -524,8 +525,8 @@ def call_ai_provider(prompt, timeout=30):   # reduced from 60
                     temperature=0.7,
                     max_output_tokens=8192,
                     top_p=0.95
-                ),
-                timeout=timeout   # now 30s
+                )
+                # timeout=timeout   # <-- REMOVE this line
             )
             logger.info("✅ AI response from Gemini.")
             return response.text
@@ -539,7 +540,7 @@ def call_ai_provider(prompt, timeout=30):   # reduced from 60
                 temperature=0.7,
                 max_tokens=8192,
                 top_p=0.95,
-                timeout=timeout   # pass timeout to Groq as well
+                timeout=timeout   # ← Groq supports this
             )
             logger.info("✅ AI response from Groq.")
             return completion.choices[0].message.content
@@ -548,6 +549,20 @@ def call_ai_provider(prompt, timeout=30):   # reduced from 60
     logger.warning("No AI provider available.")
     return None
 
+
+
+def call_ai_provider_with_timeout(prompt, timeout=20):
+    """Call AI with a hard timeout, fallback to None on timeout/error."""
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+        future = executor.submit(call_ai_provider, prompt, timeout)  # inner timeout is for Groq
+        try:
+            return future.result(timeout=timeout)
+        except concurrent.futures.TimeoutError:
+            logger.error(f"AI call timed out after {timeout}s")
+            return None
+        except Exception as e:
+            logger.error(f"AI call failed: {e}")
+            return None
 # ------------------------------
 #  API Endpoints
 # ------------------------------
@@ -1594,7 +1609,7 @@ Churn Rate: {churn_rate_val if churn_rate_val is not None else 'N/A'}%
 --- DATA ---
 {context}
 """
-    insights = call_ai_provider(full_prompt)
+    insights = call_ai_provider_with_timeout(full_prompt, timeout=20)
     if insights:
         required = ["Executive Summary", "Key Metrics", "Deep Dive", "Root Causes", "Actionable Recommendations", "Expected Business Impact"]
         if not any(sec in insights for sec in required):
