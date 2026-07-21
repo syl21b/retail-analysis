@@ -552,17 +552,18 @@ def call_ai_provider(prompt, timeout=30):
 
 
 def call_ai_provider_with_timeout(prompt, timeout=20):
-    """Call AI with a hard timeout, fallback to None on timeout/error."""
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-        future = executor.submit(call_ai_provider, prompt, timeout)  # inner timeout is for Groq
-        try:
-            return future.result(timeout=timeout)
-        except concurrent.futures.TimeoutError:
-            logger.error(f"AI call timed out after {timeout}s")
-            return None
-        except Exception as e:
-            logger.error(f"AI call failed: {e}")
-            return None
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+    future = executor.submit(call_ai_provider, prompt, timeout)
+    try:
+        return future.result(timeout=timeout)
+    except concurrent.futures.TimeoutError:
+        logger.error(f"AI call timed out after {timeout}s")
+        executor.shutdown(wait=False)   # <-- don't wait for the thread
+        return None
+    except Exception as e:
+        logger.error(f"AI call failed: {e}")
+        executor.shutdown(wait=False)
+        return None
 # ------------------------------
 #  API Endpoints
 # ------------------------------
