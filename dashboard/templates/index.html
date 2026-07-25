@@ -567,8 +567,7 @@
                 <div class="loader"><div class="spinner"></div>Generating insights...</div>
             </div>
             <div style="padding: 0 1.8rem 1.8rem; display: flex; gap: 1rem; flex-wrap: wrap;">
-                <button id="exportPdf" class="btn btn-primary">📄 PDF</button>
-                <button id="exportPptx" class="btn btn-primary">📊 PowerPoint</button>
+                <button id="exportPdf" class="btn btn-primary">📄 Download Report PDF</button>
             </div>
         </div>
     </div>
@@ -587,6 +586,13 @@
         let currentPage = 'overview';
         let currentPersona = 'balanced_analyst';
         let lastInsightsHtml = '';
+        // After the existing global state declarations, add:
+        let chartData = {
+            daily_revenue: { x: [], y: [] },
+            monthly_revenue: { x: [], y: [] },
+            category_revenue: { labels: [], values: [] },
+            city_revenue: { labels: [], values: [] }
+        };
 
         // ========== HELPERS ==========
         async function fetchJSON(url) {
@@ -761,6 +767,21 @@
                     fetchJSON('/api/payment_methods').catch(() => []),
                     fetchJSON('/api/revenue_anomalies').catch(() => [])
                 ]);
+
+                // Populate chartData for monthly, categories, cities (data already available)
+                chartData.monthly_revenue = {
+                    x: monthlyTrend.map(m => m.period.slice(0,7)),
+                    y: monthlyTrend.map(m => m.revenue)
+                };
+                chartData.category_revenue = {
+                    labels: categories.map(c => c.category),
+                    values: categories.map(c => c.revenue)
+                };
+                chartData.city_revenue = {
+                    labels: cities.map(c => c.city),
+                    values: cities.map(c => c.total_revenue)
+                };
+
                 let html = `<div class="metric-grid">
                             <div class="metric-card"><div class="metric-value">${formatMoney(kpis.total_revenue)}</div><div class="metric-label">Revenue</div></div>
                             <div class="metric-card"><div class="metric-value">${kpis.total_orders.toLocaleString()}</div><div class="metric-label">Orders</div></div>
@@ -773,15 +794,21 @@
                         <div class="chart-row"><div class="chart-card"><div id="subcat-chart"></div><div class="caption">Top subcategories</div></div><div class="chart-card"><div id="repeat-chart"></div><div class="caption">Repeat vs one-time</div></div></div>
                         <div class="chart-row"><div class="chart-card"><div id="status-chart"></div><div class="caption">Order status</div></div><div class="chart-card"><div id="payment-chart"></div><div class="caption">Payment methods</div></div></div>`;
                 document.getElementById('pageContent').innerHTML = html;
+
+                // Render monthly chart
                 if (monthlyTrend.length) {
                     const months = monthlyTrend.map(m => m.period.slice(0,7));
                     const revenue = monthlyTrend.map(m => m.revenue);
                     renderChart('monthly-chart', [{ x: months, y: revenue, type: 'bar', marker: { color: '#1e3c72' }, text: revenue.map(v => formatMoney(v)), textposition: 'outside' }], { title: 'Monthly Revenue', height: 380 });
                 }
+
+                // Fetch and render daily chart
                 const dailyTrend = await fetchJSON('/api/revenue_trend?granularity=day');
                 if (dailyTrend.length) {
                     const dates = dailyTrend.map(d => d.period);
                     const revenues = dailyTrend.map(d => d.revenue);
+                    chartData.daily_revenue = { x: dates, y: revenues }; // set chart data for export
+
                     const traceMain = { x: dates, y: revenues, type: 'scatter', mode: 'lines+markers', line: { color: '#1e3c72', width: 2 }, name: 'Revenue', marker: { color: '#1e3c72', size: 4 } };
                     let anomalyX = [], anomalyY = [], anomalyLabels = [];
                     if (anomalies.length) {
@@ -823,13 +850,20 @@
                 } else {
                     document.getElementById('daily-chart').innerHTML = '<div class="error-message">No daily data</div>';
                 }
+
+                // Render cities, categories, subcategories, repeat, order status, payment methods
                 if (cities.length) renderChart('cities-chart', [{ x: cities.map(c => c.city), y: cities.map(c => c.total_revenue), type: 'bar', marker: { color: '#1e3c72' }, text: cities.map(c => formatMoney(c.total_revenue)), textposition: 'outside' }], { title: 'Top Cities', height: 400 });
                 attachCrossFilterEvents('cities-chart', 'city');
+
                 if (categories.length) renderChart('category-chart', [{ labels: categories.map(c => c.category), values: categories.map(c => c.revenue), type: 'pie', hole: 0.3, marker: { colors: ['#1e3c72','#3b82f6','#94a3b8'] }, textinfo: 'label+percent' }], { title: 'Category Share', height: 400 });
                 attachCrossFilterEvents('category-chart', 'category');
+
                 if (subcategories.length) renderChart('subcat-chart', [{ x: subcategories.map(s => s.subcategory || s.product_subcategory), y: subcategories.map(s => s.revenue || s.total_revenue), type: 'bar', marker: { color: '#3b82f6' }, text: subcategories.map(s => formatMoney(s.revenue || s.total_revenue)), textposition: 'outside' }], { title: 'Top Subcategories', height: 400 });
+
                 if (repeat.length) renderChart('repeat-chart', [{ labels: repeat.map(r => r.customer_type), values: repeat.map(r => r.customer_count), type: 'pie', hole: 0.3, marker: { colors: ['#2ecc71','#e74c3c'] }, textinfo: 'label+percent' }], { title: 'Repeat vs One-Time', height: 400 });
+
                 if (orderStatus.length) renderChart('status-chart', [{ labels: orderStatus.map(s => s.order_status), values: orderStatus.map(s => s.order_count), type: 'pie', hole: 0.3, marker: { colors: ['#1e3c72','#3b82f6','#94a3b8','#cbd5e1'] }, textinfo: 'label+percent' }], { title: 'Order Status', height: 400 });
+
                 if (paymentMethods.length) renderChart('payment-chart', [{ x: paymentMethods.map(p => p.payment_method), y: paymentMethods.map(p => p.revenue), type: 'bar', marker: { color: '#1e3c72' }, text: paymentMethods.map(p => formatMoney(p.revenue)), textposition: 'outside' }], { title: 'Revenue by Payment Method', height: 400 });
             },
 
@@ -1450,8 +1484,27 @@
         // ========== EVENT BINDINGS ==========
         document.getElementById('closeModal').addEventListener('click', () => { document.getElementById('aiModal').style.display = 'none'; });
         window.addEventListener('click', e => { if (e.target === document.getElementById('aiModal')) document.getElementById('aiModal').style.display = 'none'; });
-        document.getElementById('exportPdf').addEventListener('click', () => alert('PDF export: connect to backend.'));
-        document.getElementById('exportPptx').addEventListener('click', () => alert('PPTX export: connect to backend.'));
+        document.getElementById('exportPdf').onclick = async () => {
+            const kpis = await fetchJSON('/api/kpis');
+            const payload = {
+                format: 'pdf',
+                kpis: kpis,
+                insights_html: lastInsightsHtml,
+                charts: chartData,   // make sure chartData is defined globally
+                filters: filterState
+            };
+            const res = await fetch('/api/export', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'report.pdf';
+            a.click();
+        };
 
         document.getElementById('check-alerts-btn').addEventListener('click', async () => {
             const toast = document.getElementById('toast');
