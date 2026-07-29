@@ -9,7 +9,7 @@ import numpy as np
 from cachetools import TTLCache
 from .config import Config
 from . import database
-from sql_helpers import clean_sql, add_schema_prefix, fix_date_extract
+from .sql_helpers import clean_sql, add_schema_prefix, fix_date_extract
 
 logger = logging.getLogger(__name__)
 

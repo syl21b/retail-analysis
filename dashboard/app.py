@@ -41,7 +41,7 @@ logger.info("🔗 Initialising database...")
 database.init_db(Config.DATABASE_URL) 
 logger.info("✅ Database initialised")
 
-from churn_model import load_model, train_model
+from .churn_model import load_model, train_model
 
 # Load or train churn model
 if not load_model():

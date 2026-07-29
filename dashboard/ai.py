@@ -2,8 +2,8 @@ import logging
 import concurrent.futures
 import re
 from datetime import datetime
-from config import Config
-from data_loader import friendly_data
+from .config import Config
+from .data_loader import friendly_data
 
 logger = logging.getLogger(__name__)
 
