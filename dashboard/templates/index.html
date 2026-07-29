@@ -6,19 +6,32 @@
     <title>RetailPulse · AI Analytics</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%231e3c72'/%3E%3Crect x='12' y='32' width='10' height='20' fill='%23ffffff' opacity='0.9'/%3E%3Crect x='27' y='20' width='10' height='32' fill='%23ffffff' opacity='0.9'/%3E%3Crect x='42' y='8' width='10' height='44' fill='%23ffffff' opacity='0.9'/%3E%3Ccircle cx='32' cy='56' r='4' fill='%23facc15'/%3E%3Ctext x='32' y='58' font-size='10' font-family='Arial' font-weight='bold' fill='%231e3c72' text-anchor='middle'%3EBI%3C/text%3E%3C/svg%3E">
     <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%231e3c72'/%3E%3Crect x='2' y='12' width='4' height='10' fill='%23ffffff'/%3E%3Crect x='8' y='6' width='4' height='16' fill='%23ffffff'/%3E%3Crect x='14' y='2' width='4' height='20' fill='%23ffffff'/%3E%3C/svg%3E">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.24.1/plotly.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.24.1/plotly.min.js">
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #f4f6fa; color: #0b1a33; line-height: 1.5; }
-        a { text-decoration: none; color: inherit; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f4f6fa;
+            color: #0b1a33;
+            line-height: 1.5;
+        }
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
         .topnav {
             background: white;
             padding: 0.75rem 1.5rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
             position: sticky;
             top: 0;
             z-index: 100;
@@ -33,7 +46,10 @@
             color: #1e3c72;
             letter-spacing: -0.3px;
         }
-        .nav-brand svg { height: 28px; width: 28px; }
+        .nav-brand svg {
+            height: 28px;
+            width: 28px;
+        }
         .nav-menu {
             display: flex;
             gap: 0.5rem;
@@ -52,11 +68,14 @@
             border: none;
             white-space: nowrap;
         }
-        .nav-menu .nav-item:hover { background: #eef2f9; color: #1e3c72; }
+        .nav-menu .nav-item:hover {
+            background: #eef2f9;
+            color: #1e3c72;
+        }
         .nav-menu .nav-item.active {
             background: #1e3c72;
             color: white;
-            box-shadow: 0 2px 8px rgba(30,60,114,0.15);
+            box-shadow: 0 2px 8px rgba(30, 60, 114, 0.15);
         }
         .hamburger {
             display: none;
@@ -82,14 +101,16 @@
             width: 280px;
             height: 100vh;
             background: white;
-            box-shadow: 4px 0 20px rgba(0,0,0,0.08);
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.08);
             z-index: 200;
             padding: 2rem 1.5rem;
             transform: translateX(-100%);
             transition: transform 0.25s ease;
             overflow-y: auto;
         }
-        .nav-drawer.open { transform: translateX(0); }
+        .nav-drawer.open {
+            transform: translateX(0);
+        }
         .nav-drawer .close-drawer {
             background: none;
             border: none;
@@ -106,7 +127,10 @@
             border-bottom: 1px solid #edf2f9;
             cursor: pointer;
         }
-        .nav-drawer .nav-item.active { color: #1e3c72; font-weight: 600; }
+        .nav-drawer .nav-item.active {
+            color: #1e3c72;
+            font-weight: 600;
+        }
         .main {
             max-width: 1440px;
             margin: 0 auto;
@@ -118,7 +142,7 @@
             padding: 1.5rem 2rem;
             color: white;
             margin-bottom: 1.8rem;
-            box-shadow: 0 8px 24px rgba(30,60,114,0.15);
+            box-shadow: 0 8px 24px rgba(30, 60, 114, 0.15);
         }
         .banner h1 {
             font-size: 1.6rem;
@@ -141,13 +165,13 @@
             margin-top: 0.8rem;
         }
         .banner-stats span {
-            background: rgba(255,255,255,0.12);
+            background: rgba(255, 255, 255, 0.12);
             backdrop-filter: blur(2px);
             padding: 0.2rem 1rem;
             border-radius: 40px;
             font-size: 0.75rem;
             font-weight: 500;
-            border: 1px solid rgba(255,255,255,0.15);
+            border: 1px solid rgba(255, 255, 255, 0.15);
         }
         .filter-bar {
             background: white;
@@ -158,7 +182,7 @@
             flex-wrap: wrap;
             align-items: center;
             gap: 0.8rem 1.2rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
             border: 1px solid #e9edf4;
         }
         .filter-group {
@@ -174,7 +198,8 @@
             color: #6b7a9a;
             letter-spacing: 0.3px;
         }
-        .filter-input, .filter-select {
+        .filter-input,
+        .filter-select {
             padding: 0.3rem 0.7rem;
             border-radius: 30px;
             border: 1px solid #dbe0e9;
@@ -183,10 +208,11 @@
             transition: 0.2s;
             font-family: inherit;
         }
-        .filter-input:focus, .filter-select:focus {
+        .filter-input:focus,
+        .filter-select:focus {
             outline: none;
             border-color: #1e3c72;
-            box-shadow: 0 0 0 2px rgba(30,60,114,0.08);
+            box-shadow: 0 0 0 2px rgba(30, 60, 114, 0.08);
         }
         .btn {
             padding: 0.3rem 1.2rem;
@@ -199,15 +225,27 @@
             background: #eef2f9;
             color: #1e2a44;
         }
-        .btn:hover { transform: scale(0.96); }
+        .btn:hover {
+            transform: scale(0.96);
+        }
         .btn-primary {
             background: #1e3c72;
             color: white;
         }
-        .btn-primary:hover { background: #2a5298; }
-        .btn-outline { background: transparent; border: 1px solid #dbe0e9; }
-        .btn-danger { background: #fee2e2; color: #b91c1c; }
-        .btn-danger:hover { background: #fecaca; }
+        .btn-primary:hover {
+            background: #2a5298;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #dbe0e9;
+        }
+        .btn-danger {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+        .btn-danger:hover {
+            background: #fecaca;
+        }
         .active-filters {
             display: flex;
             flex-wrap: wrap;
@@ -228,7 +266,9 @@
             font-weight: 700;
             opacity: 0.8;
         }
-        .filter-tag .remove:hover { opacity: 1; }
+        .filter-tag .remove:hover {
+            opacity: 1;
+        }
         .section-title {
             font-size: 1.3rem;
             font-weight: 700;
@@ -251,9 +291,13 @@
             text-align: center;
             border: 1px solid #e9edf4;
             transition: 0.2s;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
         }
-        .metric-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.04); border-color: #d0d9e8; }
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+            border-color: #d0d9e8;
+        }
         .metric-value {
             font-size: 1.8rem;
             font-weight: 800;
@@ -279,23 +323,42 @@
             border: 1px solid #e9edf4;
             transition: 0.2s;
         }
-        .chart-card:hover { box-shadow: 0 6px 18px rgba(0,0,0,0.02); border-color: #d0d9e8; }
+        .chart-card:hover {
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.02);
+            border-color: #d0d9e8;
+        }
         .chart-card .caption {
             font-size: 0.7rem;
             color: #7a8aa8;
             text-align: center;
             margin-top: 0.5rem;
         }
-        .full-width { grid-column: 1 / -1; }
-        .info-card, .insight-card, .warning-card {
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        .info-card,
+        .insight-card,
+        .warning-card {
             padding: 0.8rem 1rem;
             border-radius: 16px;
             margin: 1rem 0;
             font-size: 0.85rem;
         }
-        .insight-card { background: #fefce8; border-left: 4px solid #eab308; color: #854d0e; }
-        .warning-card { background: #fee2e2; border-left: 4px solid #ef4444; color: #991b1b; }
-        .info-card { background: #e0f2fe; border-left: 4px solid #0284c7; color: #0c4a6e; }
+        .insight-card {
+            background: #fefce8;
+            border-left: 4px solid #eab308;
+            color: #854d0e;
+        }
+        .warning-card {
+            background: #fee2e2;
+            border-left: 4px solid #ef4444;
+            color: #991b1b;
+        }
+        .info-card {
+            background: #e0f2fe;
+            border-left: 4px solid #0284c7;
+            color: #0c4a6e;
+        }
         .table-responsive {
             overflow-x: auto;
             border-radius: 16px;
@@ -307,13 +370,20 @@
             border-collapse: collapse;
             font-size: 0.8rem;
         }
-        th, td {
+        th,
+        td {
             padding: 8px 12px;
             border-bottom: 1px solid #e9edf4;
             text-align: left;
         }
-        th { background: #f8fafd; font-weight: 600; color: #1e2a44; }
-        tr:hover td { background: #fafbfd; }
+        th {
+            background: #f8fafd;
+            font-weight: 600;
+            color: #1e2a44;
+        }
+        tr:hover td {
+            background: #fafbfd;
+        }
         .use-case-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -327,10 +397,23 @@
             border: 1px solid #e9edf4;
             transition: 0.2s;
         }
-        .use-case-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.02); }
-        .use-case-title { font-weight: 700; color: #1e3c72; }
-        .use-case-desc { font-size: 0.8rem; color: #4a5b7a; }
-        .use-case-action { font-size: 0.7rem; color: #eab308; font-weight: 500; }
+        .use-case-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.02);
+        }
+        .use-case-title {
+            font-weight: 700;
+            color: #1e3c72;
+        }
+        .use-case-desc {
+            font-size: 0.8rem;
+            color: #4a5b7a;
+        }
+        .use-case-action {
+            font-size: 0.7rem;
+            color: #eab308;
+            font-weight: 500;
+        }
         .nlq-area {
             display: flex;
             gap: 0.8rem;
@@ -345,7 +428,11 @@
             font-size: 0.9rem;
             min-width: 200px;
         }
-        .nlq-area input:focus { outline: none; border-color: #1e3c72; box-shadow: 0 0 0 2px rgba(30,60,114,0.08); }
+        .nlq-area input:focus {
+            outline: none;
+            border-color: #1e3c72;
+            box-shadow: 0 0 0 2px rgba(30, 60, 114, 0.08);
+        }
         .sql-block {
             background: #f1f4fa;
             padding: 0.8rem;
@@ -359,7 +446,7 @@
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.4);
+            background: rgba(0, 0, 0, 0.4);
             z-index: 300;
             align-items: center;
             justify-content: center;
@@ -373,7 +460,7 @@
             max-height: 90vh;
             overflow-y: auto;
             padding: 0;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.15);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
         }
         .modal-header {
             display: flex;
@@ -386,7 +473,11 @@
             background: white;
             z-index: 2;
         }
-        .modal-header h2 { font-size: 1.3rem; font-weight: 700; color: #1e3c72; }
+        .modal-header h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1e3c72;
+        }
         .modal-close {
             background: none;
             border: none;
@@ -395,8 +486,12 @@
             color: #94a3b8;
             cursor: pointer;
         }
-        .modal-close:hover { color: #1e3c72; }
-        .modal-body { padding: 1.8rem; }
+        .modal-close:hover {
+            color: #1e3c72;
+        }
+        .modal-body {
+            padding: 1.8rem;
+        }
         .toast {
             position: fixed;
             bottom: 20px;
@@ -405,7 +500,7 @@
             border-left: 4px solid #ef4444;
             padding: 0.8rem 1.2rem;
             border-radius: 16px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
             z-index: 400;
             display: none;
             max-width: 360px;
@@ -436,25 +531,59 @@
             background: #1e3c72;
             color: white;
         }
-        .sim-metrics button:hover { transform: scale(0.96); }
+        .sim-metrics button:hover {
+            transform: scale(0.96);
+        }
         @media (max-width: 768px) {
-            .nav-menu { display: none; }
-            .hamburger { display: flex; }
-            .nav-drawer.open { display: block; }
-            .main { padding: 0.8rem 1rem; }
-            .banner { padding: 1.2rem 1.5rem; }
-            .banner h1 { font-size: 1.3rem; }
-            .filter-bar { flex-direction: column; align-items: stretch; gap: 0.8rem; }
-            .filter-group { flex-wrap: wrap; }
-            .filter-input { width: 100%; }
-            .chart-row { grid-template-columns: 1fr; }
-            .metric-grid { grid-template-columns: repeat(2, 1fr); }
-            .modal-content { width: 98%; }
-            .modal-body { padding: 1rem; }
+            .nav-menu {
+                display: none;
+            }
+            .hamburger {
+                display: flex;
+            }
+            .nav-drawer.open {
+                display: block;
+            }
+            .main {
+                padding: 0.8rem 1rem;
+            }
+            .banner {
+                padding: 1.2rem 1.5rem;
+            }
+            .banner h1 {
+                font-size: 1.3rem;
+            }
+            .filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.8rem;
+            }
+            .filter-group {
+                flex-wrap: wrap;
+            }
+            .filter-input {
+                width: 100%;
+            }
+            .chart-row {
+                grid-template-columns: 1fr;
+            }
+            .metric-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .modal-content {
+                width: 98%;
+            }
+            .modal-body {
+                padding: 1rem;
+            }
         }
         @media (max-width: 480px) {
-            .metric-grid { grid-template-columns: 1fr 1fr; }
-            .metric-value { font-size: 1.4rem; }
+            .metric-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .metric-value {
+                font-size: 1.4rem;
+            }
         }
         .loader {
             text-align: center;
@@ -472,10 +601,234 @@
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .mt-1 { margin-top: 1rem; }
-        .mb-1 { margin-bottom: 1rem; }
-        .flex { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        .mt-1 {
+            margin-top: 1rem;
+        }
+        .mb-1 {
+            margin-bottom: 1rem;
+        }
+        .flex {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        /* ===== CHURN PAGE: expanded pie + professional polish ===== */
+        .churn-pie-wrapper .chart-card {
+            padding: 1.2rem 1.2rem 0.8rem;
+        }
+        .churn-pie-wrapper .chart-card .caption {
+            font-size: 0.8rem;
+            color: #5a6a8a;
+            font-weight: 500;
+        }
+        .churn-section-divider {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 1.8rem 0 1.2rem;
+        }
+        .churn-section-divider h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #0b1a33;
+            margin: 0;
+            white-space: nowrap;
+        }
+        .churn-section-divider .line {
+            flex: 1;
+            height: 2px;
+            background: linear-gradient(to right, #e9edf4, transparent);
+        }
+        .churn-risk-badge {
+            display: inline-block;
+            padding: 0.2rem 0.8rem;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .churn-risk-badge.high {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+        .churn-risk-badge.medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .churn-risk-badge.low {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        /* make the pie chart container truly full-width with generous sizing */
+        .churn-pie-wrapper {
+            display: block;
+            width: 100%;
+        }
+        .churn-pie-wrapper .chart-card {
+            width: 100%;
+        }
+        .churn-pie-wrapper #risk-pie-chart {
+            width: 100%;
+            min-height: 480px;
+            height: auto;
+        }
+        @media (max-width: 768px) {
+            .churn-pie-wrapper #risk-pie-chart {
+                min-height: 360px;
+            }
+        }
+
+        /* timeline chart full-width with comfortable height */
+        .churn-timeline-wrapper .chart-card {
+            width: 100%;
+        }
+        .churn-timeline-wrapper #revenue-timeline-chart {
+            width: 100%;
+            min-height: 420px;
+            height: auto;
+        }
+
+        /* churn controls row: better spacing */
+        .churn-controls {
+            background: white;
+            border-radius: 20px;
+            padding: 1rem 1.2rem;
+            border: 1px solid #e9edf4;
+            margin-bottom: 1.2rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.8rem 1.2rem;
+        }
+        .churn-controls .filter-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #6b7a9a;
+            letter-spacing: 0.3px;
+        }
+        .churn-controls .filter-select {
+            padding: 0.3rem 0.7rem;
+            border-radius: 30px;
+            border: 1px solid #dbe0e9;
+            background: white;
+            font-size: 0.8rem;
+            font-family: inherit;
+        }
+        .churn-controls .btn {
+            padding: 0.3rem 1.2rem;
+            border-radius: 30px;
+            border: none;
+            font-weight: 500;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .churn-controls .btn-primary {
+            background: #1e3c72;
+            color: white;
+        }
+        .churn-controls .btn-primary:hover {
+            background: #2a5298;
+        }
+        .churn-controls .btn-outline {
+            background: transparent;
+            border: 1px solid #dbe0e9;
+            color: #1e2a44;
+        }
+        .churn-controls .btn-outline:hover {
+            background: #f1f4fa;
+        }
+        .churn-controls .btn-danger {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+        .churn-controls .btn-danger:hover {
+            background: #fecaca;
+        }
+        .churn-search-row {
+            background: white;
+            border-radius: 20px;
+            padding: 1rem 1.2rem;
+            border: 1px solid #e9edf4;
+            margin: 1rem 0 1.2rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.8rem 1.2rem;
+        }
+        .churn-search-row .filter-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #6b7a9a;
+            letter-spacing: 0.3px;
+        }
+        .churn-search-row .filter-input {
+            padding: 0.3rem 0.7rem;
+            border-radius: 30px;
+            border: 1px solid #dbe0e9;
+            background: white;
+            font-size: 0.8rem;
+            font-family: inherit;
+            width: 150px;
+        }
+        .churn-search-row .filter-input:focus {
+            outline: none;
+            border-color: #1e3c72;
+            box-shadow: 0 0 0 2px rgba(30, 60, 114, 0.08);
+        }
+        .churn-search-row .btn {
+            padding: 0.3rem 1.2rem;
+            border-radius: 30px;
+            border: none;
+            font-weight: 500;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .churn-search-row .btn-primary {
+            background: #1e3c72;
+            color: white;
+        }
+        .churn-search-row .btn-primary:hover {
+            background: #2a5298;
+        }
+        .churn-search-row .btn-outline {
+            background: transparent;
+            border: 1px solid #dbe0e9;
+            color: #1e2a44;
+        }
+        .churn-search-row .btn-outline:hover {
+            background: #f1f4fa;
+        }
+        .churn-search-row .btn-danger {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+        .churn-search-row .btn-danger:hover {
+            background: #fecaca;
+        }
+
+        #churn-search-result {
+            margin-bottom: 1rem;
+        }
+        #churn-search-result .insight-card {
+            border-left-width: 6px;
+            padding: 0.8rem 1.2rem;
+        }
+        #churn-search-result .insight-card strong {
+            color: #0b1a33;
+        }
     </style>
 </head>
 <body>
@@ -495,6 +848,7 @@
             <button class="nav-item" data-page="insights">📖 Features</button>
             <button class="nav-item" data-page="nlq">🗣️ Ask AI</button>
             <button class="nav-item" data-page="simulate">🎲 Simulate</button>
+            <button class="nav-item" data-page="churn">⚠️ Churn</button>
         </div>
         <button class="hamburger" id="hamburger" aria-label="Menu">
             <span></span><span></span><span></span>
@@ -513,6 +867,7 @@
         <button class="nav-item" data-page="insights">📖 Features</button>
         <button class="nav-item" data-page="nlq">🗣️ Ask AI</button>
         <button class="nav-item" data-page="simulate">🎲 Simulate</button>
+        <button class="nav-item" data-page="churn">⚠️ Churn</button>
     </div>
 
     <!-- Main Content -->
@@ -525,6 +880,7 @@
                 <span>⚡ Cross-Filtering</span>
                 <span>📈 Real-Time Drill-Down</span>
                 <span>🤖 AI Insights</span>
+                <span>⚠️ Churn Prediction</span>
             </div>
         </div>
 
@@ -576,6 +932,9 @@
 
     <script>
         // ========== GLOBAL STATE ==========
+        let currentChurnThreshold = 180;
+        let currentChurnRowLimit = 10; // NEW: persistent row limit
+
         let filterState = {
             dateRange: { min: null, max: null },
             valueRange: { min: null, max: null },
@@ -586,7 +945,6 @@
         let currentPage = 'overview';
         let currentPersona = 'balanced_analyst';
         let lastInsightsHtml = '';
-        // After the existing global state declarations, add:
         let chartData = {
             daily_revenue: { x: [], y: [] },
             monthly_revenue: { x: [], y: [] },
@@ -608,18 +966,23 @@
             if (abs >= 1_000) return (num / 1_000).toFixed(1) + 'K';
             return num.toLocaleString();
         }
+
         function formatMoney(v) { return v != null ? '$' + formatCompactNumber(v) : '$0'; }
+
         function getCustomerDisplay(c) {
             if (c && c.customer_id != null) return 'ID: ' + c.customer_id;
             if (c && c.full_name) return c.full_name;
             return 'Unknown';
         }
-        function escapeHtml(str) { return String(str).replace(/[&<>]/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;' }[m])); }
+
+        function escapeHtml(str) { return String(str).replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' } [
+            m
+        ])); }
 
         // ========== MARKDOWN RENDERER ==========
         function renderMarkdown(text) {
             if (!text) return '';
-            let html = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+            let html = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
             html = html.replace(/^### (.*?)$/gm, '<h3>$1</h3>');
             html = html.replace(/^## (.*?)$/gm, '<h2>$1</h2>');
             html = html.replace(/^# (.*?)$/gm, '<h1>$1</h1>');
@@ -627,7 +990,9 @@
             html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
             html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
             let lines = html.split('\n');
-            let result = [], inList = false, listStack = [];
+            let result = [],
+                inList = false,
+                listStack = [];
             for (let line of lines) {
                 let trimmed = line.trim();
                 let ol = trimmed.match(/^(\d+)\.\s+(.*)/);
@@ -636,33 +1001,37 @@
                     let indent = line.search(/\S/);
                     let type = ol ? 'ol' : 'ul';
                     let content = ol ? ol[2] : ul[1];
-                    if (!inList) { result.push(`<${type}>`); listStack = [{type, indent}]; inList = true; }
-                    else {
-                        let top = listStack[listStack.length-1];
-                        if (indent > top.indent) { result.push(`<${type}>`); listStack.push({type, indent}); }
-                        else if (indent < top.indent) {
-                            while (listStack.length && listStack[listStack.length-1].indent > indent) result.push(`</${listStack.pop().type}>`);
-                            if (listStack.length && listStack[listStack.length-1].type !== type) {
+                    if (!inList) { result.push(`<${type}>`);
+                        listStack = [{ type, indent }];
+                        inList = true; } else {
+                        let top = listStack[listStack.length - 1];
+                        if (indent > top.indent) { result.push(`<${type}>`);
+                            listStack.push({ type, indent }); } else if (indent < top.indent) {
+                            while (listStack.length && listStack[listStack.length - 1].indent > indent) result.push(
+                                `</${listStack.pop().type}>`);
+                            if (listStack.length && listStack[listStack.length - 1].type !== type) {
                                 result.push(`</${listStack.pop().type}>`);
                                 result.push(`<${type}>`);
-                                listStack.push({type, indent});
-                            } else if (!listStack.length) { result.push(`<${type}>`); listStack.push({type, indent}); }
+                                listStack.push({ type, indent });
+                            } else if (!listStack.length) { result.push(`<${type}>`);
+                                listStack.push({ type, indent }); }
                         } else if (top.type !== type) {
                             result.push(`</${top.type}>`);
                             listStack.pop();
                             result.push(`<${type}>`);
-                            listStack.push({type, indent});
+                            listStack.push({ type, indent });
                         }
                     }
                     result.push(`<li>${content}</li>`);
                 } else {
-                    if (inList) { while(listStack.length) result.push(`</${listStack.pop().type}>`); inList = false; }
+                    if (inList) { while (listStack.length) result.push(`</${listStack.pop().type}>`);
+                        inList = false; }
                     if (trimmed === '') result.push('<br>');
                     else if (!trimmed.match(/^<h[1-3]/) && !trimmed.match(/^<table/)) result.push(`<p>${line}</p>`);
                     else result.push(line);
                 }
             }
-            if (inList) while(listStack.length) result.push(`</${listStack.pop().type}>`);
+            if (inList) while (listStack.length) result.push(`</${listStack.pop().type}>`);
             return result.join('\n');
         }
 
@@ -672,22 +1041,31 @@
             if (!container) return;
             let html = '';
             if (filterState.dateRange.min && filterState.dateRange.max)
-                html += `<span class="filter-tag">📅 ${filterState.dateRange.min} → ${filterState.dateRange.max} <span class="remove" data-filter="dateRange">✖</span></span>`;
+                html +=
+                `<span class="filter-tag">📅 ${filterState.dateRange.min} → ${filterState.dateRange.max} <span class="remove" data-filter="dateRange">✖</span></span>`;
             if (filterState.valueRange.min !== null && filterState.valueRange.max !== null)
-                html += `<span class="filter-tag">💰 ${formatMoney(filterState.valueRange.min)} – ${formatMoney(filterState.valueRange.max)} <span class="remove" data-filter="valueRange">✖</span></span>`;
+                html +=
+                `<span class="filter-tag">💰 ${formatMoney(filterState.valueRange.min)} – ${formatMoney(filterState.valueRange.max)} <span class="remove" data-filter="valueRange">✖</span></span>`;
             if (filterState.selectedCity)
-                html += `<span class="filter-tag">📍 ${filterState.selectedCity} <span class="remove" data-filter="selectedCity">✖</span></span>`;
+                html +=
+                `<span class="filter-tag">📍 ${filterState.selectedCity} <span class="remove" data-filter="selectedCity">✖</span></span>`;
             if (filterState.selectedCategory)
-                html += `<span class="filter-tag">🏷️ ${filterState.selectedCategory} <span class="remove" data-filter="selectedCategory">✖</span></span>`;
+                html +=
+                `<span class="filter-tag">🏷️ ${filterState.selectedCategory} <span class="remove" data-filter="selectedCategory">✖</span></span>`;
             if (filterState.selectedSegment)
-                html += `<span class="filter-tag">⭐ ${filterState.selectedSegment} <span class="remove" data-filter="selectedSegment">✖</span></span>`;
+                html +=
+                `<span class="filter-tag">⭐ ${filterState.selectedSegment} <span class="remove" data-filter="selectedSegment">✖</span></span>`;
             container.innerHTML = html;
             document.querySelectorAll('.remove').forEach(el => {
                 el.addEventListener('click', e => {
                     const key = el.getAttribute('data-filter');
-                    if (key === 'dateRange') { filterState.dateRange = { min: null, max: null }; document.getElementById('date-min').value = ''; document.getElementById('date-max').value = ''; }
-                    else if (key === 'valueRange') { filterState.valueRange = { min: null, max: null }; document.getElementById('value-slider').value = 0; document.getElementById('value-range-display').innerText = '0 – 10k'; }
-                    else if (key === 'selectedCity') filterState.selectedCity = null;
+                    if (key === 'dateRange') { filterState.dateRange = { min: null, max: null };
+                        document.getElementById('date-min').value = '';
+                        document.getElementById('date-max').value = ''; } else if (key === 'valueRange') { filterState
+                            .valueRange = { min: null, max: null };
+                        document.getElementById('value-slider').value = 0;
+                        document.getElementById('value-range-display').innerText = '0 – 10k'; } else if (key ===
+                        'selectedCity') filterState.selectedCity = null;
                     else if (key === 'selectedCategory') filterState.selectedCategory = null;
                     else if (key === 'selectedSegment') filterState.selectedSegment = null;
                     refreshCurrentPage();
@@ -703,7 +1081,8 @@
         function renderChart(elementId, traces, layout) {
             const el = document.getElementById(elementId);
             if (!el) return;
-            if (!traces || traces.length === 0 || !traces[0] || (traces[0].x && traces[0].x.length === 0 && traces[0].labels && traces[0].labels.length === 0)) {
+            if (!traces || traces.length === 0 || !traces[0] || (traces[0].x && traces[0].x.length === 0 && traces[0]
+                    .labels && traces[0].labels.length === 0)) {
                 el.innerHTML = '<div class="insight-card" style="text-align:center;">No data available</div>';
                 return;
             }
@@ -747,7 +1126,7 @@
                     a.download = filename;
                     a.click();
                     URL.revokeObjectURL(url);
-                } catch(e) { alert('Export failed: ' + e.message); }
+                } catch (e) { alert('Export failed: ' + e.message); }
             };
             return btn;
         }
@@ -755,8 +1134,12 @@
         // ========== PAGE DEFINITIONS ==========
         const pages = {
             overview: async () => {
-                document.getElementById('pageContent').innerHTML = '<div class="loader"><div class="spinner"></div>Loading overview...</div>';
-                const [kpis, monthlyTrend, cities, categories, subcategories, repeat, orderStatus, paymentMethods, anomalies] = await Promise.all([
+                // ... (unchanged) ...
+                document.getElementById('pageContent').innerHTML =
+                '<div class="loader"><div class="spinner"></div>Loading overview...</div>';
+                const [kpis, monthlyTrend, cities, categories, subcategories, repeat, orderStatus, paymentMethods,
+                    anomalies
+                ] = await Promise.all([
                     fetchJSON('/api/kpis'),
                     fetchJSON('/api/revenue_trend?granularity=month'),
                     fetchJSON('/api/top_cities?limit=10'),
@@ -768,9 +1151,8 @@
                     fetchJSON('/api/revenue_anomalies').catch(() => [])
                 ]);
 
-                // Populate chartData for monthly, categories, cities (data already available)
                 chartData.monthly_revenue = {
-                    x: monthlyTrend.map(m => m.period.slice(0,7)),
+                    x: monthlyTrend.map(m => m.period.slice(0, 7)),
                     y: monthlyTrend.map(m => m.revenue)
                 };
                 chartData.category_revenue = {
@@ -782,7 +1164,8 @@
                     values: cities.map(c => c.total_revenue)
                 };
 
-                let html = `<div class="metric-grid">
+                let html =
+                    `<div class="metric-grid">
                             <div class="metric-card"><div class="metric-value">${formatMoney(kpis.total_revenue)}</div><div class="metric-label">Revenue</div></div>
                             <div class="metric-card"><div class="metric-value">${kpis.total_orders.toLocaleString()}</div><div class="metric-label">Orders</div></div>
                             <div class="metric-card"><div class="metric-value">${kpis.total_customers.toLocaleString()}</div><div class="metric-label">Customers</div></div>
@@ -795,22 +1178,25 @@
                         <div class="chart-row"><div class="chart-card"><div id="status-chart"></div><div class="caption">Order status</div></div><div class="chart-card"><div id="payment-chart"></div><div class="caption">Payment methods</div></div></div>`;
                 document.getElementById('pageContent').innerHTML = html;
 
-                // Render monthly chart
                 if (monthlyTrend.length) {
-                    const months = monthlyTrend.map(m => m.period.slice(0,7));
+                    const months = monthlyTrend.map(m => m.period.slice(0, 7));
                     const revenue = monthlyTrend.map(m => m.revenue);
-                    renderChart('monthly-chart', [{ x: months, y: revenue, type: 'bar', marker: { color: '#1e3c72' }, text: revenue.map(v => formatMoney(v)), textposition: 'outside' }], { title: 'Monthly Revenue', height: 380 });
+                    renderChart('monthly-chart', [{ x: months, y: revenue, type: 'bar', marker: { color: '#1e3c72' },
+                        text: revenue.map(v => formatMoney(v)), textposition: 'outside' }], { title: 'Monthly Revenue',
+                        height: 380 });
                 }
 
-                // Fetch and render daily chart
                 const dailyTrend = await fetchJSON('/api/revenue_trend?granularity=day');
                 if (dailyTrend.length) {
                     const dates = dailyTrend.map(d => d.period);
                     const revenues = dailyTrend.map(d => d.revenue);
-                    chartData.daily_revenue = { x: dates, y: revenues }; // set chart data for export
+                    chartData.daily_revenue = { x: dates, y: revenues };
 
-                    const traceMain = { x: dates, y: revenues, type: 'scatter', mode: 'lines+markers', line: { color: '#1e3c72', width: 2 }, name: 'Revenue', marker: { color: '#1e3c72', size: 4 } };
-                    let anomalyX = [], anomalyY = [], anomalyLabels = [];
+                    const traceMain = { x: dates, y: revenues, type: 'scatter', mode: 'lines+markers', line: { color: '#1e3c72',
+                            width: 2 }, name: 'Revenue', marker: { color: '#1e3c72', size: 4 } };
+                    let anomalyX = [],
+                        anomalyY = [],
+                        anomalyLabels = [];
                     if (anomalies.length) {
                         const anomalyMap = new Map();
                         anomalies.forEach(a => { anomalyMap.set(a.date, { revenue: a.revenue, drop: a.drop_percent }); });
@@ -825,14 +1211,16 @@
                     }
                     const traces = [traceMain];
                     if (anomalyX.length) {
-                        traces.push({ x: anomalyX, y: anomalyY, type: 'scatter', mode: 'markers', marker: { color: '#e74c3c', size: 10, symbol: 'circle' }, name: '⚠️ Anomaly', hoverinfo: 'text', text: anomalyLabels });
+                        traces.push({ x: anomalyX, y: anomalyY, type: 'scatter', mode: 'markers', marker: { color: '#e74c3c',
+                                size: 10, symbol: 'circle' }, name: '⚠️ Anomaly', hoverinfo: 'text', text: anomalyLabels });
                     }
                     const layout = {
                         title: 'Daily Revenue',
                         height: 380,
                         xaxis: { rangeslider: { visible: true }, tickformat: '%Y-%m-%d', type: 'date' },
                         yaxis: { title: '$' },
-                        legend: { orientation: 'h', yanchor: 'bottom', y: -10, xanchor: 'center', x: 0.5, bgcolor: 'rgba(255,255,255,0.8)' }
+                        legend: { orientation: 'h', yanchor: 'bottom', y: -10, xanchor: 'center', x: 0.5,
+                            bgcolor: 'rgba(255,255,255,0.8)' }
                     };
                     Plotly.newPlot('daily-chart', traces, layout);
                     document.getElementById('daily-chart').on('plotly_relayout', ev => {
@@ -851,30 +1239,48 @@
                     document.getElementById('daily-chart').innerHTML = '<div class="error-message">No daily data</div>';
                 }
 
-                // Render cities, categories, subcategories, repeat, order status, payment methods
-                if (cities.length) renderChart('cities-chart', [{ x: cities.map(c => c.city), y: cities.map(c => c.total_revenue), type: 'bar', marker: { color: '#1e3c72' }, text: cities.map(c => formatMoney(c.total_revenue)), textposition: 'outside' }], { title: 'Top Cities', height: 400 });
+                if (cities.length) renderChart('cities-chart', [{ x: cities.map(c => c.city), y: cities.map(c => c
+                        .total_revenue), type: 'bar', marker: { color: '#1e3c72' }, text: cities.map(c => formatMoney(c
+                            .total_revenue)), textposition: 'outside' }], { title: 'Top Cities', height: 400 });
                 attachCrossFilterEvents('cities-chart', 'city');
 
-                if (categories.length) renderChart('category-chart', [{ labels: categories.map(c => c.category), values: categories.map(c => c.revenue), type: 'pie', hole: 0.3, marker: { colors: ['#1e3c72','#3b82f6','#94a3b8'] }, textinfo: 'label+percent' }], { title: 'Category Share', height: 400 });
+                if (categories.length) renderChart('category-chart', [{ labels: categories.map(c => c.category), values: categories
+                        .map(c => c.revenue), type: 'pie', hole: 0.3, marker: { colors: ['#1e3c72', '#3b82f6',
+                            '#94a3b8'
+                        ] }, textinfo: 'label+percent' }], { title: 'Category Share', height: 400 });
                 attachCrossFilterEvents('category-chart', 'category');
 
-                if (subcategories.length) renderChart('subcat-chart', [{ x: subcategories.map(s => s.subcategory || s.product_subcategory), y: subcategories.map(s => s.revenue || s.total_revenue), type: 'bar', marker: { color: '#3b82f6' }, text: subcategories.map(s => formatMoney(s.revenue || s.total_revenue)), textposition: 'outside' }], { title: 'Top Subcategories', height: 400 });
+                if (subcategories.length) renderChart('subcat-chart', [{ x: subcategories.map(s => s.subcategory || s
+                        .product_subcategory), y: subcategories.map(s => s.revenue || s.total_revenue), type: 'bar',
+                        marker: { color: '#3b82f6' }, text: subcategories.map(s => formatMoney(s.revenue || s
+                            .total_revenue)), textposition: 'outside' }], { title: 'Top Subcategories', height: 400 });
 
-                if (repeat.length) renderChart('repeat-chart', [{ labels: repeat.map(r => r.customer_type), values: repeat.map(r => r.customer_count), type: 'pie', hole: 0.3, marker: { colors: ['#2ecc71','#e74c3c'] }, textinfo: 'label+percent' }], { title: 'Repeat vs One-Time', height: 400 });
+                if (repeat.length) renderChart('repeat-chart', [{ labels: repeat.map(r => r.customer_type), values: repeat.map(
+                        r => r.customer_count), type: 'pie', hole: 0.3, marker: { colors: ['#2ecc71', '#e74c3c'] },
+                        textinfo: 'label+percent' }], { title: 'Repeat vs One-Time', height: 400 });
 
-                if (orderStatus.length) renderChart('status-chart', [{ labels: orderStatus.map(s => s.order_status), values: orderStatus.map(s => s.order_count), type: 'pie', hole: 0.3, marker: { colors: ['#1e3c72','#3b82f6','#94a3b8','#cbd5e1'] }, textinfo: 'label+percent' }], { title: 'Order Status', height: 400 });
+                if (orderStatus.length) renderChart('status-chart', [{ labels: orderStatus.map(s => s.order_status), values: orderStatus
+                        .map(s => s.order_count), type: 'pie', hole: 0.3, marker: { colors: ['#1e3c72', '#3b82f6',
+                            '#94a3b8', '#cbd5e1'
+                        ] }, textinfo: 'label+percent' }], { title: 'Order Status', height: 400 });
 
-                if (paymentMethods.length) renderChart('payment-chart', [{ x: paymentMethods.map(p => p.payment_method), y: paymentMethods.map(p => p.revenue), type: 'bar', marker: { color: '#1e3c72' }, text: paymentMethods.map(p => formatMoney(p.revenue)), textposition: 'outside' }], { title: 'Revenue by Payment Method', height: 400 });
+                if (paymentMethods.length) renderChart('payment-chart', [{ x: paymentMethods.map(p => p.payment_method), y: paymentMethods
+                        .map(p => p.revenue), type: 'bar', marker: { color: '#1e3c72' }, text: paymentMethods.map(p =>
+                            formatMoney(p.revenue)), textposition: 'outside' }], { title: 'Revenue by Payment Method',
+                        height: 400 });
             },
 
             revenue: async () => {
-                document.getElementById('pageContent').innerHTML = '<div class="loader"><div class="spinner"></div>Loading revenue analytics...</div>';
+                // ... (unchanged) ...
+                document.getElementById('pageContent').innerHTML =
+                    '<div class="loader"><div class="spinner"></div>Loading revenue analytics...</div>';
                 const [monthlyTrend, contrib, orderVal] = await Promise.all([
                     fetchJSON('/api/revenue_trend?granularity=month'),
                     fetchJSON('/api/revenue_contribution?limit=20'),
                     fetchJSON('/api/order_value_distribution')
                 ]);
-                let html = `<div class="section-title">💰 Revenue Deep Dive</div>
+                let html =
+                    `<div class="section-title">💰 Revenue Deep Dive</div>
                             <div class="insight-card">🔍 Value filter: ${filterState.valueRange.min !== null ? formatMoney(filterState.valueRange.min) + ' – ' + formatMoney(filterState.valueRange.max) : 'No filter'} | Adjust slider above to see top customers.</div>
                             <div class="chart-row"><div class="chart-card"><div id="rev-monthly"></div></div></div>
                             <div class="section-title">📊 Pareto & Top Customers</div>
@@ -899,24 +1305,30 @@
                                     </div>
                                 </div>
                             </div></div>`;
-                if (orderVal.length) html += `<div class="insight-card">📦 Order Value: Min ${formatMoney(orderVal[0].min_order_value)}, Max ${formatMoney(orderVal[0].max_order_value)}, Median ${formatMoney(orderVal[0].median_order_value)}</div>`;
+                if (orderVal.length) html +=
+                    `<div class="insight-card">📦 Order Value: Min ${formatMoney(orderVal[0].min_order_value)}, Max ${formatMoney(orderVal[0].max_order_value)}, Median ${formatMoney(orderVal[0].median_order_value)}</div>`;
                 document.getElementById('pageContent').innerHTML = html;
                 if (monthlyTrend.length) {
-                    const months = monthlyTrend.map(m => m.period.slice(0,7));
+                    const months = monthlyTrend.map(m => m.period.slice(0, 7));
                     const revenue = monthlyTrend.map(m => m.revenue);
-                    renderChart('rev-monthly', [{ x: months, y: revenue, type: 'bar', text: revenue.map(v => formatMoney(v)), textposition: 'outside' }], { title: 'Monthly Revenue', height: 400 });
+                    renderChart('rev-monthly', [{ x: months, y: revenue, type: 'bar', text: revenue.map(v => formatMoney(v)),
+                        textposition: 'outside' }], { title: 'Monthly Revenue', height: 400 });
                 }
                 if (contrib.length) {
-                    const total = contrib.reduce((s,v) => s + v.total_revenue, 0);
-                    let cumsum = [], sum = 0;
-                    for (let i=0; i<contrib.length; i++) { sum += contrib[i].total_revenue; cumsum.push((sum/total)*100); }
-                    renderChart('pareto-chart', [{ x: contrib.map((_,i)=>i+1), y: cumsum, mode: 'lines', name: 'Cumulative %' }], { title: 'Revenue Concentration (Pareto)', height: 400 });
+                    const total = contrib.reduce((s, v) => s + v.total_revenue, 0);
+                    let cumsum = [],
+                        sum = 0;
+                    for (let i = 0; i < contrib.length; i++) { sum += contrib[i].total_revenue;
+                        cumsum.push((sum / total) * 100); }
+                    renderChart('pareto-chart', [{ x: contrib.map((_, i) => i + 1), y: cumsum, mode: 'lines',
+                        name: 'Cumulative %' }], { title: 'Revenue Concentration (Pareto)', height: 400 });
                 }
                 const tbody = document.getElementById('top-customers-tbody');
                 const searchInput = document.getElementById('customer-search');
                 const clearBtn = document.getElementById('clear-customer-search');
                 const rowLimitSelect = document.getElementById('revenue-row-limit');
-                let allCustomers = [], currentLimit = parseInt(rowLimitSelect.value, 10);
+                let allCustomers = [],
+                    currentLimit = parseInt(rowLimitSelect.value, 10);
                 const renderTable = (data) => {
                     tbody.innerHTML = '';
                     data.forEach(c => {
@@ -928,7 +1340,8 @@
                 };
                 const loadData = async () => {
                     const url = `/api/revenue_contribution?limit=${currentLimit}&offset=0`;
-                    try { allCustomers = await fetchJSON(url); applyFilter(); } catch(e) { tbody.innerHTML = '<tr><td colspan="3">Error loading data</td></tr>'; }
+                    try { allCustomers = await fetchJSON(url);
+                        applyFilter(); } catch (e) { tbody.innerHTML = '<tr><td colspan="3">Error loading data</td></tr>'; }
                 };
                 const applyFilter = () => {
                     let filtered = allCustomers;
@@ -937,15 +1350,19 @@
                     renderTable(filtered);
                 };
                 searchInput.addEventListener('input', applyFilter);
-                clearBtn.addEventListener('click', () => { searchInput.value = ''; applyFilter(); });
-                rowLimitSelect.addEventListener('change', () => { currentLimit = parseInt(rowLimitSelect.value, 10); loadData(); });
+                clearBtn.addEventListener('click', () => { searchInput.value = '';
+                    applyFilter(); });
+                rowLimitSelect.addEventListener('change', () => { currentLimit = parseInt(rowLimitSelect.value, 10);
+                    loadData(); });
                 await loadData();
                 const container = document.getElementById('top-customers-container');
                 container.appendChild(createExportButton('/api/revenue_contribution?limit=100000', 'top_customers.csv'));
             },
 
             customers: async () => {
-                document.getElementById('pageContent').innerHTML = '<div class="loader"><div class="spinner"></div>Loading customer insights...</div>';
+                // ... (unchanged) ...
+                document.getElementById('pageContent').innerHTML =
+                    '<div class="loader"><div class="spinner"></div>Loading customer insights...</div>';
                 const [clvData, repeat, seg, highRisk] = await Promise.all([
                     fetchJSON('/api/customer_clv'),
                     fetchJSON('/api/repeat_vs_onetime'),
@@ -956,8 +1373,10 @@
                 const lowestCLV = clvData.lowest || [];
                 let filteredSeg = seg;
                 if (filterState.valueRange.min !== null && filterState.valueRange.max !== null)
-                    filteredSeg = seg.filter(c => c.total_revenue >= filterState.valueRange.min && c.total_revenue <= filterState.valueRange.max);
-                let highRiskHtml = `<div class="section-title">⚠️ High-Risk VIP Customers</div>
+                    filteredSeg = seg.filter(c => c.total_revenue >= filterState.valueRange.min && c.total_revenue <=
+                    filterState.valueRange.max);
+                let highRiskHtml =
+                    `<div class="section-title">⚠️ High-Risk VIP Customers</div>
                                     <div class="flex" style="margin-bottom:0.5rem;">
                                         <span class="filter-label">Segment:</span>
                                         <select id="highrisk-seg-drop" class="filter-select">
@@ -983,7 +1402,8 @@
                                             <table><thead><tr><th>ID</th><th>Name</th><th>Recency</th><th>Frequency</th><th>Monetary</th><th>Segment</th></tr></thead><tbody id="high-risk-tbody"></tbody></table>
                                         </div>
                                     </div>`;
-                let html = `<div class="section-title">👥 Customer Intelligence</div>
+                let html =
+                    `<div class="section-title">👥 Customer Intelligence</div>
                             <div class="chart-row">
                                 <div class="chart-card"><div id="clv-highest-chart"></div><div class="caption">Top 5 CLV</div></div>
                                 <div class="chart-card"><div id="clv-lowest-chart"></div><div class="caption">Bottom 5 CLV</div></div>
@@ -996,22 +1416,33 @@
                 if (highestCLV.length) {
                     const xVals = highestCLV.map(c => getCustomerDisplay(c));
                     const yVals = highestCLV.map(c => parseFloat(c.total_net_amount || c.total_revenue || 0));
-                    renderChart('clv-highest-chart', [{ x: xVals, y: yVals, type: 'bar', marker: { color: '#2ecc71' }, text: yVals.map(v => formatMoney(v)), textposition: 'outside' }], { title: 'Highest CLV', height: 450 });
+                    renderChart('clv-highest-chart', [{ x: xVals, y: yVals, type: 'bar', marker: { color: '#2ecc71' },
+                        text: yVals.map(v => formatMoney(v)), textposition: 'outside' }], { title: 'Highest CLV',
+                        height: 450 });
                 } else document.getElementById('clv-highest-chart').innerHTML = '<div class="insight-card">No CLV data</div>';
                 if (lowestCLV.length) {
                     const xVals = lowestCLV.map(c => getCustomerDisplay(c));
                     const yVals = lowestCLV.map(c => parseFloat(c.total_net_amount || c.total_revenue || 0));
-                    renderChart('clv-lowest-chart', [{ x: xVals, y: yVals, type: 'bar', marker: { color: '#e74c3c' }, text: yVals.map(v => formatMoney(v)), textposition: 'outside' }], { title: 'Lowest CLV', height: 450 });
+                    renderChart('clv-lowest-chart', [{ x: xVals, y: yVals, type: 'bar', marker: { color: '#e74c3c' },
+                        text: yVals.map(v => formatMoney(v)), textposition: 'outside' }], { title: 'Lowest CLV',
+                        height: 450 });
                 } else document.getElementById('clv-lowest-chart').innerHTML = '<div class="insight-card">No lowest CLV data</div>';
-                if (repeat && repeat.length) renderChart('repeat-chart', [{ labels: repeat.map(r => r.customer_type), values: repeat.map(r => r.customer_count), type: 'pie', hole: 0.3 }], { title: 'Repeat vs One-Time', height: 450 });
+                if (repeat && repeat.length) renderChart('repeat-chart', [{ labels: repeat.map(r => r.customer_type), values: repeat
+                        .map(r => r.customer_count), type: 'pie', hole: 0.3 }], { title: 'Repeat vs One-Time',
+                        height: 450 });
                 else document.getElementById('repeat-chart').innerHTML = '<div class="insight-card">No repeat data</div>';
                 if (filteredSeg && filteredSeg.length) {
-                    const segAgg = filteredSeg.reduce((acc, s) => { acc[s.segment] = (acc[s.segment]||0)+1; return acc; }, {});
+                    const segAgg = filteredSeg.reduce((acc, s) => { acc[s.segment] = (acc[s.segment] || 0) + 1; return acc; }, {});
                     if (Object.keys(segAgg).length) {
-                        renderChart('seg-pie', [{ labels: Object.keys(segAgg), values: Object.values(segAgg), type: 'pie', textinfo: 'label+percent', marker: { colors: ['#1e3c72','#3b82f6','#94a3b8','#cbd5e1'] } }], { title: 'Customer Segments', height: 450 });
+                        renderChart('seg-pie', [{ labels: Object.keys(segAgg), values: Object.values(segAgg), type: 'pie',
+                            textinfo: 'label+percent', marker: { colors: ['#1e3c72', '#3b82f6', '#94a3b8',
+                                '#cbd5e1'
+                            ] } }], { title: 'Customer Segments', height: 450 });
                         attachCrossFilterEvents('seg-pie', 'segment');
-                    } else document.getElementById('seg-pie').innerHTML = '<div class="insight-card">No segment data</div>';
-                } else document.getElementById('seg-pie').innerHTML = '<div class="insight-card">No segmentation data</div>';
+                    } else document.getElementById('seg-pie').innerHTML =
+                    '<div class="insight-card">No segment data</div>';
+                } else document.getElementById('seg-pie').innerHTML =
+                '<div class="insight-card">No segmentation data</div>';
                 const highRiskTbody = document.getElementById('high-risk-tbody');
                 const segDrop = document.getElementById('highrisk-seg-drop');
                 const clearSeg = document.getElementById('clear-highrisk-seg');
@@ -1020,7 +1451,8 @@
                 const loadHighRisk = async () => {
                     const seg = segDrop.value;
                     const limit = currentLimit;
-                    const url = `/api/high_risk_customers?limit=${limit}&offset=0` + (seg ? `&segment=${encodeURIComponent(seg)}` : '');
+                    const url = `/api/high_risk_customers?limit=${limit}&offset=0` + (seg ?
+                        `&segment=${encodeURIComponent(seg)}` : '');
                     try {
                         const data = await fetchJSON(url);
                         highRiskTbody.innerHTML = '';
@@ -1033,85 +1465,110 @@
                             row.insertCell(4).innerText = formatMoney(c.monetary);
                             row.insertCell(5).innerText = c.segment || 'N/A';
                         });
-                    } catch(e) { highRiskTbody.innerHTML = '<tr><td colspan="6">Error loading data</td></tr>'; }
+                    } catch (e) { highRiskTbody.innerHTML = '<tr><td colspan="6">Error loading data</td></tr>'; }
                 };
                 segDrop.addEventListener('change', loadHighRisk);
-                clearSeg.addEventListener('click', () => { segDrop.value = ''; loadHighRisk(); });
-                rowLimitSelect.addEventListener('change', () => { currentLimit = parseInt(rowLimitSelect.value, 10); loadHighRisk(); });
+                clearSeg.addEventListener('click', () => { segDrop.value = '';
+                    loadHighRisk(); });
+                rowLimitSelect.addEventListener('change', () => { currentLimit = parseInt(rowLimitSelect.value, 10);
+                    loadHighRisk(); });
                 await loadHighRisk();
                 const highRiskContainer = document.querySelector('#high-risk-table').parentNode;
-                highRiskContainer.appendChild(createExportButton('/api/high_risk_customers?limit=100000', 'high_risk_customers.csv'));
+                highRiskContainer.appendChild(createExportButton('/api/high_risk_customers?limit=100000',
+                    'high_risk_customers.csv'));
             },
 
             products: async () => {
+                // ... (unchanged) ...
                 const [categories, subcategories, aovData, freqData] = await Promise.all([
                     fetchJSON('/api/revenue_by_category?limit=100'),
                     fetchJSON('/api/revenue_by_subcategory?limit=100'),
                     fetchJSON('/api/aov_by_category').catch(() => []),
                     fetchJSON('/api/frequency_by_category').catch(() => [])
                 ]);
-                let html = `<div class="section-title">🏷️ Product Performance</div><div class="insight-card">🔍 Click on any category bar/slice to filter subcategories.</div>
+                let html =
+                    `<div class="section-title">🏷️ Product Performance</div><div class="insight-card">🔍 Click on any category bar/slice to filter subcategories.</div>
                             <div class="chart-row"><div class="chart-card"><div id="prod-bar"></div></div><div class="chart-card"><div id="prod-pie"></div></div></div>
                             <div class="section-title">📊 Category Deep Dive</div><div class="chart-row"><div class="chart-card"><div id="aov-chart"></div></div><div class="chart-card"><div id="freq-chart"></div></div></div>
                             <div class="section-title">📦 Subcategory Revenue</div><div class="chart-row full-width"><div class="chart-card"><div id="subcat-bar"></div></div></div>`;
                 document.getElementById('pageContent').innerHTML = html;
                 if (categories.length) {
-                    renderChart('prod-bar', [{ x: categories.map(c => c.category), y: categories.map(c => c.revenue), type: 'bar', marker: { color: '#1e3c72' }, text: categories.map(c => formatMoney(c.revenue)), textposition: 'outside' }], { title: 'Revenue by Category', height: 450 });
-                    renderChart('prod-pie', [{ labels: categories.map(c => c.category), values: categories.map(c => c.revenue), type: 'pie', hole: 0.3, marker: { colors: ['#1e3c72','#3b82f6','#94a3b8'] }, textinfo: 'label+percent' }], { title: 'Category Share', height: 450 });
+                    renderChart('prod-bar', [{ x: categories.map(c => c.category), y: categories.map(c => c.revenue),
+                        type: 'bar', marker: { color: '#1e3c72' }, text: categories.map(c => formatMoney(c.revenue)),
+                        textposition: 'outside' }], { title: 'Revenue by Category', height: 450 });
+                    renderChart('prod-pie', [{ labels: categories.map(c => c.category), values: categories.map(c => c
+                            .revenue), type: 'pie', hole: 0.3, marker: { colors: ['#1e3c72', '#3b82f6',
+                            '#94a3b8'
+                        ] }, textinfo: 'label+percent' }], { title: 'Category Share', height: 450 });
                     attachCrossFilterEvents('prod-bar', 'category');
                     attachCrossFilterEvents('prod-pie', 'category');
                 }
-                if (aovData.length) renderChart('aov-chart', [{ x: aovData.map(d => d.category), y: aovData.map(d => d.aov), type: 'bar', marker: { color: '#f39c12' }, text: aovData.map(d => formatMoney(d.aov)), textposition: 'outside' }], { title: 'Avg Order Value', height: 450 });
-                if (freqData.length) renderChart('freq-chart', [{ x: freqData.map(d => d.category), y: freqData.map(d => d.frequency), type: 'bar', marker: { color: '#16a085' }, text: freqData.map(d => d.frequency.toFixed(1)), textposition: 'outside' }], { title: 'Avg Orders per Customer', height: 450 });
+                if (aovData.length) renderChart('aov-chart', [{ x: aovData.map(d => d.category), y: aovData.map(d => d
+                        .aov), type: 'bar', marker: { color: '#f39c12' }, text: aovData.map(d => formatMoney(d.aov)),
+                        textposition: 'outside' }], { title: 'Avg Order Value', height: 450 });
+                if (freqData.length) renderChart('freq-chart', [{ x: freqData.map(d => d.category), y: freqData.map(d =>
+                        d.frequency), type: 'bar', marker: { color: '#16a085' }, text: freqData.map(d => d.frequency
+                            .toFixed(1)), textposition: 'outside' }], { title: 'Avg Orders per Customer',
+                        height: 450 });
                 if (subcategories.length) {
                     let filteredSub = subcategories;
-                    if (filterState.selectedCategory) filteredSub = filteredSub.filter(s => (s.category || s.product_category) === filterState.selectedCategory);
-                    if (filterState.valueRange.min !== null && filterState.valueRange.max !== null) filteredSub = filteredSub.filter(s => (s.revenue || s.total_revenue) >= filterState.valueRange.min && (s.revenue || s.total_revenue) <= filterState.valueRange.max);
-                    const subcatField = subcategories[0].subcategory !== undefined ? 'subcategory' : 'product_subcategory';
+                    if (filterState.selectedCategory) filteredSub = filteredSub.filter(s => (s.category || s
+                        .product_category) === filterState.selectedCategory);
+                    if (filterState.valueRange.min !== null && filterState.valueRange.max !== null) filteredSub = filteredSub
+                        .filter(s => (s.revenue || s.total_revenue) >= filterState.valueRange.min && (s.revenue || s
+                            .total_revenue) <= filterState.valueRange.max);
+                    const subcatField = subcategories[0].subcategory !== undefined ? 'subcategory' :
+                    'product_subcategory';
                     const revField = subcategories[0].revenue !== undefined ? 'revenue' : 'total_revenue';
-                    renderChart('subcat-bar', [{ x: filteredSub.map(s => s[subcatField]), y: filteredSub.map(s => s[revField]), type: 'bar', marker: { color: '#3b82f6' }, text: filteredSub.map(s => formatMoney(s[revField])), textposition: 'outside' }], { title: filterState.selectedCategory ? `Subcategories in ${filterState.selectedCategory}` : 'Revenue by Subcategory', height: 500 });
+                    renderChart('subcat-bar', [{ x: filteredSub.map(s => s[subcatField]), y: filteredSub.map(s => s[
+                            revField]), type: 'bar', marker: { color: '#3b82f6' }, text: filteredSub.map(s =>
+                            formatMoney(s[revField])), textposition: 'outside' }], { title: filterState
+                            .selectedCategory ? `Subcategories in ${filterState.selectedCategory}` :
+                            'Revenue by Subcategory', height: 500 });
                 }
             },
 
             rfm: async () => {
-                document.getElementById('pageContent').innerHTML = '<div class="loader"><div class="spinner"></div>Loading RFM...</div>';
+                // ... (unchanged) ...
+                document.getElementById('pageContent').innerHTML =
+                '<div class="loader"><div class="spinner"></div>Loading RFM...</div>';
                 let html = `
-                    <div class="section-title">⭐ RFM Segmentation</div>
-                    <div class="insight-card">📊 RFM groups: <span style="color:#ffd700;">● Champions</span> · <span style="color:#e74c3c;">● At Risk</span> · <span style="color:#2ecc71;">● Loyal</span> · <span style="color:#0728fe;">● Lost</span></div>
-                    <div class="flex" style="flex-wrap:wrap; gap:0.5rem; margin-bottom:0.5rem;">
-                        <span class="filter-label">Segment:</span>
-                        <select id="seg-drop" class="filter-select"><option value="">All</option>...</select>
-                        <button id="clear-seg" class="btn btn-outline">Clear</button>
-                        <span class="filter-label">Recency (days):</span>
-                        <input type="number" id="recency-min" class="filter-input" placeholder="min" style="width:80px;">
-                        <span>–</span>
-                        <input type="number" id="recency-max" class="filter-input" placeholder="max" style="width:80px;">
-                        <span class="filter-label">Monetary ($):</span>
-                        <input type="number" id="monetary-min" class="filter-input" placeholder="min" style="width:100px;">
-                        <span>–</span>
-                        <input type="number" id="monetary-max" class="filter-input" placeholder="max" style="width:100px;">
-                        <span class="filter-label">Rows:</span>
-                        <select id="rfm-row-limit" class="filter-select">
-                            <option value="10" selected>10</option>
-                            <option value="50">50</option>
-                            <option value="100">100</option>
-                            <option value="500">500</option>
-                            <option value="1000">1000</option>
-                            <option value="-1">All</option>
-                        </select>
-                        <button id="rfm-apply-filters" class="btn btn-primary">Apply</button>
-                        <button id="rfm-clear-filters" class="btn btn-outline">Clear</button>
-                    </div>
-                    <div class="chart-row"><div class="chart-card"><div id="rfm-scatter"></div></div><div class="chart-card"><div id="seg-pie2"></div></div></div>
-                    <div class="section-title">📋 Segment Statistics</div>
-                    <div class="chart-card full-width"><div class="table-responsive" id="seg-stats-table" style="max-height:300px; overflow-y:auto;"></div></div>
-                    <div class="section-title">📋 All Customers (RFM)</div>
-                    <div class="chart-card full-width">
-                        <div class="table-responsive" id="rfm-full-table" style="max-height:500px; overflow-y:auto;">
-                            <table><thead><tr><th>ID</th><th>Recency</th><th>Frequency</th><th>Monetary</th><th>Segment</th></tr></thead><tbody id="rfm-full-tbody"></tbody></table>
-                        </div>
-                    </div>
-                `;
+                            <div class="section-title">⭐ RFM Segmentation</div>
+                            <div class="insight-card">📊 RFM groups: <span style="color:#ffd700;">● Champions</span> · <span style="color:#e74c3c;">● At Risk</span> · <span style="color:#2ecc71;">● Loyal</span> · <span style="color:#0728fe;">● Lost</span></div>
+                            <div class="flex" style="flex-wrap:wrap; gap:0.5rem; margin-bottom:0.5rem;">
+                                <span class="filter-label">Segment:</span>
+                                <select id="seg-drop" class="filter-select"><option value="">All</option>...</select>
+                                <button id="clear-seg" class="btn btn-outline">Clear</button>
+                                <span class="filter-label">Recency (days):</span>
+                                <input type="number" id="recency-min" class="filter-input" placeholder="min" style="width:80px;">
+                                <span>–</span>
+                                <input type="number" id="recency-max" class="filter-input" placeholder="max" style="width:80px;">
+                                <span class="filter-label">Monetary ($):</span>
+                                <input type="number" id="monetary-min" class="filter-input" placeholder="min" style="width:100px;">
+                                <span>–</span>
+                                <input type="number" id="monetary-max" class="filter-input" placeholder="max" style="width:100px;">
+                                <span class="filter-label">Rows:</span>
+                                <select id="rfm-row-limit" class="filter-select">
+                                    <option value="10" selected>10</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                    <option value="500">500</option>
+                                    <option value="1000">1000</option>
+                                    <option value="-1">All</option>
+                                </select>
+                                <button id="rfm-apply-filters" class="btn btn-primary">Apply</button>
+                                <button id="rfm-clear-filters" class="btn btn-outline">Clear</button>
+                            </div>
+                            <div class="chart-row"><div class="chart-card"><div id="rfm-scatter"></div></div><div class="chart-card"><div id="seg-pie2"></div></div></div>
+                            <div class="section-title">📋 Segment Statistics</div>
+                            <div class="chart-card full-width"><div class="table-responsive" id="seg-stats-table" style="max-height:300px; overflow-y:auto;"></div></div>
+                            <div class="section-title">📋 All Customers (RFM)</div>
+                            <div class="chart-card full-width">
+                                <div class="table-responsive" id="rfm-full-table" style="max-height:500px; overflow-y:auto;">
+                                    <table><thead><tr><th>ID</th><th>Recency</th><th>Frequency</th><th>Monetary</th><th>Segment</th></tr></thead><tbody id="rfm-full-tbody"></tbody></table>
+                                </div>
+                            </div>
+                        `;
                 document.getElementById('pageContent').innerHTML = html;
                 const segDrop = document.getElementById('seg-drop');
                 const clearSeg = document.getElementById('clear-seg');
@@ -1153,24 +1610,30 @@
                         statsDiv.innerHTML = '';
                         return;
                     }
-                    let segField = data[0].segment !== undefined ? 'segment' : (data[0].rfm_segment !== undefined ? 'rfm_segment' : null);
+                    let segField = data[0].segment !== undefined ? 'segment' : (data[0].rfm_segment !== undefined ?
+                        'rfm_segment' : null);
                     if (!segField) {
-                        const recMedian = data.map(d => d.recency_days).sort((a,b)=>a-b)[Math.floor(data.length/2)];
-                        const monMedian = data.map(d => d.monetary).sort((a,b)=>a-b)[Math.floor(data.length/2)];
+                        const recMedian = data.map(d => d.recency_days).sort((a, b) => a - b)[Math.floor(data.length /
+                        2)];
+                        const monMedian = data.map(d => d.monetary).sort((a, b) => a - b)[Math.floor(data.length / 2)];
                         data.forEach(d => {
-                            if (d.recency_days <= recMedian/2 && d.monetary >= monMedian*2) d.segment = 'Champions';
+                            if (d.recency_days <= recMedian / 2 && d.monetary >= monMedian * 2) d.segment =
+                                'Champions';
                             else if (d.recency_days <= recMedian && d.monetary >= monMedian) d.segment = 'Loyal';
-                            else if (d.recency_days > recMedian*1.5 && d.monetary < monMedian) d.segment = 'At Risk';
+                            else if (d.recency_days > recMedian * 1.5 && d.monetary < monMedian) d.segment =
+                                'At Risk';
                             else if (d.recency_days > 180) d.segment = 'Lost';
                             else d.segment = 'Others';
                         });
                         segField = 'segment';
                     }
                     const segments = [...new Set(data.map(d => d[segField]))].sort();
-                    const segColors = { Champions: '#ffd700', Loyal: '#2ecc71', 'At Risk': '#e74c3c', Lost: '#0728fe', Others: '#95a5a6'};
+                    const segColors = { Champions: '#ffd700', Loyal: '#2ecc71', 'At Risk': '#e74c3c', Lost: '#0728fe',
+                        Others: '#95a5a6' };
                     const getColor = s => segColors[s] || '#1e3c72';
                     const currentSeg = segDrop.value;
-                    segDrop.innerHTML = '<option value="">All</option>' + segments.map(s => `<option value="${s}" ${currentSeg === s ? 'selected' : ''}>${s}</option>`).join('');
+                    segDrop.innerHTML = '<option value="">All</option>' + segments.map(s =>
+                        `<option value="${s}" ${currentSeg === s ? 'selected' : ''}>${s}</option>`).join('');
                     rfmTbody.innerHTML = '';
                     data.forEach(c => {
                         const row = rfmTbody.insertRow();
@@ -1185,13 +1648,15 @@
                         const custs = data.filter(d => d[segField] === seg);
                         segStats[seg] = {
                             count: custs.length,
-                            avgRecency: custs.reduce((s,c)=>s+c.recency_days,0)/custs.length,
-                            avgFreq: custs.reduce((s,c)=>s+c.frequency,0)/custs.length,
-                            avgMon: custs.reduce((s,c)=>s+c.monetary,0)/custs.length
+                            avgRecency: custs.reduce((s, c) => s + c.recency_days, 0) / custs.length,
+                            avgFreq: custs.reduce((s, c) => s + c.frequency, 0) / custs.length,
+                            avgMon: custs.reduce((s, c) => s + c.monetary, 0) / custs.length
                         };
                     });
                     const statsHtml = '<table><thead><tr><th>Segment</th><th>Customers</th><th>Avg Recency</th><th>Avg Frequency</th><th>Avg Monetary</th></tr></thead><tbody>' +
-                        segments.map(seg => `<tr style="border-left:4px solid ${getColor(seg)};"><td>${seg}</td><td>${segStats[seg].count}</td><td>${segStats[seg].avgRecency.toFixed(1)}</td><td>${segStats[seg].avgFreq.toFixed(1)}</td><td>${formatMoney(segStats[seg].avgMon)}</td></tr>`).join('') +
+                        segments.map(seg =>
+                            `<tr style="border-left:4px solid ${getColor(seg)};"><td>${seg}</td><td>${segStats[seg].count}</td><td>${segStats[seg].avgRecency.toFixed(1)}</td><td>${segStats[seg].avgFreq.toFixed(1)}</td><td>${formatMoney(segStats[seg].avgMon)}</td></tr>`
+                            ).join('') +
                         '</tbody></table>';
                     statsDiv.innerHTML = statsHtml;
                     const scatterTraces = [];
@@ -1205,11 +1670,15 @@
                             mode: 'markers',
                             name: seg,
                             marker: { color: getColor(seg), size: 8, opacity: 0.7 },
-                            text: pts.map(p => `${getCustomerDisplay(p)}<br>Recency: ${p.recency_days} days<br>Freq: ${p.frequency}<br>Monetary: ${formatMoney(p.monetary)}`)
+                            text: pts.map(p =>
+                                `${getCustomerDisplay(p)}<br>Recency: ${p.recency_days} days<br>Freq: ${p.frequency}<br>Monetary: ${formatMoney(p.monetary)}`
+                                )
                         });
                     });
-                    Plotly.newPlot('rfm-scatter', scatterTraces, { title: 'Recency vs Monetary', height: 500, xaxis: { title: 'Recency (days)' }, yaxis: { title: 'Monetary ($)' } });
-                    const segCounts = segments.reduce((a,s)=>{ a[s]=data.filter(d=>d[segField]===s).length; return a; }, {});
+                    Plotly.newPlot('rfm-scatter', scatterTraces, { title: 'Recency vs Monetary', height: 500,
+                        xaxis: { title: 'Recency (days)' }, yaxis: { title: 'Monetary ($)' } });
+                    const segCounts = segments.reduce((a, s) => { a[s] = data.filter(d => d[segField] === s).length; return a; },
+                    {});
                     Plotly.newPlot('seg-pie2', [{
                         labels: Object.keys(segCounts),
                         values: Object.values(segCounts),
@@ -1228,11 +1697,16 @@
                 };
                 applyBtn.addEventListener('click', loadRFMData);
                 clearFiltersBtn.addEventListener('click', () => {
-                    recencyMin.value = ''; recencyMax.value = ''; monetaryMin.value = ''; monetaryMax.value = '';
-                    segDrop.value = ''; rowLimitSelect.value = '10';
+                    recencyMin.value = '';
+                    recencyMax.value = '';
+                    monetaryMin.value = '';
+                    monetaryMax.value = '';
+                    segDrop.value = '';
+                    rowLimitSelect.value = '10';
                     loadRFMData();
                 });
-                clearSeg.addEventListener('click', () => { segDrop.value = ''; loadRFMData(); });
+                clearSeg.addEventListener('click', () => { segDrop.value = '';
+                    loadRFMData(); });
                 segDrop.addEventListener('change', loadRFMData);
                 rowLimitSelect.addEventListener('change', loadRFMData);
                 await loadRFMData();
@@ -1241,58 +1715,71 @@
             },
 
             cohort: async () => {
-                document.getElementById('pageContent').innerHTML = '<div class="loader"><div class="spinner"></div>Loading cohort retention...</div>';
+                // ... (unchanged) ...
+                document.getElementById('pageContent').innerHTML =
+                    '<div class="loader"><div class="spinner"></div>Loading cohort retention...</div>';
                 const cohort = await fetchJSON('/api/cohort_retention?limit=500');
-                let html = `<div class="section-title">📈 Cohort Retention Analysis</div><div class="chart-row full-width"><div class="chart-card"><div id="cohort-heatmap"></div></div></div><div class="chart-row full-width"><div class="chart-card"><div id="cohort-lines"></div></div></div>`;
+                let html =
+                    `<div class="section-title">📈 Cohort Retention Analysis</div><div class="chart-row full-width"><div class="chart-card"><div id="cohort-heatmap"></div></div></div><div class="chart-row full-width"><div class="chart-card"><div id="cohort-lines"></div></div></div>`;
                 document.getElementById('pageContent').innerHTML = html;
                 if (cohort && cohort.length) {
-                    const months = [...new Set(cohort.map(c => c.month_number))].sort((a,b)=>a-b);
+                    const months = [...new Set(cohort.map(c => c.month_number))].sort((a, b) => a - b);
                     const cohorts = [...new Set(cohort.map(c => c.cohort_month))].sort();
-                    const z = cohorts.map(co => months.map(mo => { const v = cohort.find(c => c.cohort_month === co && c.month_number === mo); return v ? v.retention_rate * 100 : null; }));
+                    const z = cohorts.map(co => months.map(mo => { const v = cohort.find(c => c.cohort_month === co && c
+                            .month_number === mo); return v ? v.retention_rate * 100 : null; }));
                     const texts = z.map(row => row.map(v => v !== null ? `${v.toFixed(1)}%` : ''));
-                    Plotly.newPlot('cohort-heatmap', [{ z, x: months, y: cohorts, type: 'heatmap', colorscale: 'Viridis', zmid: 50, text: texts, texttemplate: '%{text}', textfont: { size: 11, color: 'white' }, hovertemplate: 'Cohort: %{y}<br>Month: %{x}<br>Retention: %{z:.1f}%<extra></extra>' }], { title: 'Retention % by Cohort', height: 550 });
-                    const traces = cohorts.map(co => { const d = cohort.filter(c => c.cohort_month === co).sort((a,b)=>a.month_number - b.month_number); return { x: d.map(v => v.month_number), y: d.map(v => v.retention_rate * 100), mode: 'lines+markers', name: co }; });
+                    Plotly.newPlot('cohort-heatmap', [{ z, x: months, y: cohorts, type: 'heatmap', colorscale: 'Viridis',
+                        zmid: 50, text: texts, texttemplate: '%{text}', textfont: { size: 11, color: 'white' },
+                        hovertemplate: 'Cohort: %{y}<br>Month: %{x}<br>Retention: %{z:.1f}%<extra></extra>'
+                    }], { title: 'Retention % by Cohort', height: 550 });
+                    const traces = cohorts.map(co => { const d = cohort.filter(c => c.cohort_month === co).sort((a, b) =>
+                            a.month_number - b.month_number); return { x: d.map(v => v.month_number), y: d.map(v =>
+                            v.retention_rate * 100), mode: 'lines+markers', name: co }; });
                     renderChart('cohort-lines', traces, { title: 'Retention Curves (%)', height: 450 });
-                } else document.getElementById('cohort-heatmap').innerHTML = '<p class="caption">No cohort data</p>';
+                } else document.getElementById('cohort-heatmap').innerHTML =
+                '<p class="caption">No cohort data</p>';
             },
 
             insights: async () => {
+                // ... (unchanged) ...
                 const html = `
-                    <div class="section-title">📖 Product Features</div>
-                    <div class="info-card"><strong>🚀 About RetailPulse</strong><br>4M+ records, 99.8% validity, PySpark, Databricks, Delta Lake. 9 analytical use cases.</div>
-                    <div class="section-title">🎯 Business Problems Solved</div>
-                    <div class="use-case-grid">
-                        <div class="use-case-card"><div class="use-case-title">💰 Revenue Leakage</div><div class="use-case-desc">Identify underperforming cities/categories.</div><div class="use-case-action">Reallocate marketing budget.</div></div>
-                        <div class="use-case-card"><div class="use-case-title">👥 Customer Churn</div><div class="use-case-desc">RFM and cohort retention highlight at-risk customers.</div><div class="use-case-action">Launch reactivation campaigns.</div></div>
-                        <div class="use-case-card"><div class="use-case-title">📦 Operational Efficiency</div><div class="use-case-desc">Fulfillment gaps and payment analysis.</div><div class="use-case-action">Improve logistics & checkout.</div></div>
-                        <div class="use-case-card"><div class="use-case-title">🏷️ Product Mix</div><div class="use-case-desc">Category/subcategory revenue guides inventory.</div><div class="use-case-action">Bundle or promote accordingly.</div></div>
-                    </div>
-                    <div class="section-title">📊 Analytical Use Cases (3 Levels)</div>
-                    <div class="chart-card full-width">
-                        <div class="table-responsive">
-                            <table>
-                                <thead><tr><th>Level</th><th>Use Case</th><th>Business Question</th></tr></thead>
-                                <tbody>
-                                    <tr><td rowspan="3"><strong>Level 1</strong></td><td>CLV</td><td>Highest lifetime value customers?</td></tr>
-                                    <tr><td>Daily Revenue Trends</td><td>Seasonality or growth?</td></tr>
-                                    <tr><td>Top Cities</td><td>Where to expand?</td></tr>
-                                    <tr><td rowspan="3"><strong>Level 2</strong></td><td>Repeat vs One-Time</td><td>Conversion to loyal?</td></tr>
-                                    <tr><td>Order Fulfillment</td><td>Shipping delays impact?</td></tr>
-                                    <tr><td>Payment Methods</td><td>Which drive revenue?</td></tr>
-                                    <tr><td rowspan="3"><strong>Level 3</strong></td><td>Product Subcategory</td><td>Cash cows vs underperformers?</td></tr>
-                                    <tr><td>RFM Segmentation</td><td>Personalized marketing?</td></tr>
-                                    <tr><td>Cohort Retention</td><td>New vs old customers?</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="insight-card"><strong>🏆 Key Achievements</strong><br>4M+ records, 99.8% validity, factory pattern design, production-grade stack.</div>
-                `;
+                            <div class="section-title">📖 Product Features</div>
+                            <div class="info-card"><strong>🚀 About RetailPulse</strong><br>4M+ records, 99.8% validity, PySpark, Databricks, Delta Lake. 9 analytical use cases.</div>
+                            <div class="section-title">🎯 Business Problems Solved</div>
+                            <div class="use-case-grid">
+                                <div class="use-case-card"><div class="use-case-title">💰 Revenue Leakage</div><div class="use-case-desc">Identify underperforming cities/categories.</div><div class="use-case-action">Reallocate marketing budget.</div></div>
+                                <div class="use-case-card"><div class="use-case-title">👥 Customer Churn</div><div class="use-case-desc">RFM and cohort retention highlight at-risk customers.</div><div class="use-case-action">Launch reactivation campaigns.</div></div>
+                                <div class="use-case-card"><div class="use-case-title">📦 Operational Efficiency</div><div class="use-case-desc">Fulfillment gaps and payment analysis.</div><div class="use-case-action">Improve logistics & checkout.</div></div>
+                                <div class="use-case-card"><div class="use-case-title">🏷️ Product Mix</div><div class="use-case-desc">Category/subcategory revenue guides inventory.</div><div class="use-case-action">Bundle or promote accordingly.</div></div>
+                            </div>
+                            <div class="section-title">📊 Analytical Use Cases (3 Levels)</div>
+                            <div class="chart-card full-width">
+                                <div class="table-responsive">
+                                    <table>
+                                        <thead><tr><th>Level</th><th>Use Case</th><th>Business Question</th></tr></thead>
+                                        <tbody>
+                                            <tr><td rowspan="3"><strong>Level 1</strong></td><td>CLV</td><td>Highest lifetime value customers?</td></tr>
+                                            <tr><td>Daily Revenue Trends</td><td>Seasonality or growth?</td></tr>
+                                            <tr><td>Top Cities</td><td>Where to expand?</td></tr>
+                                            <tr><td rowspan="3"><strong>Level 2</strong></td><td>Repeat vs One-Time</td><td>Conversion to loyal?</td></tr>
+                                            <tr><td>Order Fulfillment</td><td>Shipping delays impact?</td></tr>
+                                            <tr><td>Payment Methods</td><td>Which drive revenue?</td></tr>
+                                            <tr><td rowspan="3"><strong>Level 3</strong></td><td>Product Subcategory</td><td>Cash cows vs underperformers?</td></tr>
+                                            <tr><td>RFM Segmentation</td><td>Personalized marketing?</td></tr>
+                                            <tr><td>Cohort Retention</td><td>New vs old customers?</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="insight-card"><strong>🏆 Key Achievements</strong><br>4M+ records, 99.8% validity, factory pattern design, production-grade stack.</div>
+                        `;
                 document.getElementById('pageContent').innerHTML = html;
             },
 
             nlq: async () => {
-                let html = `<div class="section-title">🗣️ Ask AI (Natural Language Query)</div><div class="info-card">💡 Ask business questions in plain English. The AI will convert your question to SQL, run it safely, and return results.</div><div class="nlq-area"><input type="text" id="nlq-question" placeholder="e.g., show me top 5 customers by revenue in March" /><button id="nlq-submit" class="btn btn-primary">🔍 Ask</button></div><div id="nlq-results"></div>`;
+                // ... (unchanged) ...
+                let html =
+                    `<div class="section-title">🗣️ Ask AI (Natural Language Query)</div><div class="info-card">💡 Ask business questions in plain English. The AI will convert your question to SQL, run it safely, and return results.</div><div class="nlq-area"><input type="text" id="nlq-question" placeholder="e.g., show me top 5 customers by revenue in March" /><button id="nlq-submit" class="btn btn-primary">🔍 Ask</button></div><div id="nlq-results"></div>`;
                 document.getElementById('pageContent').innerHTML = html;
                 document.getElementById('nlq-submit').addEventListener('click', async () => {
                     const question = document.getElementById('nlq-question').value.trim();
@@ -1303,8 +1790,11 @@
                         const resp = await fetch(`/api/ask?q=${encodeURIComponent(question)}`);
                         const data = await resp.json();
                         if (data.error) throw new Error(data.error);
-                        let cachedBadge = data.cached ? '<span class="filter-tag" style="background:#dcfce7;color:#166534;">⚡ Cached</span>' : '';
-                        let sqlBlock = `<div class="sql-block"><strong>📝 Generated SQL:</strong><br><code>${escapeHtml(data.sql)}</code></div>`;
+                        let cachedBadge = data.cached ?
+                            '<span class="filter-tag" style="background:#dcfce7;color:#166534;">⚡ Cached</span>' :
+                            '';
+                        let sqlBlock =
+                            `<div class="sql-block"><strong>📝 Generated SQL:</strong><br><code>${escapeHtml(data.sql)}</code></div>`;
                         let resultsHtml = '<table><thead><tr>';
                         if (data.results && data.results.length) {
                             const cols = Object.keys(data.results[0]);
@@ -1312,18 +1802,24 @@
                             resultsHtml += '</thead><tbody>';
                             data.results.forEach(row => {
                                 resultsHtml += '<tr>';
-                                cols.forEach(col => { let val = row[col]; if (typeof val === 'number') val = formatMoney(val); resultsHtml += `<td>${escapeHtml(String(val))}</td>`; });
+                                cols.forEach(col => { let val = row[col]; if (typeof val === 'number') val =
+                                        formatMoney(val);
+                                    resultsHtml += `<td>${escapeHtml(String(val))}</td>`; });
                                 resultsHtml += '</tr>';
                             });
                             resultsHtml += '</tbody></table>';
                         } else resultsHtml = '<div class="warning-card">No results found.</div>';
-                        resultsDiv.innerHTML = `<div class="insight-card">✔️ Question: <strong>${escapeHtml(question)}</strong> ${cachedBadge}</div>${sqlBlock}<div class="section-title">📊 Results</div>${resultsHtml}`;
+                        resultsDiv.innerHTML =
+                            `<div class="insight-card">✔️ Question: <strong>${escapeHtml(question)}</strong> ${cachedBadge}</div>${sqlBlock}<div class="section-title">📊 Results</div>${resultsHtml}`;
                     } catch (err) { resultsDiv.innerHTML = `<div class="warning-card">⚠️ Error: ${err.message}</div>`; }
                 });
             },
 
             simulate: async () => {
-                let currentRevenue = 0; try { const kpis = await fetchJSON('/api/kpis'); currentRevenue = kpis.total_revenue || 0; } catch(e) { console.warn(e); }
+                // ... (unchanged) ...
+                let currentRevenue = 0;
+                try { const kpis = await fetchJSON('/api/kpis');
+                    currentRevenue = kpis.total_revenue || 0; } catch (e) { console.warn(e); }
                 let html = `<div class="section-title">🎲 What-If Simulator</div>
                             <div class="sim-card">
                                 <div class="flex" style="justify-content:space-between;">
@@ -1346,48 +1842,437 @@
                             </div>
                             <div class="chart-card"><div id="simulation-chart" style="height:500px;"></div></div>`;
                 document.getElementById('pageContent').innerHTML = html;
-                let currentMetric = 'repeat_rate', currentDelta = 5, simulationHistory = [];
+                let currentMetric = 'repeat_rate',
+                    currentDelta = 5,
+                    simulationHistory = [];
+
                 function updateMetricUI() {
-                    const cfg = { repeat_rate: { label: 'Repeat Rate', unit: 'pp', min:0, max:20, step:1, default:5 },
-                                  aov: { label: 'AOV', unit: '%', min:0, max:30, step:1, default:10 },
-                                  churn_rate: { label: 'Reduce Churn by', unit: '%', min:0, max:15, step:1, default:5 },
-                                  fulfillment_days: { label: 'Reduce Fulfillment Days', unit: 'days', min:0, max:5, step:0.5, default:2 } }[currentMetric];
+                    const cfg = { repeat_rate: { label: 'Repeat Rate', unit: 'pp', min: 0, max: 20, step: 1,
+                            default: 5 },
+                        aov: { label: 'AOV', unit: '%', min: 0, max: 30, step: 1, default: 10 },
+                        churn_rate: { label: 'Reduce Churn by', unit: '%', min: 0, max: 15, step: 1,
+                        default: 5 },
+                        fulfillment_days: { label: 'Reduce Fulfillment Days', unit: 'days', min: 0, max: 5,
+                            step: 0.5, default: 2 } } [currentMetric];
                     currentDelta = cfg.default;
-                    document.getElementById('metric-specific-control').innerHTML = `<div><span>${cfg.label}:</span><input type="range" id="delta-slider" min="${cfg.min}" max="${cfg.max}" step="${cfg.step}" value="${cfg.default}" style="width:200px; margin:0 10px;"><span id="delta-value">${cfg.default}</span> ${cfg.unit}</div>`;
-                    document.getElementById('delta-slider').oninput = (e) => { currentDelta = parseFloat(e.target.value); document.getElementById('delta-value').innerText = currentDelta; };
+                    document.getElementById('metric-specific-control').innerHTML =
+                        `<div><span>${cfg.label}:</span><input type="range" id="delta-slider" min="${cfg.min}" max="${cfg.max}" step="${cfg.step}" value="${cfg.default}" style="width:200px; margin:0 10px;"><span id="delta-value">${cfg.default}</span> ${cfg.unit}</div>`;
+                    document.getElementById('delta-slider').oninput = (e) => { currentDelta = parseFloat(e.target.value);
+                        document.getElementById('delta-value').innerText = currentDelta; };
                     document.querySelectorAll('.sim-metrics button').forEach(btn => btn.classList.remove('active'));
-                    document.getElementById(`metric-${currentMetric === 'repeat_rate' ? 'repeat' : (currentMetric === 'aov' ? 'aov' : (currentMetric === 'churn_rate' ? 'churn' : 'fulfillment'))}`).classList.add('active');
+                    document.getElementById(
+                        `metric-${currentMetric === 'repeat_rate' ? 'repeat' : (currentMetric === 'aov' ? 'aov' : (currentMetric === 'churn_rate' ? 'churn' : 'fulfillment'))}`
+                        ).classList.add('active');
                 }
-                document.getElementById('metric-repeat').onclick = () => { currentMetric = 'repeat_rate'; updateMetricUI(); };
-                document.getElementById('metric-aov').onclick = () => { currentMetric = 'aov'; updateMetricUI(); };
-                document.getElementById('metric-churn').onclick = () => { currentMetric = 'churn_rate'; updateMetricUI(); };
-                document.getElementById('metric-fulfillment').onclick = () => { currentMetric = 'fulfillment_days'; updateMetricUI(); };
+                document.getElementById('metric-repeat').onclick = () => { currentMetric = 'repeat_rate';
+                    updateMetricUI(); };
+                document.getElementById('metric-aov').onclick = () => { currentMetric = 'aov';
+                    updateMetricUI(); };
+                document.getElementById('metric-churn').onclick = () => { currentMetric = 'churn_rate';
+                    updateMetricUI(); };
+                document.getElementById('metric-fulfillment').onclick = () => { currentMetric = 'fulfillment_days';
+                    updateMetricUI(); };
                 updateMetricUI();
                 async function runSimulation() {
-                    const res = await fetch('/api/simulate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ metric: currentMetric, delta: currentDelta }) });
+                    const res = await fetch('/api/simulate', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ metric: currentMetric, delta: currentDelta }) });
                     const data = await res.json();
                     if (data.error) alert(data.error);
                     else {
-                        simulationHistory.unshift({ metric: currentMetric, delta: currentDelta, uplift: data.estimated_revenue_uplift, percentUplift: data.uplift_percentage });
+                        simulationHistory.unshift({ metric: currentMetric, delta: currentDelta, uplift: data
+                                .estimated_revenue_uplift, percentUplift: data.uplift_percentage });
                         if (simulationHistory.length > 6) simulationHistory.pop();
-                        document.getElementById('simulation-result').innerHTML = `<span>⬆️ ${formatMoney(data.estimated_revenue_uplift)} (${data.uplift_percentage.toFixed(1)}% uplift) | New: ${formatMoney(data.new_total_revenue)}</span>`;
-                        const labels = simulationHistory.map(s => `${s.metric.replace('_',' ')}: ${s.delta}${s.metric==='repeat_rate'?'pp':(s.metric==='aov'?'%':'d')}`);
+                        document.getElementById('simulation-result').innerHTML =
+                            `<span>⬆️ ${formatMoney(data.estimated_revenue_uplift)} (${data.uplift_percentage.toFixed(1)}% uplift) | New: ${formatMoney(data.new_total_revenue)}</span>`;
+                        const labels = simulationHistory.map(s =>
+                            `${s.metric.replace('_',' ')}: ${s.delta}${s.metric==='repeat_rate'?'pp':(s.metric==='aov'?'%':'d')}`
+                            );
                         const uplifts = simulationHistory.map(s => s.uplift);
-                        Plotly.newPlot('simulation-chart', [{ x: labels, y: uplifts, type: 'bar', marker: { color: '#1e3c72' }, text: uplifts.map(v=>formatMoney(v)), textposition: 'outside' }], { title: 'Revenue Uplift by Scenario', height: 500 });
+                        Plotly.newPlot('simulation-chart', [{ x: labels, y: uplifts, type: 'bar', marker: { color: '#1e3c72' },
+                            text: uplifts.map(v => formatMoney(v)), textposition: 'outside' }], { title: 'Revenue Uplift by Scenario',
+                            height: 500 });
                     }
                 }
                 document.getElementById('run-simulation').onclick = runSimulation;
-                document.getElementById('reset-history').onclick = () => { simulationHistory = []; Plotly.purge('simulation-chart'); document.getElementById('simulation-result').innerHTML = ''; };
+                document.getElementById('reset-history').onclick = () => { simulationHistory = [];
+                    Plotly.purge('simulation-chart');
+                    document.getElementById('simulation-result').innerHTML = ''; };
                 document.getElementById('retrain-model').onclick = async () => {
                     const btn = document.getElementById('retrain-model');
-                    btn.disabled = true; btn.innerText = '⏳ Training...';
+                    btn.disabled = true;
+                    btn.innerText = '⏳ Training...';
                     try {
                         const res = await fetch('/api/simulate/train', { method: 'POST' });
                         const data = await res.json();
-                        alert(`Model retrained!\nRepeat ${data.coefficients.repeat_rate?.toFixed(4)}, AOV ${data.coefficients.aov?.toFixed(4)}, Churn ${data.coefficients.churn_rate?.toFixed(4)}`);
-                    } catch(e) { alert('Training failed'); }
-                    finally { btn.disabled = false; btn.innerText = 'Retrain model'; }
+                        alert(
+                            `Model retrained!\nRepeat ${data.coefficients.repeat_rate?.toFixed(4)}, AOV ${data.coefficients.aov?.toFixed(4)}, Churn ${data.coefficients.churn_rate?.toFixed(4)}`
+                            );
+                    } catch (e) { alert('Training failed'); } finally { btn.disabled = false;
+                        btn.innerText = 'Retrain model'; }
                 }
+            },
+
+            // ========== CHURN PAGE — FIXED SELECTORS ==========
+            churn: async () => {
+                document.getElementById('pageContent').innerHTML =
+                    '<div class="loader"><div class="spinner"></div>Loading churn predictions...</div>';
+
+                // Use global variables for threshold and row limit
+                const threshold = currentChurnThreshold || 180;
+                const rowLimit = currentChurnRowLimit || 10;
+
+                let [stats, timeline] = await Promise.all([
+                    fetch(`/api/churn/stats?threshold=${threshold}`).then(r => r.json()).catch(() => ({})),
+                    fetch(`/api/churn/revenue_timeline?threshold=${threshold}`).then(r => r.json()).catch(() => [])
+                ]);
+
+                let atRisk = await fetch(`/api/churn/at_risk?limit=${rowLimit}&threshold=${threshold}`)
+                    .then(r => r.json()).catch(() => []);
+
+                // --- Build the churn page HTML ---
+                let html = `
+                            <div class="section-title">⚠️ Customer Churn Prediction</div>
+                            <div class="insight-card">
+                                🔍 Identify customers at risk of churning based on purchase behavior.
+                                <br>Model uses: recency, frequency, monetary, tenure, average order value, and order gaps.
+                            </div>
+
+                            <!-- Controls -->
+                            <div class="churn-controls">
+                                <span class="filter-label">Churn Threshold (days):</span>
+                                <select id="churn-threshold-select" class="filter-select">
+                                    <option value="30" ${threshold===30?'selected':''}>30 days</option>
+                                    <option value="60" ${threshold===60?'selected':''}>60 days</option>
+                                    <option value="90" ${threshold===90?'selected':''}>90 days</option>
+                                    <option value="120" ${threshold===120?'selected':''}>120 days</option>
+                                    <option value="180" ${threshold===180?'selected':''}>180 days</option>
+                                    <option value="365" ${threshold===365?'selected':''}>365 days</option>
+                                </select>
+                                <button id="churn-apply-threshold" class="btn btn-primary">Apply</button>
+                                <span class="filter-label" style="margin-left:0.5rem;">Rows per page:</span>
+                                <select id="churn-row-limit" class="filter-select">
+                                    <option value="10" ${rowLimit===10?'selected':''}>10</option>
+                                    <option value="100" ${rowLimit===100?'selected':''}>100</option>
+                                    <option value="1000" ${rowLimit===1000?'selected':''}>1000</option>
+                                    <option value="-1" ${rowLimit===-1?'selected':''}>All</option>
+                                </select>
+                                <button id="churn-apply-limit" class="btn btn-primary">Apply</button>
+                            </div>
+
+                            <!-- KPI Grid -->
+                            <div class="metric-grid">
+                                <div class="metric-card"><div class="metric-value">${stats.total_customers || 0}</div><div class="metric-label">Total Customers</div></div>
+                                <div class="metric-card"><div class="metric-value">${stats.actual_churned || 0}</div><div class="metric-label">Churned (${threshold}d)</div></div>
+                                <div class="metric-card"><div class="metric-value">${stats.churn_rate || 0}%</div><div class="metric-label">Churn Rate</div></div>
+                                <div class="metric-card"><div class="metric-value">${(stats.avg_probability * 100).toFixed(1) || 0}%</div><div class="metric-label">Avg Churn Probability</div></div>
+                            </div>
+
+                            <!-- === CHARTS: PIE (full-width, expanded) + TIMELINE === -->
+                            <div class="churn-section-divider"><h3>📊 Risk Distribution</h3><span class="line"></span></div>
+                            <div class="chart-row churn-pie-wrapper">
+                                <div class="chart-card full-width">
+                                    <div id="risk-pie-chart"></div>
+                                    <div class="caption">Customer risk segmentation — High (🔴), Medium (🟡), Low (🟢)</div>
+                                </div>
+                            </div>
+
+                            <div class="churn-section-divider"><h3>📈 Revenue vs Churn Rate</h3><span class="line"></span></div>
+                            <div class="chart-row churn-timeline-wrapper">
+                                <div class="chart-card full-width">
+                                    <div id="revenue-timeline-chart"></div>
+                                    <div class="caption">Monthly revenue (bars) vs churn rate (line) — track performance over time</div>
+                                </div>
+                            </div>
+
+                            <!-- Search / Predict -->
+                            <div class="churn-section-divider"><h3>🔍 Predict Individual Customer</h3><span class="line"></span></div>
+                            <div class="churn-search-row">
+                                <span class="filter-label">Customer ID:</span>
+                                <input type="number" id="churn-search-id" class="filter-input" placeholder="e.g. 12345">
+                                <button id="churn-search-btn" class="btn btn-primary">🔍 Predict</button>
+                                <button id="churn-refresh-btn" class="btn btn-outline">🔄 Refresh</button>
+                                <button id="churn-train-btn" class="btn btn-danger">🧠 Retrain Model</button>
+                            </div>
+                            <div id="churn-search-result"></div>
+
+                            <!-- High-Risk Table -->
+                            <div class="churn-section-divider"><h3>📋 High-Risk Customers</h3><span class="line"></span></div>
+                            <div class="chart-card full-width">
+                                <div class="table-responsive" style="max-height:500px; overflow-y:auto;">
+                                    <table>
+                                        <thead><tr><th>ID</th><th>Churn Probability</th><th>Risk</th><th>Recency (days)</th><th>Frequency</th><th>Monetary</th></tr></thead>
+                                        <tbody id="churn-tbody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        `;
+                document.getElementById('pageContent').innerHTML = html;
+
+                // --- render table ---
+                function renderTable(data) {
+                    const tbody = document.getElementById('churn-tbody');
+                    tbody.innerHTML = '';
+                    if (!data || data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6">No customers found</td></tr>';
+                        return;
+                    }
+                    data.forEach(c => {
+                        const row = tbody.insertRow();
+                        row.insertCell(0).innerText = c.customer_id;
+                        const prob = (c.churn_probability * 100).toFixed(1) + '%';
+                        row.insertCell(1).innerText = prob;
+                        const risk = c.churn_risk || 'Unknown';
+                        const color = risk === 'High' ? '#ef4444' : (risk === 'Medium' ? '#f59e0b' : '#22c55e');
+                        row.insertCell(2).innerHTML =
+                            `<span style="color:${color};font-weight:bold;text-transform:uppercase;">${risk}</span>`;
+                        row.insertCell(3).innerText = c.recency || 0;
+                        row.insertCell(4).innerText = c.frequency || 0;
+                        row.insertCell(5).innerText = formatMoney(c.monetary || 0);
+                    });
+                }
+
+                // --- render pie chart (expanded, full-width, larger) ---
+                function renderPieChart(stats) {
+                    const container = document.getElementById('risk-pie-chart');
+                    if (!stats.risk_distribution || Object.keys(stats.risk_distribution).length === 0) {
+                        container.innerHTML =
+                            '<div class="insight-card" style="text-align:center;padding:2rem;">No risk distribution data available</div>';
+                        return;
+                    }
+                    const labels = Object.keys(stats.risk_distribution);
+                    const values = Object.values(stats.risk_distribution);
+                    const colors = { High: '#ef4444', Medium: '#f59e0b', Low: '#22c55e' };
+                    const markerColors = labels.map(l => colors[l] || '#6b7280');
+
+                    // Use Plotly directly for finer control
+                    const trace = {
+                        labels: labels,
+                        values: values,
+                        type: 'pie',
+                        marker: { colors: markerColors, line: { color: 'white', width: 2 } },
+                        textinfo: 'label+percent',
+                        textposition: 'inside',
+                        hoverinfo: 'label+percent+value',
+                        hole: 0.45,
+                        rotation: 0,
+                        sort: false,
+                        textfont: { size: 16, color: 'white', family: 'Inter, sans-serif' },
+                        pull: labels.map(l => l === 'High' ? 0.08 : 0.04),
+                        automargin: true
+                    };
+
+                    const layout = {
+                        title: {
+                            text: 'Risk Distribution',
+                            font: { size: 18, family: 'Inter, sans-serif', color: '#0b1a33' },
+                            y: 0.96
+                        },
+                        height: 520,
+                        margin: { l: 40, r: 40, t: 60, b: 40 },
+                        showlegend: true,
+                        legend: {
+                            orientation: 'h',
+                            yanchor: 'bottom',
+                            y: -0.15,
+                            xanchor: 'center',
+                            x: 0.5,
+                            font: { size: 13, family: 'Inter, sans-serif' },
+                            bgcolor: 'rgba(255,255,255,0.8)'
+                        },
+                        annotations: [{
+                            text: `${stats.total_customers || 0}<br>total`,
+                            showarrow: false,
+                            font: { size: 20, family: 'Inter, sans-serif', color: '#1e3c72' },
+                            x: 0.5,
+                            y: 0.5,
+                            xanchor: 'center',
+                            yanchor: 'middle'
+                        }],
+                        paper_bgcolor: 'rgba(0,0,0,0)',
+                        plot_bgcolor: 'rgba(0,0,0,0)'
+                    };
+
+                    Plotly.newPlot('risk-pie-chart', [trace], layout, { responsive: true });
+                }
+
+                // --- render timeline chart (full-width, comfortable height) ---
+                function renderTimeline(timeline) {
+                    const container = document.getElementById('revenue-timeline-chart');
+                    if (!timeline || timeline.length === 0) {
+                        container.innerHTML =
+                            '<div class="insight-card" style="text-align:center;padding:2rem;">No timeline data available</div>';
+                        return;
+                    }
+                    const months = timeline.map(d => d.month.slice(0, 7));
+                    const revenue = timeline.map(d => d.revenue);
+                    const churnRate = timeline.map(d => d.churn_rate);
+
+                    const trace1 = {
+                        x: months,
+                        y: revenue,
+                        type: 'bar',
+                        name: 'Revenue',
+                        marker: { color: '#1e3c72', opacity: 0.85 },
+                        yaxis: 'y1',
+                        text: revenue.map(v => formatMoney(v)),
+                        textposition: 'outside',
+                        textfont: { size: 10 }
+                    };
+                    const trace2 = {
+                        x: months,
+                        y: churnRate,
+                        type: 'scatter',
+                        mode: 'lines+markers',
+                        name: 'Churn Rate (%)',
+                        marker: { color: '#ef4444', size: 9 },
+                        line: { color: '#ef4444', width: 3 },
+                        yaxis: 'y2',
+                        text: churnRate.map(v => v.toFixed(1) + '%'),
+                        textposition: 'top center',
+                        textfont: { size: 10, color: '#ef4444' }
+                    };
+
+                    const layout = {
+                        title: {
+                            text: 'Monthly Revenue vs Churn Rate',
+                            font: { size: 18, family: 'Inter, sans-serif', color: '#0b1a33' },
+                            y: 0.96
+                        },
+                        height: 450,
+                        margin: { l: 60, r: 60, t: 60, b: 50 },
+                        xaxis: { title: 'Month', tickangle: -30, gridcolor: '#f1f4fa' },
+                        yaxis: {
+                            title: { text: 'Revenue ($)', font: { color: '#1e3c72' } },
+                            tickprefix: '$',
+                            tickformat: ',.0f',
+                            gridcolor: '#f1f4fa',
+                            side: 'left',
+                            color: '#1e3c72'
+                        },
+                        yaxis2: {
+                            title: { text: 'Churn Rate (%)', font: { color: '#ef4444' } },
+                            overlaying: 'y',
+                            side: 'right',
+                            color: '#ef4444',
+                            gridcolor: 'rgba(239,68,68,0.08)',
+                            range: [0, Math.max(...churnRate) * 1.25 || 100]
+                        },
+                        legend: {
+                            orientation: 'h',
+                            yanchor: 'bottom',
+                            y: -0.25,
+                            xanchor: 'center',
+                            x: 0.5,
+                            font: { size: 13, family: 'Inter, sans-serif' },
+                            bgcolor: 'rgba(255,255,255,0.85)',
+                            bordercolor: '#e9edf4',
+                            borderwidth: 1
+                        },
+                        paper_bgcolor: 'rgba(0,0,0,0)',
+                        plot_bgcolor: 'rgba(0,0,0,0)',
+                        hovermode: 'x unified'
+                    };
+
+                    Plotly.newPlot('revenue-timeline-chart', [trace1, trace2], layout, { responsive: true });
+                }
+
+                // --- render everything ---
+                renderTable(atRisk);
+                renderPieChart(stats);
+                renderTimeline(timeline);
+
+                // --- event listeners ---
+                // Threshold Apply
+                document.getElementById('churn-apply-threshold').addEventListener('click', async () => {
+                    const sel = document.getElementById('churn-threshold-select');
+                    const newThreshold = parseInt(sel.value, 10);
+                    currentChurnThreshold = newThreshold;
+                    await pages.churn();
+                });
+
+                // Row Limit Apply
+                document.getElementById('churn-apply-limit').addEventListener('click', async () => {
+                    const sel = document.getElementById('churn-row-limit');
+                    const newLimit = parseInt(sel.value, 10);
+                    currentChurnRowLimit = newLimit;
+                    await pages.churn();
+                });
+
+                // Predict button
+                document.getElementById('churn-search-btn').addEventListener('click', async () => {
+                    const id = document.getElementById('churn-search-id').value.trim();
+                    if (!id) return;
+                    const resultDiv = document.getElementById('churn-search-result');
+                    resultDiv.innerHTML = '<div class="loader"><div class="spinner"></div>Predicting...</div>';
+                    try {
+                        const resp = await fetch(`/api/churn/predict?customer_id=${id}`);
+                        const data = await resp.json();
+                        if (data.error) {
+                            resultDiv.innerHTML = `<div class="warning-card">⚠️ ${data.error}</div>`;
+                            return;
+                        }
+                        const prob = (data.churn_probability * 100).toFixed(1) + '%';
+                        const riskColor = data.churn_risk === 'High' ? '#ef4444' : (data.churn_risk === 'Medium' ?
+                            '#f59e0b' : '#22c55e');
+                        const riskBadge =
+                            `<span class="churn-risk-badge ${data.churn_risk?.toLowerCase() || ''}">${data.churn_risk || 'Unknown'}</span>`;
+                        resultDiv.innerHTML = `
+                                    <div class="insight-card" style="border-left-color:${riskColor};">
+                                        <strong>Customer ID:</strong> ${data.customer_id} &nbsp;|&nbsp;
+                                        <strong>Churn Probability:</strong> <span style="color:${riskColor};font-weight:bold;font-size:1.1rem;">${prob}</span> &nbsp;|&nbsp;
+                                        <strong>Risk:</strong> ${riskBadge}
+                                        <br><small>Features: Recency ${data.features.recency} days · Frequency ${data.features.frequency} · Monetary ${formatMoney(data.features.monetary)}</small>
+                                    </div>
+                                `;
+                    } catch (e) {
+                        resultDiv.innerHTML = `<div class="warning-card">⚠️ Error: ${e.message}</div>`;
+                    }
+                });
+
+                // Refresh button
+                document.getElementById('churn-refresh-btn').addEventListener('click', async () => {
+                    const rowLimit = currentChurnRowLimit || 10;
+                    const threshold = currentChurnThreshold || 180;
+                    document.getElementById('churn-tbody').innerHTML = '<tr><td colspan="6">Loading...</td></tr>';
+                    try {
+                        const [newAtRisk, newStats, newTimeline] = await Promise.all([
+                            fetch(`/api/churn/at_risk?limit=${rowLimit}&threshold=${threshold}`).then(r => r.json()),
+                            fetch(`/api/churn/stats?threshold=${threshold}`).then(r => r.json()),
+                            fetch(`/api/churn/revenue_timeline?threshold=${threshold}`).then(r => r.json())
+                        ]);
+                        atRisk = newAtRisk;
+                        stats = newStats;
+                        timeline = newTimeline;
+                        renderTable(atRisk);
+                        renderPieChart(stats);
+                        renderTimeline(timeline);
+                    } catch (e) {
+                        alert('Failed to refresh list');
+                    }
+                });
+
+                // Train button
+                document.getElementById('churn-train-btn').addEventListener('click', async () => {
+                    if (!confirm('Retrain churn model? This may take a moment.')) return;
+                    const btn = document.getElementById('churn-train-btn');
+                    btn.disabled = true;
+                    btn.innerText = '⏳ Training...';
+                    try {
+                        const resp = await fetch('/api/churn/train', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ threshold: currentChurnThreshold })
+                        });
+                        const data = await resp.json();
+                        alert(data.message || data.error || 'Training completed.');
+                        document.getElementById('churn-refresh-btn').click();
+                    } catch (e) {
+                        alert('Training failed: ' + e.message);
+                    } finally {
+                        btn.disabled = false;
+                        btn.innerText = '🧠 Retrain Model';
+                    }
+                });
             }
         };
 
@@ -1410,25 +2295,28 @@
         // ========== AI INSIGHTS ==========
         async function getAIInsights() {
             console.log('🔍 AI Insights requested');
-            const [kpis, daily, monthly, cities, categories, repeatRaw, rfm, cohort, anomalies, highRisk, clv] = await Promise.all([
-                fetchJSON('/api/kpis'),
-                fetchJSON('/api/daily_revenue?limit=30'),
-                fetchJSON('/api/monthly_revenue?limit=12'),
-                fetchJSON('/api/top_cities?limit=5'),
-                fetchJSON('/api/revenue_by_category?limit=10'),
-                fetchJSON('/api/repeat_vs_onetime').catch(()=>[]),
-                fetchJSON('/api/rfm_segmentation?limit=5').catch(()=>[]),
-                fetchJSON('/api/cohort_retention?limit=5').catch(()=>[]),
-                fetchJSON('/api/revenue_anomalies').catch(()=>[]),
-                fetchJSON('/api/high_risk_customers?limit=5').catch(()=>[]),
-                fetchJSON('/api/customer_clv').catch(()=>({}))
-            ]);
-            const repeat = repeatRaw.reduce((acc,r)=>{ acc[r.customer_type]=r.customer_count; return acc; }, {});
-            const payload = { filters: filterState, persona: currentPersona, kpis, daily_revenue: daily, monthly_revenue: monthly, top_cities: cities, revenue_categories: categories, repeat_customers: repeat, clv_data: clv, rfm_segments: rfm.slice(0,5), cohort_retention: cohort.slice(0,5), anomalies, high_risk_customers: highRisk };
+            const [kpis, daily, monthly, cities, categories, repeatRaw, rfm, cohort, anomalies, highRisk, clv] = await Promise
+                .all([
+                    fetchJSON('/api/kpis'),
+                    fetchJSON('/api/daily_revenue?limit=30'),
+                    fetchJSON('/api/monthly_revenue?limit=12'),
+                    fetchJSON('/api/top_cities?limit=5'),
+                    fetchJSON('/api/revenue_by_category?limit=10'),
+                    fetchJSON('/api/repeat_vs_onetime').catch(() => []),
+                    fetchJSON('/api/rfm_segmentation?limit=5').catch(() => []),
+                    fetchJSON('/api/cohort_retention?limit=5').catch(() => []),
+                    fetchJSON('/api/revenue_anomalies').catch(() => []),
+                    fetchJSON('/api/high_risk_customers?limit=5').catch(() => []),
+                    fetchJSON('/api/customer_clv').catch(() => ({}))
+                ]);
+            const repeat = repeatRaw.reduce((acc, r) => { acc[r.customer_type] = r.customer_count; return acc; }, {});
+            const payload = { filters: filterState, persona: currentPersona, kpis, daily_revenue: daily,
+                monthly_revenue: monthly, top_cities: cities, revenue_categories: categories, repeat_customers: repeat,
+                clv_data: clv, rfm_segments: rfm.slice(0, 5), cohort_retention: cohort.slice(0, 5), anomalies,
+                high_risk_customers: highRisk };
 
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 seconds
-
+            const timeoutId = setTimeout(() => controller.abort(), 60000);
             try {
                 console.log('📤 Sending AI request...');
                 const res = await fetch('/api/ai_insights', {
@@ -1463,34 +2351,40 @@
                 const insights = await getAIInsights();
                 const rendered = renderMarkdown(insights);
                 lastInsightsHtml = rendered;
-                bodyDiv.innerHTML = rendered + `<div class="flex" style="margin-top:1.5rem; justify-content:space-between; flex-wrap:wrap; border-top:1px solid #e9edf4; padding-top:1rem;">
-                    <span style="font-size:0.7rem;color:#7a8aa8;">🤖 Persona: ${currentPersona}</span>
-                    <div class="flex">
-                        <button class="btn btn-outline" id="feedback-up">👍 Helpful</button>
-                        <button class="btn btn-outline" id="feedback-down">👎 Not helpful</button>
-                        <button class="btn btn-outline" id="copy-report-btn">📋 Copy</button>
-                    </div>
-                </div>`;
-                document.getElementById('copy-report-btn').addEventListener('click', () => { navigator.clipboard.writeText(document.getElementById('aiInsightsBody').innerText).then(() => alert('Report copied!')); });
+                bodyDiv.innerHTML = rendered +
+                    `<div class="flex" style="margin-top:1.5rem; justify-content:space-between; flex-wrap:wrap; border-top:1px solid #e9edf4; padding-top:1rem;">
+                                    <span style="font-size:0.7rem;color:#7a8aa8;">🤖 Persona: ${currentPersona}</span>
+                                    <div class="flex">
+                                        <button class="btn btn-outline" id="feedback-up">👍 Helpful</button>
+                                        <button class="btn btn-outline" id="feedback-down">👎 Not helpful</button>
+                                        <button class="btn btn-outline" id="copy-report-btn">📋 Copy</button>
+                                    </div>
+                                </div>`;
+                document.getElementById('copy-report-btn').addEventListener('click', () => { navigator.clipboard.writeText(
+                        document.getElementById('aiInsightsBody').innerText).then(() => alert('Report copied!')); });
                 document.getElementById('feedback-up').addEventListener('click', () => sendFeedback('up'));
                 document.getElementById('feedback-down').addEventListener('click', () => sendFeedback('down'));
-            } catch(err) { bodyDiv.innerHTML = `<div class="warning-card">⚠️ Error: ${err.message}</div>`; }
+            } catch (err) { bodyDiv.innerHTML = `<div class="warning-card">⚠️ Error: ${err.message}</div>`; }
         });
 
         async function sendFeedback(type) {
-            try { await fetch('/api/feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ persona: currentPersona, feedback: type }) }); alert(`Thank you!`); } catch(e) { console.error(e); }
+            try { await fetch('/api/feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ persona: currentPersona, feedback: type }) });
+                alert(`Thank you!`); } catch (e) { console.error(e); }
         }
 
         // ========== EVENT BINDINGS ==========
-        document.getElementById('closeModal').addEventListener('click', () => { document.getElementById('aiModal').style.display = 'none'; });
-        window.addEventListener('click', e => { if (e.target === document.getElementById('aiModal')) document.getElementById('aiModal').style.display = 'none'; });
+        document.getElementById('closeModal').addEventListener('click', () => { document.getElementById('aiModal').style
+                .display = 'none'; });
+        window.addEventListener('click', e => { if (e.target === document.getElementById('aiModal')) document.getElementById(
+                'aiModal').style.display = 'none'; });
         document.getElementById('exportPdf').onclick = async () => {
             const kpis = await fetchJSON('/api/kpis');
             const payload = {
                 format: 'pdf',
                 kpis: kpis,
                 insights_html: lastInsightsHtml,
-                charts: chartData,   // make sure chartData is defined globally
+                charts: chartData,
                 filters: filterState
             };
             const res = await fetch('/api/export', {
@@ -1524,7 +2418,7 @@
                     toast.style.display = 'block';
                     setTimeout(() => toast.style.display = 'none', 3000);
                 }
-            } catch(err) { alert('Alert check failed: ' + err.message); }
+            } catch (err) { alert('Alert check failed: ' + err.message); }
         });
 
         document.getElementById('persona-select').addEventListener('change', (e) => { currentPersona = e.target.value; });
@@ -1543,17 +2437,30 @@
         async function initFilters() {
             try {
                 const range = await fetchJSON('/api/date_range');
-                if (range.min_date) { document.getElementById('date-min').value = range.min_date; document.getElementById('date-max').value = range.max_date; filterState.dateRange = { min: range.min_date, max: range.max_date }; }
-            } catch(e) {}
+                if (range.min_date) { document.getElementById('date-min').value = range.min_date;
+                    document.getElementById('date-max').value = range.max_date;
+                    filterState.dateRange = { min: range.min_date, max: range.max_date }; }
+            } catch (e) {}
             const slider = document.getElementById('value-slider');
-            slider.addEventListener('input', (e) => { const val = parseInt(e.target.value); document.getElementById('value-range-display').innerText = `0 – ${val}`; filterState.valueRange = { min: 0, max: val }; updateFilterUI(); refreshCurrentPage(); });
-            document.getElementById('date-min').addEventListener('change', e => { filterState.dateRange.min = e.target.value; if (filterState.dateRange.max) refreshCurrentPage(); updateFilterUI(); });
-            document.getElementById('date-max').addEventListener('change', e => { filterState.dateRange.max = e.target.value; if (filterState.dateRange.min) refreshCurrentPage(); updateFilterUI(); });
+            slider.addEventListener('input', (e) => { const val = parseInt(e.target.value);
+                document.getElementById('value-range-display').innerText = `0 – ${val}`;
+                filterState.valueRange = { min: 0, max: val };
+                updateFilterUI();
+                refreshCurrentPage(); });
+            document.getElementById('date-min').addEventListener('change', e => { filterState.dateRange.min = e.target.value;
+                if (filterState.dateRange.max) refreshCurrentPage();
+                updateFilterUI(); });
+            document.getElementById('date-max').addEventListener('change', e => { filterState.dateRange.max = e.target.value;
+                if (filterState.dateRange.min) refreshCurrentPage();
+                updateFilterUI(); });
             document.getElementById('clear-filters').addEventListener('click', () => {
-                filterState = { dateRange: { min: null, max: null }, valueRange: { min: null, max: null }, selectedCity: null, selectedCategory: null, selectedSegment: null };
-                document.getElementById('date-min').value = ''; document.getElementById('date-max').value = '';
+                filterState = { dateRange: { min: null, max: null }, valueRange: { min: null, max: null },
+                    selectedCity: null, selectedCategory: null, selectedSegment: null };
+                document.getElementById('date-min').value = '';
+                document.getElementById('date-max').value = '';
                 document.getElementById('value-slider').value = document.getElementById('value-slider').max;
-                refreshCurrentPage(); updateFilterUI();
+                refreshCurrentPage();
+                updateFilterUI();
             });
         }
 

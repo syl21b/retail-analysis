@@ -11,7 +11,7 @@ import numpy as np
 
 from config import Config
 from auth import require_auth, require_role, rate_limit, auth_manager
-import database   # <-- changed from: from database import db
+import database
 from data_loader import loader, friendly_data, get_dataset
 from sql_helpers import sanitize_output, validate_nlq_input, add_schema_prefix, fix_date_extract, create_performance_indexes
 from ai import (
@@ -23,7 +23,7 @@ from ai import (
     generate_local_deep_insights_fallback
 )
 from simulation import SIMULATION_COEFFS, train_simulation_model
-from export import generate_report_html, generate_pdf_from_html, generate_powerpoint_report
+from export import generate_report_html, generate_pdf_from_html
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +41,7 @@ def get_schema_description():
         WHERE table_schema = %s AND table_type = 'BASE TABLE'
         ORDER BY table_name;
     """
-    tables = database.db.execute_query(tables_query, (schema_name,))   # <-- database.db
+    tables = database.db.execute_query(tables_query, (schema_name,))
     if not tables:
         return "No tables found in public schema."
     description = "Database schema for retail analytics (schema: public):\n\n"
@@ -53,7 +53,7 @@ def get_schema_description():
             WHERE table_schema = %s AND table_name = %s
             ORDER BY ordinal_position;
         """
-        columns = database.db.execute_query(cols_query, (schema_name, table))   # <-- database.db
+        columns = database.db.execute_query(cols_query, (schema_name, table))
         if columns:
             col_list = ", ".join([f"{c['column_name']} ({c['data_type']})" for c in columns])
             description += f"- public.{table}: {col_list}\n"
@@ -118,14 +118,13 @@ SQL query:
     return sql
 
 # ------------------------------
-#  Alert helper (missing from modular version)
+#  Alert helper
 # ------------------------------
 def check_and_trigger_alerts(kpis, anomalies, repeat_customers, extra_metrics):
     alerts = []
     if anomalies and len(anomalies) > 0:
         alert_msg = f"⚠️ Revenue Anomaly: {len(anomalies)} days with >20% drop."
         alerts.append(alert_msg)
-        # Simulated alerts – replace with actual Slack/Jira if needed
         logger.info(f"SIMULATED SLACK ALERT: {alert_msg}")
         logger.info(f"SIMULATED JIRA CARD: Revenue Anomaly Alert\n{alert_msg}")
     one_time = repeat_customers.get('one-time', 0)
@@ -271,7 +270,7 @@ def register_routes(app):
             })
         return jsonify(sanitize_output(result))
 
-    # ---------- All standard endpoints (indentation fixed) ----------
+    # ---------- All standard endpoints ----------
     @app.route('/api/daily_revenue')
     @require_auth
     def daily_revenue():
@@ -773,40 +772,40 @@ def register_routes(app):
     def get_feedback_stats():
         return jsonify(feedback_store)
 
-    # ---------- ENHANCED EXPORT ----------
+    # ---------- ENHANCED EXPORT (PDF only) ----------
     @app.route('/api/export', methods=['POST'])
     @require_auth
     def export_report():
-          try:
-               data = request.get_json()
-               format_type = data.get('format', 'pdf')
-               if format_type != 'pdf':
-                    return jsonify({"error": "Only PDF export is supported"}), 400
+        try:
+            data = request.get_json()
+            format_type = data.get('format', 'pdf')
+            if format_type != 'pdf':
+                return jsonify({"error": "Only PDF export is supported"}), 400
 
-               kpis = data.get('kpis', {})
-               insights_html = data.get('insights_html', '<h1>No insights</h1>')
-               charts = data.get('charts', {})
-               filters = data.get('filters', {})
+            kpis = data.get('kpis', {})
+            insights_html = data.get('insights_html', '<h1>No insights</h1>')
+            charts = data.get('charts', {})
+            filters = data.get('filters', {})
 
-               report_html = generate_report_html(kpis, insights_html, charts, filters)
+            report_html = generate_report_html(kpis, insights_html, charts, filters)
 
-               try:
-                    pdf_bytes = generate_pdf_from_html(report_html)
-               except Exception as e:
-                    logger.error(f"PDF generation failed: {e}")
-                    return jsonify({"error": f"PDF generation failed: {str(e)}"}), 500
+            try:
+                pdf_bytes = generate_pdf_from_html(report_html)
+            except Exception as e:
+                logger.error(f"PDF generation failed: {e}")
+                return jsonify({"error": f"PDF generation failed: {str(e)}"}), 500
 
-               return send_file(
-                    io.BytesIO(pdf_bytes),
-                    mimetype='application/pdf',
-                    as_attachment=True,
-                    download_name=f'report_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf'
-               )
+            return send_file(
+                io.BytesIO(pdf_bytes),
+                mimetype='application/pdf',
+                as_attachment=True,
+                download_name=f'report_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf'
+            )
 
-          except Exception as e:
-               logger.error(f"Export failed: {e}", exc_info=True)
-               return jsonify({"error": str(e)}), 500
-    
+        except Exception as e:
+            logger.error(f"Export failed: {e}", exc_info=True)
+            return jsonify({"error": str(e)}), 500
+
     # ---------- Health ----------
     @app.route('/health', methods=['GET'])
     def health():
@@ -821,3 +820,66 @@ def register_routes(app):
         response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
         response.headers['Cache-Control'] = 'no-store, max-age=0'
         return response
+
+    # ---------- Churn Prediction ----------
+    @app.route('/api/churn/train', methods=['POST'])
+    @require_auth
+    @require_role(['admin'])
+    def train_churn_model():
+        from churn_model import train_model, set_threshold
+        data = request.get_json()
+        if data and 'threshold' in data:
+            set_threshold(data['threshold'])
+        else:
+            success = train_model()
+            if success:
+                return jsonify({"message": "Churn model trained successfully"}), 200
+            else:
+                return jsonify({"error": "Training failed"}), 500
+        return jsonify({"message": "Churn model retrained with new threshold"}), 200
+
+    @app.route('/api/churn/predict', methods=['GET'])
+    @require_auth
+    def predict_churn():
+        customer_id = request.args.get('customer_id', type=int)
+        if not customer_id:
+            return jsonify({"error": "Missing customer_id"}), 400
+        from churn_model import predict
+        result = predict(customer_id)
+        if "error" in result:
+            return jsonify(result), 404
+        return jsonify(result)
+
+    @app.route('/api/churn/at_risk', methods=['GET'])
+    @require_auth
+    def at_risk_customers():
+        limit = request.args.get('limit', default=20, type=int)
+        threshold = request.args.get('threshold', type=int)
+        if threshold is not None:
+            from churn_model import set_threshold
+            set_threshold(threshold)
+        from churn_model import get_at_risk_customers
+        results = get_at_risk_customers(limit)
+        return jsonify(results)
+
+    @app.route('/api/churn/stats', methods=['GET'])
+    @require_auth
+    def churn_stats():
+        threshold = request.args.get('threshold', type=int)
+        if threshold is not None:
+            from churn_model import set_threshold
+            set_threshold(threshold)
+        from churn_model import get_churn_stats
+        stats = get_churn_stats()
+        return jsonify(stats)
+
+    @app.route('/api/churn/revenue_timeline', methods=['GET'])
+    @require_auth
+    def churn_revenue_timeline():
+        threshold = request.args.get('threshold', type=int)
+        if threshold is not None:
+            from churn_model import set_threshold
+            set_threshold(threshold)
+        from churn_model import get_revenue_timeline
+        data = get_revenue_timeline()
+        return jsonify(data)
