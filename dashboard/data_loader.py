@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 from cachetools import TTLCache
 from config import Config
-import database
+from . import database
 from sql_helpers import clean_sql, add_schema_prefix, fix_date_extract
 
 logger = logging.getLogger(__name__)

@@ -20,20 +20,20 @@ from flask import Flask
 from flask_cors import CORS
 from flask_compress import Compress
 from werkzeug.middleware.proxy_fix import ProxyFix
-from .config import Config
+from .config import Config   # ✅ relative import
 
 logger.info("📦 Config imported")
 
-import database   # <-- import module
+from . import database       # ✅ relative import (was: import database)
 logger.info("📦 Database module imported")
 
-from routes import register_routes
+from .routes import register_routes   # ✅ relative import (was: from routes import register_routes)
 logger.info("📦 Routes module imported")
 
-from simulation import train_simulation_model
+from .simulation import train_simulation_model   # ✅ relative import
 logger.info("📦 Simulation module imported")
 
-from sql_helpers import create_performance_indexes
+from .sql_helpers import create_performance_indexes   # ✅ relative import
 logger.info("📦 SQL helpers imported")
 
 # Init database
