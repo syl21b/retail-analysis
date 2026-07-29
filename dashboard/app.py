@@ -20,7 +20,7 @@ from flask import Flask
 from flask_cors import CORS
 from flask_compress import Compress
 from werkzeug.middleware.proxy_fix import ProxyFix
-from config import Config
+from .config import Config
 
 logger.info("📦 Config imported")
 
