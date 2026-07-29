@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 from sklearn.linear_model import LinearRegression
-import database   # <-- import the module, not the variable
+from . import database
 import logging
 
 logger = logging.getLogger(__name__)

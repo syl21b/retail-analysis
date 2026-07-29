@@ -7,7 +7,7 @@ from functools import cached_property
 import pandas as pd
 import numpy as np
 from cachetools import TTLCache
-from config import Config
+from .config import Config
 from . import database
 from sql_helpers import clean_sql, add_schema_prefix, fix_date_extract
 

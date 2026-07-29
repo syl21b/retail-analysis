@@ -9,7 +9,7 @@ from sklearn.metrics import classification_report
 import joblib
 import os
 
-from database import db
+from .database import db
 
 logger = logging.getLogger(__name__)
 
