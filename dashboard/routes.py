@@ -17,7 +17,7 @@ from .sql_helpers import sanitize_output, validate_nlq_input, add_schema_prefix,
 from .ai import generate_deep_insights_with_persona, _get_additional_metrics, feedback_store, call_ai_provider, fix_list_numbering, generate_local_deep_insights_fallback
 from .simulation import SIMULATION_COEFFS, train_simulation_model
 from .export import generate_report_html, generate_pdf_from_html
-from .churn_model import set_threshold, get_at_risk_customers,get_churn_stats, get_revenue_timeline, predict
+from .churn_model import set_threshold, get_at_risk_customers,get_churn_stats, get_revenue_timeline, predict, train_model
 
 logger = logging.getLogger(__name__)
 
