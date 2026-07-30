@@ -77,7 +77,7 @@ def _build_features():
     LEFT JOIN gaps g ON co.customer_id = g.customer_id
     """
     try:
-        rows = db.execute_query(query, (CHURN_THRESHOLD_DAYS,))
+        rows = database.db.execute_query(query, (CHURN_THRESHOLD_DAYS,))
         df = pd.DataFrame(rows)
         df['avg_days_between'] = df['avg_days_between'].fillna(0)
         df['tenure'] = df['tenure'].fillna(0)
