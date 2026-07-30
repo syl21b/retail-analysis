@@ -17,6 +17,7 @@ from .sql_helpers import sanitize_output, validate_nlq_input, add_schema_prefix,
 from .ai import generate_deep_insights_with_persona, _get_additional_metrics, feedback_store, call_ai_provider, fix_list_numbering, generate_local_deep_insights_fallback
 from .simulation import SIMULATION_COEFFS, train_simulation_model
 from .export import generate_report_html, generate_pdf_from_html
+from .churn_model import set_threshold, get_at_risk_customers,get_churn_stats, get_revenue_timeline, predict
 
 logger = logging.getLogger(__name__)
 
@@ -819,7 +820,6 @@ def register_routes(app):
     @require_auth
     @require_role(['admin'])
     def train_churn_model():
-        from churn_model import train_model, set_threshold
         data = request.get_json()
         if data and 'threshold' in data:
             set_threshold(data['threshold'])
@@ -837,7 +837,6 @@ def register_routes(app):
         customer_id = request.args.get('customer_id', type=int)
         if not customer_id:
             return jsonify({"error": "Missing customer_id"}), 400
-        from churn_model import predict
         result = predict(customer_id)
         if "error" in result:
             return jsonify(result), 404
@@ -849,9 +848,7 @@ def register_routes(app):
         limit = request.args.get('limit', default=20, type=int)
         threshold = request.args.get('threshold', type=int)
         if threshold is not None:
-            from churn_model import set_threshold
             set_threshold(threshold)
-        from churn_model import get_at_risk_customers
         results = get_at_risk_customers(limit)
         return jsonify(results)
 
@@ -860,9 +857,8 @@ def register_routes(app):
     def churn_stats():
         threshold = request.args.get('threshold', type=int)
         if threshold is not None:
-            from churn_model import set_threshold
             set_threshold(threshold)
-        from churn_model import get_churn_stats
+
         stats = get_churn_stats()
         return jsonify(stats)
 
@@ -871,8 +867,6 @@ def register_routes(app):
     def churn_revenue_timeline():
         threshold = request.args.get('threshold', type=int)
         if threshold is not None:
-            from churn_model import set_threshold
             set_threshold(threshold)
-        from churn_model import get_revenue_timeline
         data = get_revenue_timeline()
         return jsonify(data)
