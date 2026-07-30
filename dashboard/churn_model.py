@@ -9,7 +9,8 @@ from sklearn.metrics import classification_report
 import joblib
 import os
 
-from .database import db
+#from .database import db
+from . import database
 
 logger = logging.getLogger(__name__)
 
@@ -275,7 +276,7 @@ def get_revenue_timeline():
     LEFT JOIN churned_customers c ON m.month = c.month
     ORDER BY m.month
     """
-    rows = db.execute_query(query, (CHURN_THRESHOLD_DAYS,))
+    rows = database.db.execute_query(query, (CHURN_THRESHOLD_DAYS,))
     result = []
     for row in rows:
         result.append({
