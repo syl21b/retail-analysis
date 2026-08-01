@@ -4,6 +4,7 @@ import re
 from datetime import datetime
 from .config import Config
 from .data_loader import friendly_data
+from cachetools import TTLCache
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +73,7 @@ def call_ai_provider(prompt, timeout=30):
     logger.warning("No AI provider available.")
     return None
 
-def call_ai_provider_with_timeout(prompt, timeout=20):
+def call_ai_provider_with_timeout(prompt, timeout=15):
     executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
     future = executor.submit(call_ai_provider, prompt, timeout)
     try:
@@ -156,18 +157,65 @@ feedback_store = {
     "balanced_analyst": {"up": 0, "down": 0}
 }
 
+
+extra_metrics_cache = TTLCache(maxsize=10, ttl=300)  # 5 minutes
+
+def get_cached_extra_metrics():
+    if 'extra_metrics' not in extra_metrics_cache:
+        extra_metrics_cache['extra_metrics'] = _get_additional_metrics()
+    return extra_metrics_cache['extra_metrics']
+
 def _get_additional_metrics():
     extra = {}
     try:
-        extra['fulfillment'] = friendly_data.get('Order Fulfillment Performance')
-        extra['payment_methods'] = friendly_data.get('Payment Method Analysis')
-        extra['order_status'] = friendly_data.get('Order Status Distribution')
-        extra['subcategories'] = friendly_data.get('Revenue by Product SubCategory')
-        extra['churn'] = friendly_data.get('Churn Detection')
-        extra['cohort_full'] = friendly_data.get('Cohort Retention Analysis')
-        extra['rfm_full'] = friendly_data.get('RFM Segmentation')
+        # Load only necessary summary stats, not full DataFrames
+        # Order Status: just the distribution (already used in the prompt)
+        status = friendly_data.get('Order Status Distribution')
+        if status is not None and not status.empty:
+            # Convert to list of dicts (small)
+            extra['order_status'] = status.to_dict('records')
+        else:
+            extra['order_status'] = []
+
+        # Payment Methods: top method only
+        pay = friendly_data.get('Payment Method Analysis')
+        if pay is not None and not pay.empty:
+            extra['top_payment_method'] = pay.iloc[0].get('payment_method', 'N/A')
+        else:
+            extra['top_payment_method'] = 'N/A'
+
+        # Churn: only the rate (if available)
+        churn = friendly_data.get('Churn Detection')
+        if churn is not None and 'churn_rate' in churn.columns:
+            extra['churn_rate'] = churn['churn_rate'].iloc[0]
+        else:
+            extra['churn_rate'] = None
+
+        # Subcategories: only top 10 for category names (not full)
+        subcat = friendly_data.get('Revenue by Product SubCategory')
+        if subcat is not None and not subcat.empty:
+            # Just get top subcategory names (for reference)
+            subcat_field = 'subcategory' if 'subcategory' in subcat.columns else 'product_subcategory'
+            extra['top_subcategories'] = subcat.head(5)[subcat_field].tolist()
+        else:
+            extra['top_subcategories'] = []
+
+        # Cohort: only first 5 rows for sample (not full)
+        cohort = friendly_data.get('Cohort Retention Analysis')
+        if cohort is not None and not cohort.empty:
+            extra['cohort_sample'] = cohort.head(5).to_dict('records')
+        else:
+            extra['cohort_sample'] = []
+
+        # RFM: do NOT load full – we already pass rfm_segments from frontend (5 rows)
+        # So we skip loading RFM entirely here.
+        extra['rfm_full'] = []  # explicitly empty
+
+        # Fulfillment: skip, we don't use it in the prompt currently
+        # extra['fulfillment'] = None
+
     except Exception as e:
-        logger.warning(f"Could not fetch all extra metrics: {e}")
+        logger.warning(f"Could not fetch extra metrics: {e}")
     return extra
 
 def fix_list_numbering(text):
@@ -394,7 +442,7 @@ Churn Rate: {churn_rate_val if churn_rate_val is not None else 'N/A'}%
 --- DATA ---
 {context}
 """
-    insights = call_ai_provider_with_timeout(full_prompt, timeout=20)
+    insights = call_ai_provider_with_timeout(full_prompt, timeout=15)
     if insights:
         required = ["Executive Summary", "Key Metrics", "Deep Dive", "Root Causes", "Actionable Recommendations", "Expected Business Impact"]
         if not any(sec in insights for sec in required):

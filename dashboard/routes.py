@@ -14,7 +14,7 @@ from . import database
 from .data_loader import loader, friendly_data, get_dataset
 from .auth import require_auth, require_role, rate_limit, auth_manager
 from .sql_helpers import sanitize_output, validate_nlq_input, add_schema_prefix, fix_date_extract, create_performance_indexes
-from .ai import generate_deep_insights_with_persona, _get_additional_metrics, feedback_store, call_ai_provider, fix_list_numbering, generate_local_deep_insights_fallback
+from .ai import generate_deep_insights_with_persona, _get_additional_metrics, get_cached_extra_metrics, feedback_store, call_ai_provider, fix_list_numbering, generate_local_deep_insights_fallback
 from .simulation import SIMULATION_COEFFS, train_simulation_model
 from .export import generate_report_html, generate_pdf_from_html
 from .churn_model import set_threshold, get_at_risk_customers,get_churn_stats, get_revenue_timeline, predict, train_model
@@ -640,7 +640,7 @@ def register_routes(app):
         if cache_key in ai_insights_cache:
             insights = ai_insights_cache[cache_key]
         else:
-            extra_metrics = _get_additional_metrics()
+            extra_metrics = get_cached_extra_metrics()
             try:
                 insights = generate_deep_insights_with_persona(
                     kpis=kpis_data, filters=filters, daily_revenue=daily_revenue,
@@ -738,7 +738,7 @@ def register_routes(app):
                     anomalies_list = anomalies_df[['order_day', rev_col, 'pct_change']].rename(columns={'order_day': 'date', rev_col: 'revenue', 'pct_change': 'drop_percent'}).to_dict(orient='records')
             repeat_data = get_dataset('Repeat vs One-Time Customers')
             repeat_dict = {r['customer_type']: r['customer_count'] for r in repeat_data} if repeat_data else {}
-            extra_metrics = _get_additional_metrics()
+            extra_metrics = get_cached_extra_metrics()
             extra_metrics['high_risk_vips'] = get_dataset('high_risk_customers')
             alerts = check_and_trigger_alerts(kpis_data, anomalies_list, repeat_dict, extra_metrics)
             return jsonify({"alerts": alerts, "triggered": len(alerts) > 0})
