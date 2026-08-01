@@ -48,9 +48,10 @@ def call_ai_provider(prompt, timeout=30):
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     temperature=0.7,
-                    max_output_tokens=8192,
+                    max_output_tokens=2048,        # reduced from 8192 to speed up
                     top_p=0.95
-                )
+                ),
+                request_options={"timeout": timeout}   # timeout for the API call
             )
             logger.info("✅ AI response from Gemini.")
             return response.text
@@ -62,7 +63,7 @@ def call_ai_provider(prompt, timeout=30):
                 model="llama-3.3-70b-versatile",
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.7,
-                max_tokens=8192,
+                max_tokens=2048,        # reduced
                 top_p=0.95,
                 timeout=timeout
             )
@@ -157,7 +158,6 @@ feedback_store = {
     "balanced_analyst": {"up": 0, "down": 0}
 }
 
-
 extra_metrics_cache = TTLCache(maxsize=10, ttl=300)  # 5 minutes
 
 def get_cached_extra_metrics():
@@ -169,50 +169,39 @@ def _get_additional_metrics():
     extra = {}
     try:
         # Load only necessary summary stats, not full DataFrames
-        # Order Status: just the distribution (already used in the prompt)
         status = friendly_data.get('Order Status Distribution')
         if status is not None and not status.empty:
-            # Convert to list of dicts (small)
             extra['order_status'] = status.to_dict('records')
         else:
             extra['order_status'] = []
 
-        # Payment Methods: top method only
         pay = friendly_data.get('Payment Method Analysis')
         if pay is not None and not pay.empty:
             extra['top_payment_method'] = pay.iloc[0].get('payment_method', 'N/A')
         else:
             extra['top_payment_method'] = 'N/A'
 
-        # Churn: only the rate (if available)
         churn = friendly_data.get('Churn Detection')
         if churn is not None and 'churn_rate' in churn.columns:
             extra['churn_rate'] = churn['churn_rate'].iloc[0]
         else:
             extra['churn_rate'] = None
 
-        # Subcategories: only top 10 for category names (not full)
         subcat = friendly_data.get('Revenue by Product SubCategory')
         if subcat is not None and not subcat.empty:
-            # Just get top subcategory names (for reference)
             subcat_field = 'subcategory' if 'subcategory' in subcat.columns else 'product_subcategory'
-            extra['top_subcategories'] = subcat.head(5)[subcat_field].tolist()
+            extra['top_subcategories'] = subcat.head(3)[subcat_field].tolist()  # only top 3
         else:
             extra['top_subcategories'] = []
 
-        # Cohort: only first 5 rows for sample (not full)
         cohort = friendly_data.get('Cohort Retention Analysis')
         if cohort is not None and not cohort.empty:
-            extra['cohort_sample'] = cohort.head(5).to_dict('records')
+            extra['cohort_sample'] = cohort.head(3).to_dict('records')  # only 3 rows
         else:
             extra['cohort_sample'] = []
 
-        # RFM: do NOT load full – we already pass rfm_segments from frontend (5 rows)
-        # So we skip loading RFM entirely here.
-        extra['rfm_full'] = []  # explicitly empty
-
-        # Fulfillment: skip, we don't use it in the prompt currently
-        # extra['fulfillment'] = None
+        # RFM is already passed from frontend, so skip loading it here
+        extra['rfm_full'] = []
 
     except Exception as e:
         logger.warning(f"Could not fetch extra metrics: {e}")
@@ -378,18 +367,23 @@ def generate_deep_insights_with_persona(kpis, filters, daily_revenue, monthly_re
         status_summary = ", ".join(status_list[:5])
     else:
         status_summary = "No order status data available"
+
+    # --- TRUNCATED CONTEXT to reduce token count ---
     daily_vals = []
-    for d in daily_revenue[-7:]:
+    for d in daily_revenue[-5:]:          # only last 5 days
         val = d.get('total_amount') or d.get('revenue') or 0
         daily_vals.append(f"${val:,.0f}")
     daily_str = ", ".join(daily_vals) if daily_vals else "no data"
+
     monthly_str = ""
     for m in monthly_revenue[-6:]:
         month = m.get('year_month', 'unknown')
         rev = m.get('total_amount', 0)
         monthly_str += f"{month}: ${rev:,.0f}; "
+
     top_cities_str = ", ".join([f"{c.get('city', 'N/A')} (${c.get('total_revenue',0):,.0f})" for c in top_cities[:3]])
-    categories_str = ", ".join([f"{c.get('category', 'N/A')} (${c.get('revenue',0):,.0f})" for c in revenue_categories[:5]])
+    categories_str = ", ".join([f"{c.get('category', 'N/A')} (${c.get('revenue',0):,.0f})" for c in revenue_categories[:3]])
+
     highest_clv_list = clv_data.get('highest', [])
     avg_top_clv = sum(c.get('total_net_amount', c.get('total_revenue', 0)) for c in highest_clv_list) / max(len(highest_clv_list), 1)
     rfm_sample = rfm_segments[:3] if rfm_segments else []
@@ -405,6 +399,7 @@ def generate_deep_insights_with_persona(kpis, filters, daily_revenue, monthly_re
     churn_rate_val = churn_df['churn_rate'].iloc[0] if churn_df is not None and 'churn_rate' in churn_df.columns else None
     pay_df = extra_metrics.get('payment_methods')
     top_payment = pay_df.iloc[0].get('payment_method', 'N/A') if pay_df is not None and len(pay_df) > 0 else 'N/A'
+
     def safe_float(val, default=0.0):
         try:
             return float(val)
@@ -419,10 +414,11 @@ def generate_deep_insights_with_persona(kpis, filters, daily_revenue, monthly_re
     total_orders = safe_int(kpis.get('total_orders', 0))
     total_customers = safe_int(kpis.get('total_customers', 0))
     aov = safe_float(kpis.get('avg_order_value', 0))
+
     context = f"""
 KPIs: Revenue ${total_revenue:,.0f}, Orders {total_orders:,}, Customers {total_customers:,}, AOV ${aov:,.0f}
 Filters: Date {filters.get('dateRange',{}).get('min','any')} -> {filters.get('dateRange',{}).get('max','any')}, City {filters.get('selectedCity','any')}, Category {filters.get('selectedCategory','any')}
-Daily Revenue (last 7 days): {daily_str}
+Daily Revenue (last 5 days): {daily_str}
 Monthly Revenue (last 6 months): {monthly_str}
 Top Cities: {top_cities_str}
 Top Categories: {categories_str}
