@@ -41,6 +41,16 @@ logger.info("🔗 Initialising database...")
 database.init_db(Config.DATABASE_URL) 
 logger.info("✅ Database initialised")
 
+# Pre-warm the extra metrics cache for AI
+logger.info("⏳ Pre-loading extra metrics for AI...")
+try:
+    from .ai import get_cached_extra_metrics
+    get_cached_extra_metrics()
+    logger.info("✅ Extra metrics cached.")
+except Exception as e:
+    logger.warning(f"Could not pre-load metrics: {e}")
+
+
 from .churn_model import load_model, train_model
 
 # Load or train churn model

@@ -40,7 +40,7 @@ if Config.GROQ_API_KEY and GROQ_AVAILABLE:
         logger.error(f"Failed to initialise Groq client: {e}")
         groq_client = None
 
-def call_ai_provider(prompt, timeout=30):
+def call_ai_provider(prompt, timeout=10):   # reduced to 10s
     if genai_client:
         try:
             response = genai_client.models.generate_content(
@@ -48,10 +48,11 @@ def call_ai_provider(prompt, timeout=30):
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     temperature=0.7,
-                    max_output_tokens=2048,        # reduced from 8192 to speed up
+                    max_output_tokens=1024,        # further reduced
                     top_p=0.95
                 ),
-                request_options={"timeout": timeout}   # timeout for the API call
+                # timeout via request_options (if supported)
+                request_options={"timeout": timeout}
             )
             logger.info("✅ AI response from Gemini.")
             return response.text
@@ -63,7 +64,7 @@ def call_ai_provider(prompt, timeout=30):
                 model="llama-3.3-70b-versatile",
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.7,
-                max_tokens=2048,        # reduced
+                max_tokens=1024,
                 top_p=0.95,
                 timeout=timeout
             )
@@ -74,7 +75,7 @@ def call_ai_provider(prompt, timeout=30):
     logger.warning("No AI provider available.")
     return None
 
-def call_ai_provider_with_timeout(prompt, timeout=15):
+def call_ai_provider_with_timeout(prompt, timeout=10):
     executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
     future = executor.submit(call_ai_provider, prompt, timeout)
     try:
@@ -89,7 +90,7 @@ def call_ai_provider_with_timeout(prompt, timeout=15):
         return None
 
 # ------------------------------
-#  AI Persona Templates
+#  AI Persona Templates (unchanged)
 # ------------------------------
 PERSONA_TEMPLATES = {
     "conservative_cfo": """
@@ -158,6 +159,7 @@ feedback_store = {
     "balanced_analyst": {"up": 0, "down": 0}
 }
 
+# ---------- Cached extra metrics ----------
 extra_metrics_cache = TTLCache(maxsize=10, ttl=300)  # 5 minutes
 
 def get_cached_extra_metrics():
@@ -166,43 +168,50 @@ def get_cached_extra_metrics():
     return extra_metrics_cache['extra_metrics']
 
 def _get_additional_metrics():
+    """Load only tiny summary datasets, not full DataFrames."""
     extra = {}
     try:
-        # Load only necessary summary stats, not full DataFrames
+        # Order Status – already small
         status = friendly_data.get('Order Status Distribution')
         if status is not None and not status.empty:
             extra['order_status'] = status.to_dict('records')
         else:
             extra['order_status'] = []
 
+        # Payment Methods – only top method
         pay = friendly_data.get('Payment Method Analysis')
         if pay is not None and not pay.empty:
             extra['top_payment_method'] = pay.iloc[0].get('payment_method', 'N/A')
         else:
             extra['top_payment_method'] = 'N/A'
 
+        # Churn rate – only the scalar
         churn = friendly_data.get('Churn Detection')
         if churn is not None and 'churn_rate' in churn.columns:
             extra['churn_rate'] = churn['churn_rate'].iloc[0]
         else:
             extra['churn_rate'] = None
 
+        # Subcategories – only top 3 names
         subcat = friendly_data.get('Revenue by Product SubCategory')
         if subcat is not None and not subcat.empty:
             subcat_field = 'subcategory' if 'subcategory' in subcat.columns else 'product_subcategory'
-            extra['top_subcategories'] = subcat.head(3)[subcat_field].tolist()  # only top 3
+            extra['top_subcategories'] = subcat.head(3)[subcat_field].tolist()
         else:
             extra['top_subcategories'] = []
 
+        # Cohort – only 3 rows
         cohort = friendly_data.get('Cohort Retention Analysis')
         if cohort is not None and not cohort.empty:
-            extra['cohort_sample'] = cohort.head(3).to_dict('records')  # only 3 rows
+            extra['cohort_sample'] = cohort.head(3).to_dict('records')
         else:
             extra['cohort_sample'] = []
 
-        # RFM is already passed from frontend, so skip loading it here
+        # RFM is already passed from frontend, so skip entirely
         extra['rfm_full'] = []
 
+        # Fulfillment not used in prompt
+        # extra['fulfillment'] = None
     except Exception as e:
         logger.warning(f"Could not fetch extra metrics: {e}")
     return extra
@@ -229,7 +238,7 @@ def fix_list_numbering(text):
 def generate_local_deep_insights_fallback(kpis, filters, daily_revenue, monthly_revenue, top_cities,
                                           revenue_categories, repeat_customers, clv_data, rfm_segments,
                                           cohort_retention, anomalies, high_risk, extra_metrics):
-    # This is the fallback – copied verbatim from original app.py
+    # (unchanged – same as before)
     one_time = 0
     repeat_cust = 0
     one_time = repeat_customers.get('one-time', repeat_customers.get('one_time', 0))
@@ -334,7 +343,7 @@ def generate_deep_insights_with_persona(kpis, filters, daily_revenue, monthly_re
                                          revenue_categories, repeat_customers, clv_data, rfm_segments,
                                          cohort_retention, anomalies, high_risk, extra_metrics,
                                          persona="balanced_analyst"):
-    # Build context (same as original)
+    # Build context (same as original but with reduced data)
     one_time = 0
     repeat_cust = 0
     one_time = repeat_customers.get('one-time', repeat_customers.get('one_time',
@@ -368,9 +377,9 @@ def generate_deep_insights_with_persona(kpis, filters, daily_revenue, monthly_re
     else:
         status_summary = "No order status data available"
 
-    # --- TRUNCATED CONTEXT to reduce token count ---
+    # --- TRUNCATED CONTEXT ---
     daily_vals = []
-    for d in daily_revenue[-5:]:          # only last 5 days
+    for d in daily_revenue[-5:]:
         val = d.get('total_amount') or d.get('revenue') or 0
         daily_vals.append(f"${val:,.0f}")
     daily_str = ", ".join(daily_vals) if daily_vals else "no data"
@@ -395,10 +404,8 @@ def generate_deep_insights_with_persona(kpis, filters, daily_revenue, monthly_re
     cohort_str = ""
     for c in cohort_retention[:3]:
         cohort_str += f"{c.get('cohort_month', '')} month {c.get('month_number',0)}: {c.get('retention_rate',0)*100:.1f}%; "
-    churn_df = extra_metrics.get('churn')
-    churn_rate_val = churn_df['churn_rate'].iloc[0] if churn_df is not None and 'churn_rate' in churn_df.columns else None
-    pay_df = extra_metrics.get('payment_methods')
-    top_payment = pay_df.iloc[0].get('payment_method', 'N/A') if pay_df is not None and len(pay_df) > 0 else 'N/A'
+    churn_rate_val = extra_metrics.get('churn_rate')
+    top_payment = extra_metrics.get('top_payment_method', 'N/A')
 
     def safe_float(val, default=0.0):
         try:
@@ -438,7 +445,7 @@ Churn Rate: {churn_rate_val if churn_rate_val is not None else 'N/A'}%
 --- DATA ---
 {context}
 """
-    insights = call_ai_provider_with_timeout(full_prompt, timeout=15)
+    insights = call_ai_provider_with_timeout(full_prompt, timeout=10)
     if insights:
         required = ["Executive Summary", "Key Metrics", "Deep Dive", "Root Causes", "Actionable Recommendations", "Expected Business Impact"]
         if not any(sec in insights for sec in required):
