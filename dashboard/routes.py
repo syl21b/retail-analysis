@@ -22,24 +22,7 @@ from .churn_model import set_threshold, get_at_risk_customers,get_churn_stats, g
 import signal
 from functools import wraps
 
-class TimeoutError(Exception):
-    pass
 
-def timeout(seconds):
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            def handler(signum, frame):
-                raise TimeoutError(f"Function timed out after {seconds}s")
-            signal.signal(signal.SIGALRM, handler)
-            signal.alarm(seconds)
-            try:
-                result = func(*args, **kwargs)
-            finally:
-                signal.alarm(0)
-            return result
-        return wrapper
-    return decorator
 
 
 logger = logging.getLogger(__name__)
@@ -665,20 +648,17 @@ def register_routes(app):
         else:
             extra_metrics = get_cached_extra_metrics()
             try:
-                # Set a 45-second timeout for the entire AI generation
-                @timeout(45)
-                def generate_with_timeout():
-                    return generate_deep_insights_with_persona(
-                        kpis=kpis_data, filters=filters, daily_revenue=daily_revenue,
-                        monthly_revenue=monthly_revenue, top_cities=top_cities,
-                        revenue_categories=revenue_categories, repeat_customers=repeat_customers,
-                        clv_data=clv_data, rfm_segments=rfm_segments, cohort_retention=cohort_retention,
-                        anomalies=anomalies, high_risk=high_risk, extra_metrics=extra_metrics,
-                        persona=persona
-                    )
-                insights = generate_with_timeout()
-            except TimeoutError:
-                logger.warning("AI generation timed out; falling back to local insights.")
+                insights = generate_deep_insights_with_persona(
+                    kpis=kpis_data, filters=filters, daily_revenue=daily_revenue,
+                    monthly_revenue=monthly_revenue, top_cities=top_cities,
+                    revenue_categories=revenue_categories, repeat_customers=repeat_customers,
+                    clv_data=clv_data, rfm_segments=rfm_segments, cohort_retention=cohort_retention,
+                    anomalies=anomalies, high_risk=high_risk, extra_metrics=extra_metrics,
+                    persona=persona
+                )
+            except Exception as e:
+                logger.error(f"AI insights generation failed: {e}", exc_info=True)
+                # Fallback with correct parameters (no ellipsis)
                 insights = generate_local_deep_insights_fallback(
                     kpis=kpis_data, filters=filters, daily_revenue=daily_revenue,
                     monthly_revenue=monthly_revenue, top_cities=top_cities,
@@ -687,13 +667,10 @@ def register_routes(app):
                     cohort_retention=cohort_retention, anomalies=anomalies,
                     high_risk=high_risk, extra_metrics=extra_metrics
                 )
-            except Exception as e:
-                logger.error(f"AI insights generation failed: {e}", exc_info=True)
-                insights = generate_local_deep_insights_fallback(...)  # same fallback
             ai_insights_cache[cache_key] = insights
         insights = fix_list_numbering(insights)
         return jsonify({"insights": insights, "persona": persona})
-
+    
     # ---------- Simulation ----------
     @app.route('/api/simulate/train', methods=['POST'])
     @require_auth

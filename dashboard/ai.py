@@ -40,7 +40,7 @@ if Config.GROQ_API_KEY and GROQ_AVAILABLE:
         logger.error(f"Failed to initialise Groq client: {e}")
         groq_client = None
 
-def call_ai_provider(prompt, timeout=10):   # reduced to 10s
+def call_ai_provider(prompt, timeout=10):
     if genai_client:
         try:
             response = genai_client.models.generate_content(
@@ -48,10 +48,9 @@ def call_ai_provider(prompt, timeout=10):   # reduced to 10s
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     temperature=0.7,
-                    max_output_tokens=1024,        # further reduced
+                    max_output_tokens=1024,
                     top_p=0.95
                 ),
-                # timeout via request_options (if supported)
                 request_options={"timeout": timeout}
             )
             logger.info("✅ AI response from Gemini.")
@@ -160,7 +159,7 @@ feedback_store = {
 }
 
 # ---------- Cached extra metrics ----------
-extra_metrics_cache = TTLCache(maxsize=10, ttl=300)  # 5 minutes
+extra_metrics_cache = TTLCache(maxsize=10, ttl=300)
 
 def get_cached_extra_metrics():
     if 'extra_metrics' not in extra_metrics_cache:
@@ -168,31 +167,27 @@ def get_cached_extra_metrics():
     return extra_metrics_cache['extra_metrics']
 
 def _get_additional_metrics():
-    """Load only tiny summary datasets, not full DataFrames."""
+    """Load only tiny summary datasets."""
     extra = {}
     try:
-        # Order Status – already small
         status = friendly_data.get('Order Status Distribution')
         if status is not None and not status.empty:
             extra['order_status'] = status.to_dict('records')
         else:
             extra['order_status'] = []
 
-        # Payment Methods – only top method
         pay = friendly_data.get('Payment Method Analysis')
         if pay is not None and not pay.empty:
             extra['top_payment_method'] = pay.iloc[0].get('payment_method', 'N/A')
         else:
             extra['top_payment_method'] = 'N/A'
 
-        # Churn rate – only the scalar
         churn = friendly_data.get('Churn Detection')
         if churn is not None and 'churn_rate' in churn.columns:
             extra['churn_rate'] = churn['churn_rate'].iloc[0]
         else:
             extra['churn_rate'] = None
 
-        # Subcategories – only top 3 names
         subcat = friendly_data.get('Revenue by Product SubCategory')
         if subcat is not None and not subcat.empty:
             subcat_field = 'subcategory' if 'subcategory' in subcat.columns else 'product_subcategory'
@@ -200,18 +195,14 @@ def _get_additional_metrics():
         else:
             extra['top_subcategories'] = []
 
-        # Cohort – only 3 rows
         cohort = friendly_data.get('Cohort Retention Analysis')
         if cohort is not None and not cohort.empty:
             extra['cohort_sample'] = cohort.head(3).to_dict('records')
         else:
             extra['cohort_sample'] = []
 
-        # RFM is already passed from frontend, so skip entirely
-        extra['rfm_full'] = []
+        extra['rfm_full'] = []   # not used
 
-        # Fulfillment not used in prompt
-        # extra['fulfillment'] = None
     except Exception as e:
         logger.warning(f"Could not fetch extra metrics: {e}")
     return extra
@@ -238,7 +229,6 @@ def fix_list_numbering(text):
 def generate_local_deep_insights_fallback(kpis, filters, daily_revenue, monthly_revenue, top_cities,
                                           revenue_categories, repeat_customers, clv_data, rfm_segments,
                                           cohort_retention, anomalies, high_risk, extra_metrics):
-    # (unchanged – same as before)
     one_time = 0
     repeat_cust = 0
     one_time = repeat_customers.get('one-time', repeat_customers.get('one_time', 0))
@@ -257,6 +247,8 @@ def generate_local_deep_insights_fallback(kpis, filters, daily_revenue, monthly_
     repeat_rate = (repeat_cust / total_cust * 100) if total_cust else 0
     aov = kpis.get('avg_order_value', 0)
     total_rev = kpis.get('total_revenue', 0)
+
+    # Use the new keys
     status_df = extra_metrics.get('order_status')
     status_summary = ""
     if status_df is not None and not status_df.empty:
@@ -270,6 +262,9 @@ def generate_local_deep_insights_fallback(kpis, filters, daily_revenue, monthly_
         status_summary = ", ".join(status_list[:5])
     else:
         status_summary = "No order status data"
+
+    top_payment = extra_metrics.get('top_payment_method', 'N/A')
+
     report = []
     report.append("# 📊 Retail Analytics – Deep Business Report (AI Fallback)\n")
     report.append("## Executive Summary\n")
@@ -304,8 +299,6 @@ def generate_local_deep_insights_fallback(kpis, filters, daily_revenue, monthly_
         report.append(f"- High‑risk VIPs: {len(high_risk)} customers, total ${sum(c.get('monetary',0) for c in high_risk):,.0f} at stake.\n")
     report.append("\n### Operations & Risk\n")
     report.append(f"- Order Status Distribution: {status_summary}\n")
-    pay_df = extra_metrics.get('payment_methods')
-    top_payment = pay_df.iloc[0].get('payment_method', 'N/A') if pay_df is not None and len(pay_df) > 0 else 'N/A'
     report.append(f"- Top payment method: {top_payment}.\n")
     report.append("\n## 3. Root Causes\n")
     if repeat_rate < 30:
@@ -343,7 +336,6 @@ def generate_deep_insights_with_persona(kpis, filters, daily_revenue, monthly_re
                                          revenue_categories, repeat_customers, clv_data, rfm_segments,
                                          cohort_retention, anomalies, high_risk, extra_metrics,
                                          persona="balanced_analyst"):
-    # Build context (same as original but with reduced data)
     one_time = 0
     repeat_cust = 0
     one_time = repeat_customers.get('one-time', repeat_customers.get('one_time',
@@ -363,6 +355,7 @@ def generate_deep_insights_with_persona(kpis, filters, daily_revenue, monthly_re
                 break
     total_cust = one_time + repeat_cust
     repeat_rate = (repeat_cust / total_cust * 100) if total_cust else 0
+
     status_df = extra_metrics.get('order_status')
     status_summary = ""
     if status_df is not None and not status_df.empty:
@@ -377,7 +370,7 @@ def generate_deep_insights_with_persona(kpis, filters, daily_revenue, monthly_re
     else:
         status_summary = "No order status data available"
 
-    # --- TRUNCATED CONTEXT ---
+    # Truncated context
     daily_vals = []
     for d in daily_revenue[-5:]:
         val = d.get('total_amount') or d.get('revenue') or 0
@@ -404,6 +397,7 @@ def generate_deep_insights_with_persona(kpis, filters, daily_revenue, monthly_re
     cohort_str = ""
     for c in cohort_retention[:3]:
         cohort_str += f"{c.get('cohort_month', '')} month {c.get('month_number',0)}: {c.get('retention_rate',0)*100:.1f}%; "
+
     churn_rate_val = extra_metrics.get('churn_rate')
     top_payment = extra_metrics.get('top_payment_method', 'N/A')
 
