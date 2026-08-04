@@ -1,8 +1,13 @@
+import sys
+from pathlib import Path
+
+# Add the parent directory (the one containing 'dashboard') to sys.path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 from dotenv import load_dotenv
 load_dotenv()
 
 import os
-import sys
 import logging
 
 sys.stdout.reconfigure(line_buffering=True)
@@ -14,50 +19,49 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-logger.info("🚀 Starting app1.py")
+logger.info("🚀 Starting app.py")
 
 from flask import Flask
 from flask_cors import CORS
 from flask_compress import Compress
 from werkzeug.middleware.proxy_fix import ProxyFix
-from .config import Config   # ✅ relative import
+from dashboard.config import Config   # ✅ absolute import
 
 logger.info("📦 Config imported")
 
-from . import database       # ✅ relative import (was: import database)
+from dashboard import database        # ✅ absolute import
 logger.info("📦 Database module imported")
 
-from .routes import register_routes   # ✅ relative import (was: from routes import register_routes)
+from dashboard.routes import register_routes   # ✅ absolute import
 logger.info("📦 Routes module imported")
 
-from .simulation import train_simulation_model   # ✅ relative import
+from dashboard.simulation import train_simulation_model   # ✅ absolute import
 logger.info("📦 Simulation module imported")
 
-from .sql_helpers import create_performance_indexes   # ✅ relative import
+from dashboard.sql_helpers import create_performance_indexes   # ✅ absolute import
 logger.info("📦 SQL helpers imported")
 
 # Init database
 logger.info("🔗 Initialising database...")
-database.init_db(Config.DATABASE_URL) 
+database.init_db(Config.DATABASE_URL)
 logger.info("✅ Database initialised")
 
 # Pre-warm the extra metrics cache for AI
 logger.info("⏳ Pre-loading extra metrics for AI...")
 try:
-    from .ai import get_cached_extra_metrics
+    from dashboard.ai import get_cached_extra_metrics
     get_cached_extra_metrics()
     logger.info("✅ Extra metrics cached.")
 except Exception as e:
     logger.warning(f"Could not pre-load metrics: {e}")
 
-
-from .churn_model import load_model, train_model
+from dashboard.churn_model import load_model, train_model
 
 # Load or train churn model
 if not load_model():
     logger.info("No saved churn model found. Training a new one...")
     train_model()
-    
+
 app = Flask(__name__)
 app.config.from_object(Config)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
@@ -80,7 +84,7 @@ def run_startup_tasks():
         logger.info("⚙️ Running startup tasks...")
         try:
             logger.info("📊 Creating performance indexes...")
-            create_performance_indexes(database.db)   # <-- pass database.db
+            create_performance_indexes(database.db)
             logger.info("📊 Indexes created.")
             logger.info("🧠 Training simulation model...")
             with app.app_context():

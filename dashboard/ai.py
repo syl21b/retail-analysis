@@ -172,7 +172,7 @@ def _get_additional_metrics():
     try:
         status = friendly_data.get('Order Status Distribution')
         if status is not None and not status.empty:
-            extra['order_status'] = status.to_dict('records')
+            extra['order_status'] = status.to_dict('records')   # store as list of dicts
         else:
             extra['order_status'] = []
 
@@ -206,6 +206,46 @@ def _get_additional_metrics():
     except Exception as e:
         logger.warning(f"Could not fetch extra metrics: {e}")
     return extra
+
+# ------------------------------
+#  Helper: status summary from DataFrame or list
+# ------------------------------
+def get_status_summary(status_data):
+    """
+    Return a human-readable summary of order status distribution.
+    Accepts either a DataFrame or a list of dicts (as returned by to_dict('records')).
+    """
+    if status_data is None:
+        return "No order status data available"
+
+    # If it's a list of dicts
+    if isinstance(status_data, list):
+        if not status_data:
+            return "No order status data available"
+        total_orders = sum(row.get('order_count', 0) for row in status_data)
+        if total_orders == 0:
+            return "No order status data available"
+        status_list = []
+        for row in status_data:
+            status = row.get('order_status', 'unknown')
+            count = row.get('order_count', 0)
+            pct = (count / total_orders * 100) if total_orders else 0
+            status_list.append(f"{status}: {count} ({pct:.1f}%)")
+        return ", ".join(status_list[:5])
+
+    # Assume it's a DataFrame (or something with .empty and .iterrows)
+    if hasattr(status_data, 'empty') and status_data.empty:
+        return "No order status data available"
+    total_orders = status_data['order_count'].sum() if 'order_count' in status_data else 0
+    if total_orders == 0:
+        return "No order status data available"
+    status_list = []
+    for _, row in status_data.iterrows():
+        status = row.get('order_status', 'unknown')
+        count = row.get('order_count', 0)
+        pct = (count / total_orders * 100) if total_orders else 0
+        status_list.append(f"{status}: {count} ({pct:.1f}%)")
+    return ", ".join(status_list[:5])
 
 def fix_list_numbering(text):
     pattern = r'(## 5\. Expected Business Impact.*?)(?=\n## |\n---|\Z)'
@@ -248,20 +288,8 @@ def generate_local_deep_insights_fallback(kpis, filters, daily_revenue, monthly_
     aov = kpis.get('avg_order_value', 0)
     total_rev = kpis.get('total_revenue', 0)
 
-    # Use the new keys
-    status_df = extra_metrics.get('order_status')
-    status_summary = ""
-    if status_df is not None and not status_df.empty:
-        total_orders = status_df['order_count'].sum() if 'order_count' in status_df else 0
-        status_list = []
-        for _, row in status_df.iterrows():
-            status = row.get('order_status', 'unknown')
-            count = row.get('order_count', 0)
-            pct = (count / total_orders * 100) if total_orders else 0
-            status_list.append(f"{status}: {count} ({pct:.1f}%)")
-        status_summary = ", ".join(status_list[:5])
-    else:
-        status_summary = "No order status data"
+    # Use the helper for status summary
+    status_summary = get_status_summary(extra_metrics.get('order_status'))
 
     top_payment = extra_metrics.get('top_payment_method', 'N/A')
 
@@ -356,19 +384,8 @@ def generate_deep_insights_with_persona(kpis, filters, daily_revenue, monthly_re
     total_cust = one_time + repeat_cust
     repeat_rate = (repeat_cust / total_cust * 100) if total_cust else 0
 
-    status_df = extra_metrics.get('order_status')
-    status_summary = ""
-    if status_df is not None and not status_df.empty:
-        total_orders = status_df['order_count'].sum() if 'order_count' in status_df else 0
-        status_list = []
-        for _, row in status_df.iterrows():
-            status = row.get('order_status', 'unknown')
-            count = row.get('order_count', 0)
-            pct = (count / total_orders * 100) if total_orders else 0
-            status_list.append(f"{status}: {count} ({pct:.1f}%)")
-        status_summary = ", ".join(status_list[:5])
-    else:
-        status_summary = "No order status data available"
+    # Use the helper for status summary
+    status_summary = get_status_summary(extra_metrics.get('order_status'))
 
     # Truncated context
     daily_vals = []

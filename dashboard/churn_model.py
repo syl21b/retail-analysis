@@ -3,13 +3,12 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, RandomizedSearchCV
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, roc_auc_score
 import joblib
 import os
 
-#from .database import db
 from . import database
 
 logger = logging.getLogger(__name__)
@@ -99,28 +98,67 @@ def train_model():
     y = df['churn']
     _columns = X.columns.tolist()
 
+    # Scale features (helps with some models, but RandomForest doesn't need it – kept for consistency)
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+    # Split data
+    X_train, X_test, y_train, y_test = train_test_split(
+        X_scaled, y, test_size=0.2, random_state=42, stratify=y
+    )
 
-    model = RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced')
-    model.fit(X_train, y_train)
+    # ------------------------------
+    # Hyperparameter tuning (RandomizedSearchCV) to avoid overfitting
+    # ------------------------------
+    param_dist = {
+        'n_estimators': [50, 100, 200, 300],
+        'max_depth': [5, 10, 15, 20, None],
+        'min_samples_split': [2, 5, 10],
+        'min_samples_leaf': [1, 2, 4],
+        'max_features': ['sqrt', 'log2', None],
+        'class_weight': ['balanced', 'balanced_subsample']
+    }
 
-    preds = model.predict(X_test)
-    report = classification_report(y_test, preds, output_dict=True)
-    logger.info(f"Churn model training complete. Accuracy: {report['accuracy']:.3f}")
-    if '1' in report:
-        logger.info(f"Precision (churn): {report['1']['precision']:.3f}, Recall: {report['1']['recall']:.3f}")
-    else:
-        logger.info("No churned customers in test set – model may predict only one class.")
+    base_rf = RandomForestClassifier(random_state=42)
+    random_search = RandomizedSearchCV(
+        estimator=base_rf,
+        param_distributions=param_dist,
+        n_iter=30,                  # number of parameter settings sampled
+        cv=5,
+        scoring='roc_auc',          # good for imbalanced classification
+        n_jobs=-1,
+        random_state=42,
+        verbose=1
+    )
 
-    _model = model
+    logger.info("Starting hyperparameter tuning with RandomizedSearchCV...")
+    random_search.fit(X_train, y_train)
+
+    best_params = random_search.best_params_
+    best_score = random_search.best_score_
+    logger.info(f"Best parameters found: {best_params}")
+    logger.info(f"Best cross-validation ROC‑AUC: {best_score:.4f}")
+
+    # Train final model with best parameters on full training set
+    best_rf = RandomForestClassifier(**best_params, random_state=42)
+    best_rf.fit(X_train, y_train)
+
+    # Evaluate on test set
+    y_pred = best_rf.predict(X_test)
+    test_auc = roc_auc_score(y_test, best_rf.predict_proba(X_test)[:, 1])
+    logger.info(f"Test ROC‑AUC: {test_auc:.4f}")
+
+    report = classification_report(y_test, y_pred, output_dict=True)
+    logger.info(f"Classification report on test set:\n{pd.DataFrame(report).transpose()}")
+
+    # Store the trained model and scaler
+    _model = best_rf
     _scaler = scaler
     _is_trained = True
 
-    joblib.dump(model, MODEL_PATH)
-    joblib.dump(scaler, SCALER_PATH)
+    # Save to disk
+    joblib.dump(_model, MODEL_PATH)
+    joblib.dump(_scaler, SCALER_PATH)
     logger.info(f"Model saved to {MODEL_PATH}")
     return True
 
