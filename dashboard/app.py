@@ -9,6 +9,7 @@ load_dotenv()
 
 import os
 import logging
+import threading
 
 sys.stdout.reconfigure(line_buffering=True)
 
@@ -25,20 +26,20 @@ from flask import Flask
 from flask_cors import CORS
 from flask_compress import Compress
 from werkzeug.middleware.proxy_fix import ProxyFix
-from dashboard.config import Config   # ✅ absolute import
+from dashboard.config import Config
 
 logger.info("📦 Config imported")
 
-from dashboard import database        # ✅ absolute import
+from dashboard import database
 logger.info("📦 Database module imported")
 
-from dashboard.routes import register_routes   # ✅ absolute import
+from dashboard.routes import register_routes
 logger.info("📦 Routes module imported")
 
-from dashboard.simulation import train_simulation_model   # ✅ absolute import
+from dashboard.simulation import train_simulation_model
 logger.info("📦 Simulation module imported")
 
-from dashboard.sql_helpers import create_performance_indexes   # ✅ absolute import
+from dashboard.sql_helpers import create_performance_indexes
 logger.info("📦 SQL helpers imported")
 
 # Init database
@@ -46,7 +47,7 @@ logger.info("🔗 Initialising database...")
 database.init_db(Config.DATABASE_URL)
 logger.info("✅ Database initialised")
 
-# Pre-warm the extra metrics cache for AI
+# Pre-warm the extra metrics cache for AI (lightweight)
 logger.info("⏳ Pre-loading extra metrics for AI...")
 try:
     from dashboard.ai import get_cached_extra_metrics
@@ -55,12 +56,9 @@ try:
 except Exception as e:
     logger.warning(f"Could not pre-load metrics: {e}")
 
-from dashboard.churn_model import load_model, train_model
-
-# Load or train churn model
-if not load_model():
-    logger.info("No saved churn model found. Training a new one...")
-    train_model()
+# --------------------------------------------------------------
+#  No churn model loading/training here – will be done lazily
+# --------------------------------------------------------------
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -74,28 +72,33 @@ logger.info("📡 Registering routes...")
 register_routes(app)
 logger.info("✅ Routes registered")
 
-# Startup tasks
-_startup_done = False
-
-@app.before_request
+# ==============================================================
+#  Startup tasks are now run in a background thread
+#  (so the server binds to the port immediately)
+# ==============================================================
 def run_startup_tasks():
-    global _startup_done
-    if not _startup_done:
-        logger.info("⚙️ Running startup tasks...")
+    """Run expensive startup tasks in a background thread."""
+    with app.app_context():
+        logger.info("⚙️ Running startup tasks in background...")
         try:
             logger.info("📊 Creating performance indexes...")
             create_performance_indexes(database.db)
             logger.info("📊 Indexes created.")
+
             logger.info("🧠 Training simulation model...")
-            with app.app_context():
-                train_simulation_model()
-            logger.info("✅ Startup tasks completed.")
+            train_simulation_model()
+            logger.info("✅ Simulation model trained.")
+
+            logger.info("🧠 Churn model will be trained on first use (lazy loading).")
+            logger.info("✅ All startup tasks completed.")
         except Exception as e:
             logger.error(f"⚠️ Startup tasks failed: {e}", exc_info=True)
-        _startup_done = True
 
 if __name__ == '__main__':
     logger.info("🔥 Starting Flask development server on port 5001")
-    with app.app_context():
-        train_simulation_model()
+    
+    # Start the heavy tasks in a background thread (daemon so it doesn't block exit)
+    threading.Thread(target=run_startup_tasks, daemon=True).start()
+    
+    # Start the server immediately – this binds to the port quickly
     app.run(host='0.0.0.0', port=5001, debug=Config.DEBUG)

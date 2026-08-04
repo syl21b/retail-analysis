@@ -18,6 +18,7 @@ from .ai import generate_deep_insights_with_persona, _get_additional_metrics, ge
 from .simulation import SIMULATION_COEFFS, train_simulation_model
 from .export import generate_report_html, generate_pdf_from_html
 from .churn_model import set_threshold, get_at_risk_customers,get_churn_stats, get_revenue_timeline, predict, train_model
+from .churn import ensure_model_loaded
 
 import signal
 from functools import wraps
@@ -822,11 +823,12 @@ def register_routes(app):
         response.headers['Cache-Control'] = 'no-store, max-age=0'
         return response
 
-    # ---------- Churn Prediction ----------
+# ---------- Churn Prediction ----------
     @app.route('/api/churn/train', methods=['POST'])
     @require_auth
     @require_role(['admin'])
     def train_churn_model():
+        ensure_model_loaded()  # make sure it's ready
         data = request.get_json()
         if data and 'threshold' in data:
             set_threshold(data['threshold'])
@@ -841,6 +843,7 @@ def register_routes(app):
     @app.route('/api/churn/predict', methods=['GET'])
     @require_auth
     def predict_churn():
+        ensure_model_loaded()
         customer_id = request.args.get('customer_id', type=int)
         if not customer_id:
             return jsonify({"error": "Missing customer_id"}), 400
@@ -852,6 +855,7 @@ def register_routes(app):
     @app.route('/api/churn/at_risk', methods=['GET'])
     @require_auth
     def at_risk_customers():
+        ensure_model_loaded()
         limit = request.args.get('limit', default=20, type=int)
         threshold = request.args.get('threshold', type=int)
         if threshold is not None:
@@ -862,16 +866,17 @@ def register_routes(app):
     @app.route('/api/churn/stats', methods=['GET'])
     @require_auth
     def churn_stats():
+        ensure_model_loaded()
         threshold = request.args.get('threshold', type=int)
         if threshold is not None:
             set_threshold(threshold)
-
         stats = get_churn_stats()
         return jsonify(stats)
 
     @app.route('/api/churn/revenue_timeline', methods=['GET'])
     @require_auth
     def churn_revenue_timeline():
+        ensure_model_loaded()
         threshold = request.args.get('threshold', type=int)
         if threshold is not None:
             set_threshold(threshold)
