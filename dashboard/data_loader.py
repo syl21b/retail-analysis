@@ -70,34 +70,36 @@ class DataLoader:
         logger.info(f"Loaded {len(self.sql_files)} SQL files")
 
     def _execute_sql_file(self, sql_path):
-          try:
-               with open(sql_path, 'r', encoding='utf-8') as f:
-                    sql_content = f.read()
-               sql_content = clean_sql(sql_content)
-               if not sql_content:
-                    return None
-               sql_content = add_schema_prefix(sql_content)
-               sql_content = fix_date_extract(sql_content)
-               sql_content = re.sub(r'\s+LIMIT\s+\d+', '', sql_content, flags=re.IGNORECASE)
-               sql_content = sql_content.rstrip(';').strip()
-               if sql_content.strip().upper().startswith('SELECT'):
-                    sql_content += f" LIMIT {Config.MAX_ROWS_PER_DATASET}"
-               result = database.db.execute_query(sql_content)   # <-- fix: use database.db
-               if result and isinstance(result, list) and len(result) > 0:
-                    df = pd.DataFrame(result)
-                    df = self._convert_decimal_to_float(df)
-                    if len(df) > Config.MAX_ROWS_PER_DATASET:
-                         logger.warning(f"Truncating {sql_path.name} from {len(df)} to {Config.MAX_ROWS_PER_DATASET} rows")
-                         df = df.head(Config.MAX_ROWS_PER_DATASET)
-                    for col in df.select_dtypes(include=['float']).columns:
-                         df[col] = pd.to_numeric(df[col], downcast='float')
-                    for col in df.select_dtypes(include=['integer']).columns:
-                         df[col] = pd.to_numeric(df[col], downcast='integer')
-                    return df
-               return None
-          except Exception as e:
-               logger.error(f"Error in {sql_path.name}: {e}")
-               return None
+        try:
+            with open(sql_path, 'r', encoding='utf-8') as f:
+                sql_content = f.read()
+            sql_content = clean_sql(sql_content)
+            if not sql_content:
+                return None
+            sql_content = add_schema_prefix(sql_content)
+            sql_content = fix_date_extract(sql_content)
+            sql_content = re.sub(r'\s+LIMIT\s+\d+', '', sql_content, flags=re.IGNORECASE)
+            sql_content = sql_content.rstrip(';').strip()
+            if sql_content.strip().upper().startswith('SELECT'):
+                sql_content += f" LIMIT {Config.MAX_ROWS_PER_DATASET}"
+            result = database.db.execute_query(sql_content)
+            if result and isinstance(result, list) and len(result) > 0:
+                df = pd.DataFrame(result)
+                df = self._convert_decimal_to_float(df)
+                if len(df) > Config.MAX_ROWS_PER_DATASET:
+                    # Changed from WARNING to INFO so it's less noisy
+                    logger.info(f"Truncating {sql_path.name} from {len(df)} to {Config.MAX_ROWS_PER_DATASET} rows")
+                    df = df.head(Config.MAX_ROWS_PER_DATASET)
+                for col in df.select_dtypes(include=['float']).columns:
+                    df[col] = pd.to_numeric(df[col], downcast='float')
+                for col in df.select_dtypes(include=['integer']).columns:
+                    df[col] = pd.to_numeric(df[col], downcast='integer')
+                return df
+            return None
+        except Exception as e:
+            logger.error(f"Error in {sql_path.name}: {e}")
+            return None
+
     def _convert_decimal_to_float(self, df):
         for col in df.columns:
             try:

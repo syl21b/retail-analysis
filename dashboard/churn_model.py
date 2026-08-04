@@ -94,28 +94,26 @@ def train_model():
         logger.warning("No data to train churn model.")
         return False
 
-    X = df.drop(['customer_id', 'churn'], axis=1)
+    # Features: exclude customer_id, churn, and recency (leak)
+    X = df.drop(['customer_id', 'churn', 'recency'], axis=1)
     y = df['churn']
     _columns = X.columns.tolist()
 
-    # Scale features (helps with some models, but RandomForest doesn't need it – kept for consistency)
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    # Split data
+    # Split with stratification to preserve class balance
     X_train, X_test, y_train, y_test = train_test_split(
         X_scaled, y, test_size=0.2, random_state=42, stratify=y
     )
 
-    # ------------------------------
-    # Hyperparameter tuning (RandomizedSearchCV) to avoid overfitting
-    # ------------------------------
+    # ---- More conservative hyperparameter search ----
     param_dist = {
-        'n_estimators': [50, 100, 200, 300],
-        'max_depth': [5, 10, 15, 20, None],
-        'min_samples_split': [2, 5, 10],
-        'min_samples_leaf': [1, 2, 4],
-        'max_features': ['sqrt', 'log2', None],
+        'n_estimators': [50, 100],                 # fewer trees
+        'max_depth': [3, 5, 7],                    # shallow trees
+        'min_samples_split': [5, 10, 20],          # higher to avoid leaf specialisation
+        'min_samples_leaf': [2, 4, 6],             # larger leaves
+        'max_features': ['sqrt'],                  # fixed to sqrt(p)
         'class_weight': ['balanced', 'balanced_subsample']
     }
 
@@ -123,15 +121,15 @@ def train_model():
     random_search = RandomizedSearchCV(
         estimator=base_rf,
         param_distributions=param_dist,
-        n_iter=30,                  # number of parameter settings sampled
+        n_iter=20,                                 # fewer combinations
         cv=5,
-        scoring='roc_auc',          # good for imbalanced classification
+        scoring='roc_auc',
         n_jobs=-1,
         random_state=42,
         verbose=1
     )
 
-    logger.info("Starting hyperparameter tuning with RandomizedSearchCV...")
+    logger.info("Starting hyperparameter tuning with conservative settings...")
     random_search.fit(X_train, y_train)
 
     best_params = random_search.best_params_
@@ -139,7 +137,7 @@ def train_model():
     logger.info(f"Best parameters found: {best_params}")
     logger.info(f"Best cross-validation ROC‑AUC: {best_score:.4f}")
 
-    # Train final model with best parameters on full training set
+    # Train final model with best parameters
     best_rf = RandomForestClassifier(**best_params, random_state=42)
     best_rf.fit(X_train, y_train)
 
@@ -151,12 +149,14 @@ def train_model():
     report = classification_report(y_test, y_pred, output_dict=True)
     logger.info(f"Classification report on test set:\n{pd.DataFrame(report).transpose()}")
 
-    # Store the trained model and scaler
+    # If test AUC is still > 0.99, warn about potential data leakage
+    if test_auc > 0.99:
+        logger.warning("⚠️ Test AUC > 0.99 – possible remaining leakage or data is too separable. Consider adding more features or using a simpler model.")
+
     _model = best_rf
     _scaler = scaler
     _is_trained = True
 
-    # Save to disk
     joblib.dump(_model, MODEL_PATH)
     joblib.dump(_scaler, SCALER_PATH)
     logger.info(f"Model saved to {MODEL_PATH}")
@@ -205,7 +205,8 @@ def predict(customer_id):
     if customer_row.empty:
         return {"error": f"Customer {customer_id} not found"}
 
-    X = customer_row.drop(['customer_id', 'churn'], axis=1)
+    # Drop recency from features for prediction
+    X = customer_row.drop(['customer_id', 'churn', 'recency'], axis=1)
     if _columns is not None:
         X = X.reindex(columns=_columns, fill_value=0)
     X_scaled = _scaler.transform(X)
@@ -231,7 +232,8 @@ def get_at_risk_customers(limit=20):
     if df.empty:
         return []
 
-    X = df.drop(['customer_id', 'churn'], axis=1)
+    # Drop recency
+    X = df.drop(['customer_id', 'churn', 'recency'], axis=1)
     if _columns is not None:
         X = X.reindex(columns=_columns, fill_value=0)
     X_scaled = _scaler.transform(X)
@@ -255,7 +257,7 @@ def get_churn_stats():
     if df.empty:
         return {}
 
-    X = df.drop(['customer_id', 'churn'], axis=1)
+    X = df.drop(['customer_id', 'churn', 'recency'], axis=1)
     if _columns is not None:
         X = X.reindex(columns=_columns, fill_value=0)
     X_scaled = _scaler.transform(X)

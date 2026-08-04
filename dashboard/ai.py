@@ -40,7 +40,7 @@ if Config.GROQ_API_KEY and GROQ_AVAILABLE:
         logger.error(f"Failed to initialise Groq client: {e}")
         groq_client = None
 
-def call_ai_provider(prompt, timeout=10):
+def call_ai_provider(prompt, timeout=30):   # increased default
     if genai_client:
         try:
             response = genai_client.models.generate_content(
@@ -48,10 +48,9 @@ def call_ai_provider(prompt, timeout=10):
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     temperature=0.7,
-                    max_output_tokens=1024,
+                    max_output_tokens=4096,
                     top_p=0.95
-                ),
-                request_options={"timeout": timeout}
+                )
             )
             logger.info("✅ AI response from Gemini.")
             return response.text
@@ -63,7 +62,7 @@ def call_ai_provider(prompt, timeout=10):
                 model="llama-3.3-70b-versatile",
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.7,
-                max_tokens=1024,
+                max_tokens=2048,
                 top_p=0.95,
                 timeout=timeout
             )
@@ -74,7 +73,7 @@ def call_ai_provider(prompt, timeout=10):
     logger.warning("No AI provider available.")
     return None
 
-def call_ai_provider_with_timeout(prompt, timeout=10):
+def call_ai_provider_with_timeout(prompt, timeout=30):   # increased
     executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
     future = executor.submit(call_ai_provider, prompt, timeout)
     try:
@@ -111,6 +110,8 @@ Write a concise, actionable business report with these sections:
 ## 3. Root Causes (from a financial risk perspective)
 ## 4. Actionable Recommendations (Short-term, Long-term) – focus on cost control and risk mitigation
 ## 5. Expected Business Impact – quantify savings or risk reduction
+
+Make sure to cover ALL sections. Do not truncate your response.
 """,
     "growth_cmo": """
 You are an **Aggressive Growth CMO** with a track record of scaling businesses through innovative marketing and customer acquisition.  
@@ -130,6 +131,8 @@ Write a concise, actionable business report with these sections:
 ## 3. Root Causes (from a growth and acquisition perspective)
 ## 4. Actionable Recommendations (Short-term, Long-term) – focus on scaling, acquisition, and loyalty
 ## 5. Expected Business Impact – project revenue uplift and market share gains
+
+Make sure to cover ALL sections. Do not truncate your response.
 """,
     "balanced_analyst": """
 You are a **Balanced Business Analyst** who weighs both risks and opportunities objectively.  
@@ -149,6 +152,8 @@ Write a concise, actionable business report with these sections:
 ## 3. Root Causes (balanced perspective)
 ## 4. Actionable Recommendations (Short-term, Long-term) – pragmatic and data‑backed
 ## 5. Expected Business Impact – realistic outcomes
+
+Make sure to cover ALL sections. Do not truncate your response.
 """
 }
 
@@ -172,7 +177,7 @@ def _get_additional_metrics():
     try:
         status = friendly_data.get('Order Status Distribution')
         if status is not None and not status.empty:
-            extra['order_status'] = status.to_dict('records')   # store as list of dicts
+            extra['order_status'] = status.to_dict('records')
         else:
             extra['order_status'] = []
 
@@ -190,8 +195,16 @@ def _get_additional_metrics():
 
         subcat = friendly_data.get('Revenue by Product SubCategory')
         if subcat is not None and not subcat.empty:
-            subcat_field = 'subcategory' if 'subcategory' in subcat.columns else 'product_subcategory'
-            extra['top_subcategories'] = subcat.head(3)[subcat_field].tolist()
+            possible_cols = ['subcategory', 'product_subcategory', 'sub_category', 'product_category']
+            subcat_field = None
+            for col in possible_cols:
+                if col in subcat.columns:
+                    subcat_field = col
+                    break
+            if subcat_field:
+                extra['top_subcategories'] = subcat.head(3)[subcat_field].tolist()
+            else:
+                extra['top_subcategories'] = subcat.head(3).iloc[:, 0].tolist()
         else:
             extra['top_subcategories'] = []
 
@@ -201,7 +214,7 @@ def _get_additional_metrics():
         else:
             extra['cohort_sample'] = []
 
-        extra['rfm_full'] = []   # not used
+        extra['rfm_full'] = []
 
     except Exception as e:
         logger.warning(f"Could not fetch extra metrics: {e}")
@@ -218,7 +231,6 @@ def get_status_summary(status_data):
     if status_data is None:
         return "No order status data available"
 
-    # If it's a list of dicts
     if isinstance(status_data, list):
         if not status_data:
             return "No order status data available"
@@ -233,7 +245,6 @@ def get_status_summary(status_data):
             status_list.append(f"{status}: {count} ({pct:.1f}%)")
         return ", ".join(status_list[:5])
 
-    # Assume it's a DataFrame (or something with .empty and .iterrows)
     if hasattr(status_data, 'empty') and status_data.empty:
         return "No order status data available"
     total_orders = status_data['order_count'].sum() if 'order_count' in status_data else 0
@@ -285,12 +296,19 @@ def generate_local_deep_insights_fallback(kpis, filters, daily_revenue, monthly_
                 break
     total_cust = one_time + repeat_cust
     repeat_rate = (repeat_cust / total_cust * 100) if total_cust else 0
-    aov = kpis.get('avg_order_value', 0)
-    total_rev = kpis.get('total_revenue', 0)
 
-    # Use the helper for status summary
+    # --- FIX: ensure numeric values ---
+    def to_float(val, default=0.0):
+        try:
+            return float(val)
+        except (TypeError, ValueError):
+            return default
+
+    aov = to_float(kpis.get('avg_order_value', 0))
+    total_rev = to_float(kpis.get('total_revenue', 0))
+    total_orders = int(kpis.get('total_orders', 0))
+
     status_summary = get_status_summary(extra_metrics.get('order_status'))
-
     top_payment = extra_metrics.get('top_payment_method', 'N/A')
 
     report = []
@@ -304,7 +322,7 @@ def generate_local_deep_insights_fallback(kpis, filters, daily_revenue, monthly_
         report.append(f"📉 **{len(anomalies)} revenue anomaly days** (>20% drop).\n")
     if high_risk:
         report.append(f"💎 **{len(high_risk)} high‑value customers at risk** of churn.\n")
-    report.append(f"Overall: ${total_rev:,.0f} revenue from {kpis.get('total_orders',0):,} orders, AOV ${aov:,.0f}.\n")
+    report.append(f"Overall: ${total_rev:,.0f} revenue from {total_orders:,} orders, AOV ${aov:,.0f}.\n")
     report.append("## 1. Key Metrics & Filters\n")
     date_filter = filters.get('dateRange', {})
     report.append(f"- **Filters**: Date {date_filter.get('min','any')} → {date_filter.get('max','any')}, City {filters.get('selectedCity','any')}, Category {filters.get('selectedCategory','any')}\n")
@@ -321,10 +339,11 @@ def generate_local_deep_insights_fallback(kpis, filters, daily_revenue, monthly_
     report.append("\n### Retention & Loyalty\n")
     report.append(f"- Repeat rate {repeat_rate:.1f}% is " + ("below benchmark." if repeat_rate < 30 else "acceptable.") + "\n")
     if clv_data.get('highest'):
-        avg_top_clv = sum(c.get('total_net_amount', c.get('total_revenue', 0)) for c in clv_data['highest']) / len(clv_data['highest'])
+        avg_top_clv = sum(to_float(c.get('total_net_amount', c.get('total_revenue', 0))) for c in clv_data['highest']) / max(len(clv_data['highest']), 1)
         report.append(f"- Top 5 CLV: ${avg_top_clv:,.0f} avg.\n")
     if high_risk:
-        report.append(f"- High‑risk VIPs: {len(high_risk)} customers, total ${sum(c.get('monetary',0) for c in high_risk):,.0f} at stake.\n")
+        high_risk_total = sum(to_float(c.get('monetary', 0)) for c in high_risk)
+        report.append(f"- High‑risk VIPs: {len(high_risk)} customers, total ${high_risk_total:,.0f} at stake.\n")
     report.append("\n### Operations & Risk\n")
     report.append(f"- Order Status Distribution: {status_summary}\n")
     report.append(f"- Top payment method: {top_payment}.\n")
@@ -384,10 +403,8 @@ def generate_deep_insights_with_persona(kpis, filters, daily_revenue, monthly_re
     total_cust = one_time + repeat_cust
     repeat_rate = (repeat_cust / total_cust * 100) if total_cust else 0
 
-    # Use the helper for status summary
     status_summary = get_status_summary(extra_metrics.get('order_status'))
 
-    # Truncated context
     daily_vals = []
     for d in daily_revenue[-5:]:
         val = d.get('total_amount') or d.get('revenue') or 0
@@ -456,7 +473,7 @@ Churn Rate: {churn_rate_val if churn_rate_val is not None else 'N/A'}%
 --- DATA ---
 {context}
 """
-    insights = call_ai_provider_with_timeout(full_prompt, timeout=10)
+    insights = call_ai_provider_with_timeout(full_prompt, timeout=30)   # increased timeout
     if insights:
         required = ["Executive Summary", "Key Metrics", "Deep Dive", "Root Causes", "Actionable Recommendations", "Expected Business Impact"]
         if not any(sec in insights for sec in required):
