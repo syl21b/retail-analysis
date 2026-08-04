@@ -3,11 +3,13 @@ import time
 from contextlib import contextmanager
 from psycopg2.pool import SimpleConnectionPool
 from psycopg2.extras import RealDictCursor
+import psycopg2
 
 logger = logging.getLogger(__name__)
 
 class SecureDatabase:
     def __init__(self, db_url, min_conn=2, max_conn=20):
+        # Add keepalives and timeouts to the URL
         if '?' in db_url:
             db_url += '&sslmode=require'
         else:
@@ -21,20 +23,53 @@ class SecureDatabase:
         ]
         for p in keepalive_params:
             db_url += f'&{p}'
-        self.pool = SimpleConnectionPool(min_conn, max_conn, db_url)
+        self.db_url = db_url
+        self.min_conn = min_conn
+        self.max_conn = max_conn
+        self.pool = None
+        self._init_pool()
+
+    def _init_pool(self):
+        """Initialize or reinitialize the connection pool."""
+        if self.pool:
+            try:
+                self.pool.closeall()
+            except Exception:
+                pass
+        self.pool = SimpleConnectionPool(
+            self.min_conn, self.max_conn, self.db_url,
+            keepalives_idle=60,
+            keepalives_interval=10,
+            keepalives_count=5,
+            connect_timeout=10
+        )
 
     def get_connection(self):
-        conn = self.pool.getconn()
-        try:
-            with conn.cursor() as cur:
-                cur.execute("SELECT 1")
-        except Exception:
-            self.pool.putconn(conn, close=True)
-            conn = self.pool.getconn()
-        return conn
+        """Get a connection from the pool, with retry on failure."""
+        max_attempts = 3
+        for attempt in range(max_attempts):
+            try:
+                conn = self.pool.getconn()
+                # Test the connection
+                with conn.cursor() as cur:
+                    cur.execute("SELECT 1")
+                return conn
+            except Exception as e:
+                logger.warning(f"Connection attempt {attempt+1} failed: {e}")
+                if attempt < max_attempts - 1:
+                    # Reinitialize the pool and retry
+                    self._init_pool()
+                    time.sleep(0.5)
+                else:
+                    raise
+        raise Exception("Failed to get database connection after retries")
 
     def put_connection(self, conn):
-        self.pool.putconn(conn)
+        """Return connection to the pool, closing if broken."""
+        try:
+            self.pool.putconn(conn, close=True)
+        except Exception:
+            pass
 
     @contextmanager
     def get_cursor(self):
@@ -46,7 +81,10 @@ class SecureDatabase:
             conn.commit()
         except Exception as e:
             if conn:
-                conn.rollback()
+                try:
+                    conn.rollback()
+                except Exception:
+                    pass
             logger.error(f"Database error: {e}")
             raise
         finally:
@@ -64,9 +102,11 @@ class SecureDatabase:
                     return cur.rowcount
             except Exception as e:
                 last_exception = e
-                if 'connection' in str(e).lower() or 'closed' in str(e).lower():
-                    logger.warning(f"Query failed (attempt {attempt+1}): {e}. Retrying in 0.5s...")
+                # If connection error, we retry after reinitializing pool
+                if 'connection' in str(e).lower() or 'closed' in str(e).lower() or 'SSL' in str(e):
+                    logger.warning(f"Query failed (attempt {attempt+1}): {e}. Retrying...")
                     if attempt < retries:
+                        self._init_pool()
                         time.sleep(0.5)
                         continue
                 raise
