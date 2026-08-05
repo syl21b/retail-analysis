@@ -84,7 +84,6 @@ def _build_features():
     FROM customer_orders co
     LEFT JOIN gaps g ON co.customer_id = g.customer_id
     ORDER BY co.monetary DESC
-    LIMIT 10000
     """
     try:
         rows = database.db.execute_query(query, (CHURN_THRESHOLD_DAYS,))
