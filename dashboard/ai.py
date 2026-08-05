@@ -40,7 +40,7 @@ if Config.GROQ_API_KEY and GROQ_AVAILABLE:
         logger.error(f"Failed to initialise Groq client: {e}")
         groq_client = None
 
-def call_ai_provider(prompt, timeout=30):   # increased default
+def call_ai_provider(prompt, timeout=30):
     if genai_client:
         try:
             response = genai_client.models.generate_content(
@@ -48,7 +48,7 @@ def call_ai_provider(prompt, timeout=30):   # increased default
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     temperature=0.7,
-                    max_output_tokens=4096,
+                    max_output_tokens=8192,   # increased to avoid truncation
                     top_p=0.95
                 )
             )
@@ -62,7 +62,7 @@ def call_ai_provider(prompt, timeout=30):   # increased default
                 model="llama-3.3-70b-versatile",
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.7,
-                max_tokens=2048,
+                max_tokens=4096,   # increased for Groq
                 top_p=0.95,
                 timeout=timeout
             )
@@ -73,7 +73,7 @@ def call_ai_provider(prompt, timeout=30):   # increased default
     logger.warning("No AI provider available.")
     return None
 
-def call_ai_provider_with_timeout(prompt, timeout=30):   # increased
+def call_ai_provider_with_timeout(prompt, timeout=30):
     executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
     future = executor.submit(call_ai_provider, prompt, timeout)
     try:
@@ -297,7 +297,6 @@ def generate_local_deep_insights_fallback(kpis, filters, daily_revenue, monthly_
     total_cust = one_time + repeat_cust
     repeat_rate = (repeat_cust / total_cust * 100) if total_cust else 0
 
-    # --- FIX: ensure numeric values ---
     def to_float(val, default=0.0):
         try:
             return float(val)
@@ -473,7 +472,7 @@ Churn Rate: {churn_rate_val if churn_rate_val is not None else 'N/A'}%
 --- DATA ---
 {context}
 """
-    insights = call_ai_provider_with_timeout(full_prompt, timeout=30)   # increased timeout
+    insights = call_ai_provider_with_timeout(full_prompt, timeout=30)
     if insights:
         required = ["Executive Summary", "Key Metrics", "Deep Dive", "Root Causes", "Actionable Recommendations", "Expected Business Impact"]
         if not any(sec in insights for sec in required):
