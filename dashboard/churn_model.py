@@ -8,6 +8,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import classification_report, roc_auc_score
 import joblib
 import os
+from pathlib import Path
 
 from . import database
 
@@ -21,8 +22,11 @@ _is_trained = False
 
 # Mutable threshold
 CHURN_THRESHOLD_DAYS = 180
-MODEL_PATH = "churn_model.pkl"
-SCALER_PATH = "scaler.pkl"
+
+# Use absolute paths: store the model files in the same directory as this file
+MODULE_DIR = Path(__file__).parent
+MODEL_PATH = str(MODULE_DIR / "churn_model.pkl")
+SCALER_PATH = str(MODULE_DIR / "scaler.pkl")
 
 def set_threshold(days):
     """Update the churn threshold and retrain the model."""
@@ -152,6 +156,8 @@ def load_model():
             return True
         except Exception as e:
             logger.error(f"Failed to load model: {e}")
+    else:
+        logger.warning(f"Model files not found at {MODEL_PATH} or {SCALER_PATH}")
     return False
 
 def _get_churn_probs(X_scaled):
@@ -195,7 +201,7 @@ def predict(customer_id):
 
 def get_at_risk_customers(limit=20):
     if not _is_trained:
-        return []  # or raise error, but returning empty is safe
+        return []
     df = _build_features()
     if df.empty:
         return []
