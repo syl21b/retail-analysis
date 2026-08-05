@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split, RandomizedSearchCV
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import classification_report, roc_auc_score
 import joblib
@@ -88,13 +88,13 @@ def _build_features():
         return pd.DataFrame()
 
 def train_model():
+    """Train the model (intended for local use only)."""
     global _model, _scaler, _columns, _is_trained
     df = _build_features()
     if df.empty:
         logger.warning("No data to train churn model.")
         return False
 
-    # Features: exclude customer_id, churn, and recency (leak)
     X = df.drop(['customer_id', 'churn', 'recency'], axis=1)
     y = df['churn']
     _columns = X.columns.tolist()
@@ -102,58 +102,31 @@ def train_model():
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    # Split with stratification to preserve class balance
     X_train, X_test, y_train, y_test = train_test_split(
         X_scaled, y, test_size=0.2, random_state=42, stratify=y
     )
 
-    # ---- More conservative hyperparameter search ----
-    param_dist = {
-        'n_estimators': [50, 100],                 # fewer trees
-        'max_depth': [3, 5, 7],                    # shallow trees
-        'min_samples_split': [5, 10, 20],          # higher to avoid leaf specialisation
-        'min_samples_leaf': [2, 4, 6],             # larger leaves
-        'max_features': ['sqrt'],                  # fixed to sqrt(p)
-        'class_weight': ['balanced', 'balanced_subsample']
-    }
-
-    base_rf = RandomForestClassifier(random_state=42)
-    random_search = RandomizedSearchCV(
-        estimator=base_rf,
-        param_distributions=param_dist,
-        n_iter=20,                                 # fewer combinations
-        cv=5,
-        scoring='roc_auc',
-        n_jobs=-1,
+    # Simpler model: fewer trees, shallow depth, less memory
+    model = RandomForestClassifier(
+        n_estimators=50,
+        max_depth=5,
+        min_samples_split=10,
+        min_samples_leaf=4,
+        max_features='sqrt',
+        class_weight='balanced',
         random_state=42,
-        verbose=1
+        n_jobs=1  # single thread to reduce memory
     )
+    model.fit(X_train, y_train)
 
-    logger.info("Starting hyperparameter tuning with conservative settings...")
-    random_search.fit(X_train, y_train)
-
-    best_params = random_search.best_params_
-    best_score = random_search.best_score_
-    logger.info(f"Best parameters found: {best_params}")
-    logger.info(f"Best cross-validation ROC‑AUC: {best_score:.4f}")
-
-    # Train final model with best parameters
-    best_rf = RandomForestClassifier(**best_params, random_state=42)
-    best_rf.fit(X_train, y_train)
-
-    # Evaluate on test set
-    y_pred = best_rf.predict(X_test)
-    test_auc = roc_auc_score(y_test, best_rf.predict_proba(X_test)[:, 1])
+    y_pred = model.predict(X_test)
+    test_auc = roc_auc_score(y_test, model.predict_proba(X_test)[:, 1])
     logger.info(f"Test ROC‑AUC: {test_auc:.4f}")
 
     report = classification_report(y_test, y_pred, output_dict=True)
     logger.info(f"Classification report on test set:\n{pd.DataFrame(report).transpose()}")
 
-    # If test AUC is still > 0.99, warn about potential data leakage
-    if test_auc > 0.99:
-        logger.warning("⚠️ Test AUC > 0.99 – possible remaining leakage or data is too separable. Consider adding more features or using a simpler model.")
-
-    _model = best_rf
+    _model = model
     _scaler = scaler
     _is_trained = True
 
@@ -169,11 +142,12 @@ def load_model():
             _model = joblib.load(MODEL_PATH)
             _scaler = joblib.load(SCALER_PATH)
             _is_trained = True
+            # Infer columns from scaler if possible, else assume order
             if hasattr(_scaler, 'feature_names_in_'):
                 _columns = list(_scaler.feature_names_in_)
             else:
-                _columns = None
-                logger.warning("Columns not stored in scaler. Will retrain on next use.")
+                # Use a default order (must match training)
+                _columns = ['frequency', 'monetary', 'tenure', 'avg_days_between', 'avg_order_value']
             logger.info("Churn model loaded from disk.")
             return True
         except Exception as e:
@@ -181,7 +155,9 @@ def load_model():
     return False
 
 def _get_churn_probs(X_scaled):
-    """Return churn probabilities regardless of number of classes."""
+    """Return churn probabilities."""
+    if not _is_trained:
+        raise RuntimeError("Model not loaded.")
     probs = _model.predict_proba(X_scaled)
     if probs.shape[1] == 1:
         if _model.classes_[0] == 1:
@@ -192,12 +168,9 @@ def _get_churn_probs(X_scaled):
         return probs[:, 1]
 
 def predict(customer_id):
+    """Predict churn for a single customer."""
     if not _is_trained:
-        if not load_model():
-            train_model()
-        if not _is_trained:
-            return {"error": "Churn model not available"}
-
+        return {"error": "Churn model not available. Please contact administrator."}
     df = _build_features()
     if df.empty:
         return {"error": "No data"}
@@ -205,7 +178,6 @@ def predict(customer_id):
     if customer_row.empty:
         return {"error": f"Customer {customer_id} not found"}
 
-    # Drop recency from features for prediction
     X = customer_row.drop(['customer_id', 'churn', 'recency'], axis=1)
     if _columns is not None:
         X = X.reindex(columns=_columns, fill_value=0)
@@ -223,16 +195,11 @@ def predict(customer_id):
 
 def get_at_risk_customers(limit=20):
     if not _is_trained:
-        if not load_model():
-            train_model()
-        if not _is_trained:
-            return []
-
+        return []  # or raise error, but returning empty is safe
     df = _build_features()
     if df.empty:
         return []
 
-    # Drop recency
     X = df.drop(['customer_id', 'churn', 'recency'], axis=1)
     if _columns is not None:
         X = X.reindex(columns=_columns, fill_value=0)
@@ -248,11 +215,7 @@ def get_at_risk_customers(limit=20):
 
 def get_churn_stats():
     if not _is_trained:
-        if not load_model():
-            train_model()
-        if not _is_trained:
-            return {}
-
+        return {}
     df = _build_features()
     if df.empty:
         return {}

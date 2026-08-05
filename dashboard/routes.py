@@ -866,7 +866,8 @@ def register_routes(app):
     @app.route('/api/churn/stats', methods=['GET'])
     @require_auth
     def churn_stats():
-        ensure_model_loaded()
+        if not ensure_model_loaded():
+            return jsonify({"error": "Churn model not available"}), 503
         threshold = request.args.get('threshold', type=int)
         if threshold is not None:
             set_threshold(threshold)
