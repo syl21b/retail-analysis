@@ -9,6 +9,7 @@ from sklearn.metrics import classification_report, roc_auc_score
 import joblib
 import os
 from pathlib import Path
+import gc
 
 from . import database
 
@@ -23,7 +24,7 @@ _is_trained = False
 # Mutable threshold
 CHURN_THRESHOLD_DAYS = 180
 
-# Use absolute paths: store the model files in the same directory as this file
+# Store model files in the same directory as this module
 MODULE_DIR = Path(__file__).parent
 MODEL_PATH = str(MODULE_DIR / "churn_model.pkl")
 SCALER_PATH = str(MODULE_DIR / "scaler.pkl")
@@ -38,6 +39,10 @@ def set_threshold(days):
     return True
 
 def _build_features():
+    """
+    Build feature DataFrame for churn prediction.
+    Limits to top 10,000 customers by monetary value to keep memory usage low.
+    """
     query = """
     WITH customer_orders AS (
         SELECT 
@@ -78,6 +83,8 @@ def _build_features():
         END AS churn
     FROM customer_orders co
     LEFT JOIN gaps g ON co.customer_id = g.customer_id
+    ORDER BY co.monetary DESC
+    LIMIT 10000
     """
     try:
         rows = database.db.execute_query(query, (CHURN_THRESHOLD_DAYS,))
@@ -110,7 +117,7 @@ def train_model():
         X_scaled, y, test_size=0.2, random_state=42, stratify=y
     )
 
-    # Simpler model: fewer trees, shallow depth, less memory
+    # Simple, memory‑efficient model: few trees, shallow depth, single thread
     model = RandomForestClassifier(
         n_estimators=50,
         max_depth=5,
@@ -119,7 +126,7 @@ def train_model():
         max_features='sqrt',
         class_weight='balanced',
         random_state=42,
-        n_jobs=1  # single thread to reduce memory
+        n_jobs=1
     )
     model.fit(X_train, y_train)
 
@@ -150,9 +157,10 @@ def load_model():
             if hasattr(_scaler, 'feature_names_in_'):
                 _columns = list(_scaler.feature_names_in_)
             else:
-                # Use a default order (must match training)
                 _columns = ['frequency', 'monetary', 'tenure', 'avg_days_between', 'avg_order_value']
             logger.info("Churn model loaded from disk.")
+            # Free up some memory
+            gc.collect()
             return True
         except Exception as e:
             logger.error(f"Failed to load model: {e}")

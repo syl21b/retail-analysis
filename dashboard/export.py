@@ -1,23 +1,26 @@
 import io
 import base64
 import re
+import logging
 from datetime import datetime
 from weasyprint import HTML
 import plotly.graph_objects as go
 from plotly.io import to_image
-import logging
+import kaleido  # ensure kaleido is imported (it's used by to_image)
 
 logger = logging.getLogger(__name__)
 
 # ------------------------------
-# Chart to base64 (with error handling)
+# Chart to base64 with fallback
 # ------------------------------
 def chart_to_base64(fig, width=800, height=400):
     try:
-        img_bytes = to_image(fig, format='png', width=width, height=height)
+        # Explicitly set the engine to kaleido (default)
+        img_bytes = to_image(fig, format='png', width=width, height=height, engine='kaleido')
         return base64.b64encode(img_bytes).decode('utf-8')
     except Exception as e:
         logger.error(f"Chart to base64 error: {e}")
+        # Fallback: return empty string (will show placeholder)
         return ""
 
 # ------------------------------
@@ -28,25 +31,36 @@ def generate_report_html(kpis, insights_html, charts, filters):
     chart_imgs = {}
     chart_defs = [
         ('daily_revenue', 'Daily Revenue Trend', lambda: go.Figure(data=go.Scatter(
-            x=charts['daily_revenue']['x'], y=charts['daily_revenue']['y'], mode='lines+markers'
+            x=charts.get('daily_revenue', {}).get('x', []),
+            y=charts.get('daily_revenue', {}).get('y', []),
+            mode='lines+markers'
         )).update_layout(title='Daily Revenue', xaxis_title='Date', yaxis_title='Revenue ($)')),
         ('category_revenue', 'Category Share', lambda: go.Figure(data=go.Pie(
-            labels=charts['category_revenue']['labels'], values=charts['category_revenue']['values']
+            labels=charts.get('category_revenue', {}).get('labels', []),
+            values=charts.get('category_revenue', {}).get('values', [])
         )).update_layout(title='Revenue by Category')),
         ('monthly_revenue', 'Monthly Revenue', lambda: go.Figure(data=go.Bar(
-            x=charts['monthly_revenue']['x'], y=charts['monthly_revenue']['y']
+            x=charts.get('monthly_revenue', {}).get('x', []),
+            y=charts.get('monthly_revenue', {}).get('y', [])
         )).update_layout(title='Monthly Revenue', xaxis_title='Month', yaxis_title='Revenue ($)')),
         ('city_revenue', 'Top Cities', lambda: go.Figure(data=go.Bar(
-            x=charts['city_revenue']['labels'], y=charts['city_revenue']['values']
+            x=charts.get('city_revenue', {}).get('labels', []),
+            y=charts.get('city_revenue', {}).get('values', [])
         )).update_layout(title='Revenue by City', xaxis_title='City', yaxis_title='Revenue ($)'))
     ]
     for key, title, fig_func in chart_defs:
-        if key in charts and charts[key].get('x' if 'x' in charts[key] else 'labels'):
-            try:
-                fig = fig_func()
+        try:
+            fig = fig_func()
+            # Only generate if there is data
+            if (fig.data and len(fig.data) > 0 and 
+                ((hasattr(fig.data[0], 'x') and fig.data[0].x and len(fig.data[0].x) > 0) or
+                 (hasattr(fig.data[0], 'labels') and fig.data[0].labels and len(fig.data[0].labels) > 0))):
                 chart_imgs[key] = chart_to_base64(fig)
-            except Exception as e:
-                logger.error(f"Failed to render {key}: {e}")
+            else:
+                chart_imgs[key] = ""
+        except Exception as e:
+            logger.error(f"Failed to render chart {key}: {e}")
+            chart_imgs[key] = ""
 
     # Ensure KPIs are numbers
     def safe_kpi(key, default=0):
@@ -161,6 +175,12 @@ def generate_report_html(kpis, insights_html, charts, filters):
                 width: 100%;
                 height: auto;
             }}
+            .chart-box .no-chart {{
+                text-align: center;
+                color: #7a8aa8;
+                padding: 40px 0;
+                font-size: 14px;
+            }}
             .insights {{
                 background: #f8fafc;
                 padding: 20px;
@@ -218,12 +238,12 @@ def generate_report_html(kpis, insights_html, charts, filters):
 
         <h2 class="section-title">Visual Performance Overview</h2>
         <div class="chart-row">
-            <div class="chart-box"><h3>Daily Revenue Trend</h3><img src="data:image/png;base64,{chart_imgs.get('daily_revenue','')}" /></div>
-            <div class="chart-box"><h3>Category Share</h3><img src="data:image/png;base64,{chart_imgs.get('category_revenue','')}" /></div>
+            <div class="chart-box"><h3>Daily Revenue Trend</h3>{'<img src="data:image/png;base64,'+chart_imgs.get('daily_revenue','')+'" />' if chart_imgs.get('daily_revenue') else '<div class="no-chart">No data available</div>'}</div>
+            <div class="chart-box"><h3>Category Share</h3>{'<img src="data:image/png;base64,'+chart_imgs.get('category_revenue','')+'" />' if chart_imgs.get('category_revenue') else '<div class="no-chart">No data available</div>'}</div>
         </div>
         <div class="chart-row">
-            <div class="chart-box"><h3>Monthly Revenue</h3><img src="data:image/png;base64,{chart_imgs.get('monthly_revenue','')}" /></div>
-            <div class="chart-box"><h3>Top Cities</h3><img src="data:image/png;base64,{chart_imgs.get('city_revenue','')}" /></div>
+            <div class="chart-box"><h3>Monthly Revenue</h3>{'<img src="data:image/png;base64,'+chart_imgs.get('monthly_revenue','')+'" />' if chart_imgs.get('monthly_revenue') else '<div class="no-chart">No data available</div>'}</div>
+            <div class="chart-box"><h3>Top Cities</h3>{'<img src="data:image/png;base64,'+chart_imgs.get('city_revenue','')+'" />' if chart_imgs.get('city_revenue') else '<div class="no-chart">No data available</div>'}</div>
         </div>
 
         <h2 class="section-title">AI‑Generated Insights</h2>
@@ -240,4 +260,17 @@ def generate_report_html(kpis, insights_html, charts, filters):
     return html
 
 def generate_pdf_from_html(html_content):
-    return HTML(string=html_content).write_pdf()
+    try:
+        return HTML(string=html_content).write_pdf()
+    except Exception as e:
+        logger.error(f"WeasyPrint PDF generation failed: {e}")
+        # Fallback: try to write a simple PDF with a warning
+        fallback_html = f"""
+        <!DOCTYPE html>
+        <html><body>
+        <h1>PDF Generation Failed</h1>
+        <p>We encountered an error while generating the PDF. Please try again.</p>
+        <pre>{e}</pre>
+        </body></html>
+        """
+        return HTML(string=fallback_html).write_pdf()
