@@ -10,7 +10,7 @@ from reportlab.lib.units import inch
 
 logger = logging.getLogger(__name__)
 
-# Try to import html2text, fall back to regex stripping
+# Try to import html2text for conversion
 try:
     import html2text
     HAS_HTML2TEXT = True
@@ -33,7 +33,9 @@ def preprocess_markdown(text):
     text = re.sub(r'^\s*---\s*$', '', text, flags=re.MULTILINE)
     # Collapse multiple blank lines
     text = re.sub(r'\n\s*\n', '\n\n', text)
-    return text.strip()
+    # Remove leading/trailing spaces
+    text = text.strip()
+    return text
 
 def format_inline(text):
     """Convert **bold** and *italic* to ReportLab tags."""
@@ -62,7 +64,7 @@ def generate_pdf_with_reportlab(kpis, insights_markdown, filters):
                                  fontSize=24, alignment=1, spaceAfter=12,
                                  textColor=colors.darkblue)
     heading1_style = ParagraphStyle('Heading1Style', parent=styles['Heading1'],
-                                    fontSize=18, spaceAfter=6, spaceBefore=12,
+                                    fontSize=20, spaceAfter=6, spaceBefore=12,
                                     textColor=colors.darkblue)
     heading2_style = ParagraphStyle('Heading2Style', parent=styles['Heading2'],
                                     fontSize=16, spaceAfter=4, spaceBefore=8,
@@ -142,8 +144,10 @@ def generate_pdf_with_reportlab(kpis, insights_markdown, filters):
     story.append(Paragraph("AI‑Generated Insights", heading1_style))
     story.append(Spacer(1, 0.1 * inch))
 
-    # Preprocess markdown
+    # Preprocess markdown: remove heading markers and other artifacts
     clean_md = preprocess_markdown(insights_markdown)
+    # Remove all leading '#' markers (we'll detect headings by patterns)
+    clean_md = re.sub(r'^#+\s+', '', clean_md, flags=re.MULTILINE)
 
     # Split into lines
     lines = clean_md.splitlines()
@@ -151,10 +155,9 @@ def generate_pdf_with_reportlab(kpis, insights_markdown, filters):
     in_list = False
     list_type = None
     list_items = []
-    list_indent = 0  # for sub-items
 
     def flush_list():
-        nonlocal in_list, list_items, list_type, list_indent
+        nonlocal in_list, list_items, list_type
         if in_list and list_items:
             if list_type == 'bullet':
                 for item in list_items:
@@ -165,14 +168,13 @@ def generate_pdf_with_reportlab(kpis, insights_markdown, filters):
             list_items = []
             in_list = False
             list_type = None
-            list_indent = 0
 
-    # Helper to detect heading level
+    # Helper to detect heading level based on pattern
     def get_heading_level(line):
-        # Section headings like "1. Key Metrics & Filters"
+        # Major sections: "1. Key Metrics & Filters", etc.
         if re.match(r'^\d+\.\s+[A-Z]', line):
             return 2
-        # Sub-headings like "Short-term" or "Long-term"
+        # Sub-sections like "Short-term", "Long-term"
         if re.match(r'^(Short-term|Long-term)\s*\(', line, re.IGNORECASE):
             return 3
         return 0
@@ -185,20 +187,22 @@ def generate_pdf_with_reportlab(kpis, insights_markdown, filters):
             i += 1
             continue
 
-        # Check for heading
+        # Check for heading by pattern
         h_level = get_heading_level(line)
         if h_level:
             flush_list()
-            content = re.sub(r'^\d+\.\s+', '', line)  # remove numbering for display
+            # Clean up the heading text (remove numbering for display)
             if h_level == 2:
-                story.append(Paragraph(format_inline(content), heading2_style))
+                # Remove the numbering prefix (e.g., "1. ")
+                content = re.sub(r'^\d+\.\s+', '', line)
             else:
-                story.append(Paragraph(format_inline(line), heading3_style))
+                content = line
+            story.append(Paragraph(format_inline(content), heading2_style if h_level == 2 else heading3_style))
             story.append(Spacer(1, 0.05 * inch))
             i += 1
             continue
 
-        # Detect sub-heading like "Executive Summary", "Revenue Performance:", etc.
+        # Detect sub-heading labels like "Revenue Performance:"
         if re.match(r'^[A-Z][a-z]+\s+[A-Z][a-z]+:', line) or re.match(r'^[A-Z][a-z]+:', line):
             flush_list()
             story.append(Paragraph(format_inline(line), label_style))
@@ -229,20 +233,18 @@ def generate_pdf_with_reportlab(kpis, insights_markdown, filters):
             i += 1
             continue
 
-        # Check for Data Point: line (treat as sub-item)
-        if re.match(r'^__Data\s+Point:__', line, re.IGNORECASE) or re.match(r'^\*\*Data\s+Point:\*\*', line, re.IGNORECASE):
-            # This is a sub-bullet under the previous list item
-            # We'll append it to the last item as a new line with bullet
+        # Check for "Data Point:" line (bold label)
+        if re.match(r'^\*\*Data\s+Point:\*\*', line, re.IGNORECASE) or re.match(r'^__Data\s+Point:__', line, re.IGNORECASE):
+            # If we are in a list, add as sub-item with bold label
+            # Extract content after the label
+            content = re.sub(r'^\*\*Data\s+Point:\*\*\s*', '', line, flags=re.IGNORECASE)
+            content = re.sub(r'^__Data\s+Point:__\s*', '', content, flags=re.IGNORECASE)
             if list_items:
-                # Add a sub-bullet
-                sub_text = re.sub(r'^__Data\s+Point:__\s*', '', line, flags=re.IGNORECASE)
-                sub_text = re.sub(r'^\*\*Data\s+Point:\*\*\s*', '', sub_text)
-                # Append to the last list item as a sub-item
-                # We'll just create a new bullet item with a dash
-                list_items.append(f"  - {sub_text}")
+                # Append as a sub-bullet (indented)
+                list_items.append(f"  - **Data Point:** {content}")
             else:
-                # If not in a list, just treat as normal paragraph
-                story.append(Paragraph(format_inline(line), normal_style))
+                # Not in list, just treat as a normal paragraph with bold label
+                story.append(Paragraph(f"<b>Data Point:</b> {format_inline(content)}", normal_style))
             i += 1
             continue
 
@@ -256,8 +258,10 @@ def generate_pdf_with_reportlab(kpis, insights_markdown, filters):
                 get_heading_level(next_line) or
                 re.match(r'^[\*\-]\s+', next_line) or
                 re.match(r'^(\d+)\.\s+', next_line) or
+                re.match(r'^\*\*Data\s+Point:\*\*', next_line, re.IGNORECASE) or
                 re.match(r'^__Data\s+Point:__', next_line, re.IGNORECASE) or
-                re.match(r'^\*\*Data\s+Point:\*\*', next_line, re.IGNORECASE)):
+                re.match(r'^[A-Z][a-z]+\s+[A-Z][a-z]+:', next_line) or
+                re.match(r'^[A-Z][a-z]+:', next_line)):
                 break
             para_lines.append(next_line)
             i += 1
