@@ -10,62 +10,82 @@ from reportlab.lib.units import inch
 
 logger = logging.getLogger(__name__)
 
-# ------------------------------
-# Convert markdown/HTML to plain text for fallback
-# ------------------------------
-def strip_html_and_markdown(text):
-    """Remove HTML and markdown, return plain text."""
-    text = re.sub(r'<[^>]+>', '', text)
-    text = re.sub(r'(\*\*|__)(.*?)\1', r'\2', text)
-    text = re.sub(r'(\*|_)(.*?)\1', r'\2', text)
-    text = re.sub(r'^#+\s+', '', text, flags=re.MULTILINE)
-    text = re.sub(r'\[([^\]]+)\]\([^\)]+\)', r'\1', text)
-    lines = [line.strip() for line in text.splitlines() if line.strip()]
-    return '\n'.join(lines)
+# Try to import html2text, fall back to regex stripping if not available
+try:
+    import html2text
+    HAS_HTML2TEXT = True
+except ImportError:
+    HAS_HTML2TEXT = False
+    logger.warning("html2text not installed. Falling back to basic HTML stripping.")
 
 # ------------------------------
-# Lightweight markdown to ReportLab-friendly HTML
+# Cleanup functions
 # ------------------------------
-def markdown_to_rl_html(text):
-    """Convert markdown subset to HTML for ReportLab Paragraph."""
-    # Escape ampersands and angle brackets (but we will use <b>, etc.)
-    # Replace **bold** with <b>bold</b>
+def clean_markdown_text(text):
+    """Remove unwanted characters and fix escape sequences."""
+    # Remove raw Unicode bullet characters and other artifacts
+    text = text.replace('■', '')
+    text = text.replace('•', '•')  # ensure proper bullet
+    # Remove escape sequences like 5\. -> 5.
+    text = re.sub(r'(\d+)\\\.', r'\1.', text)
+    # Remove standalone horizontal rules (---)
+    text = re.sub(r'^\s*---\s*$', '', text, flags=re.MULTILINE)
+    # Remove extra whitespace
+    text = re.sub(r'\n\s*\n', '\n\n', text)  # collapse multiple blank lines
+    # Remove non-breaking spaces and other weird chars
+    text = text.replace('\xa0', ' ')
+    return text.strip()
+
+def format_inline(text):
+    """Convert **bold** and *italic* to ReportLab-friendly tags."""
+    # Bold
     text = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', text)
-    # Replace *italic* with <i>italic</i>
+    # Italic
     text = re.sub(r'\*(.+?)\*', r'<i>\1</i>', text)
-    # Replace __bold__ with <b>bold</b>
+    # Bold with __
     text = re.sub(r'__(.+?)__', r'<b>\1</b>', text)
-    # Replace _italic_ with <i>italic</i>
+    # Italic with _
     text = re.sub(r'_(.+?)_', r'<i>\1</i>', text)
-    # Handle line breaks: replace \n with <br/> (but we'll handle at paragraph level)
     return text
+
+def strip_html_tags(text):
+    """Remove HTML tags entirely."""
+    return re.sub(r'<[^>]+>', '', text)
 
 # ------------------------------
 # Generate PDF with ReportLab
 # ------------------------------
-def generate_pdf_with_reportlab(kpis, insights_text, filters):
-    """Generate a professional PDF report using ReportLab."""
+def generate_pdf_with_reportlab(kpis, insights_markdown, filters):
+    """Generate a professional PDF report from markdown text."""
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter,
                             rightMargin=72, leftMargin=72,
                             topMargin=72, bottomMargin=72)
 
     styles = getSampleStyleSheet()
-    # Custom styles
+    # Custom styles with a professional look
     title_style = ParagraphStyle('TitleStyle', parent=styles['Heading1'],
-                                 fontSize=24, alignment=1, spaceAfter=12)
+                                 fontSize=24, alignment=1, spaceAfter=12,
+                                 textColor=colors.darkblue)
     heading1_style = ParagraphStyle('Heading1Style', parent=styles['Heading1'],
-                                    fontSize=18, spaceAfter=6, spaceBefore=12)
+                                    fontSize=18, spaceAfter=6, spaceBefore=12,
+                                    textColor=colors.darkblue)
     heading2_style = ParagraphStyle('Heading2Style', parent=styles['Heading2'],
-                                    fontSize=16, spaceAfter=4, spaceBefore=8)
+                                    fontSize=16, spaceAfter=4, spaceBefore=8,
+                                    textColor=colors.blue)
     heading3_style = ParagraphStyle('Heading3Style', parent=styles['Heading3'],
-                                    fontSize=14, spaceAfter=4, spaceBefore=6)
+                                    fontSize=14, spaceAfter=4, spaceBefore=6,
+                                    textColor=colors.blue)
     normal_style = ParagraphStyle('NormalStyle', parent=styles['Normal'],
                                   fontSize=11, leading=14, spaceAfter=6)
     bullet_style = ParagraphStyle('BulletStyle', parent=normal_style,
                                   leftIndent=20, bulletIndent=0)
     number_style = ParagraphStyle('NumberStyle', parent=normal_style,
                                   leftIndent=20, bulletIndent=0)
+    # Label style for sub-headings like "Positive Trends:"
+    label_style = ParagraphStyle('LabelStyle', parent=normal_style,
+                                 fontName='Helvetica-Bold',
+                                 textColor=colors.darkblue)
 
     story = []
 
@@ -131,9 +151,13 @@ def generate_pdf_with_reportlab(kpis, insights_text, filters):
 
     # --- AI Insights (parsed from markdown) ---
     story.append(Paragraph("AI‑Generated Insights", heading1_style))
+    story.append(Spacer(1, 0.1 * inch))
 
-    # Process insights text line by line
-    lines = insights_text.splitlines()
+    # Clean the markdown text
+    clean_md = clean_markdown_text(insights_markdown)
+
+    # Split into lines
+    lines = clean_md.splitlines()
     i = 0
     in_list = False
     list_type = None  # 'bullet' or 'number'
@@ -144,51 +168,68 @@ def generate_pdf_with_reportlab(kpis, insights_text, filters):
         if in_list and list_items:
             if list_type == 'bullet':
                 for item in list_items:
-                    story.append(Paragraph(f"• {item}", bullet_style))
+                    story.append(Paragraph(f"• {format_inline(item)}", bullet_style))
             elif list_type == 'number':
                 for idx, item in enumerate(list_items, 1):
-                    story.append(Paragraph(f"{idx}. {item}", number_style))
+                    story.append(Paragraph(f"{idx}. {format_inline(item)}", number_style))
             list_items = []
             in_list = False
             list_type = None
 
     while i < len(lines):
         line = lines[i].strip()
+        # Skip empty lines (already handled in flush but keep for safety)
         if not line:
             flush_list()
             i += 1
             continue
 
-        # Detect headings
+        # Check for horizontal rule (already cleaned, but just in case)
+        if re.match(r'^[-]{3,}$', line):
+            flush_list()
+            story.append(Spacer(1, 0.1 * inch))
+            i += 1
+            continue
+
+        # Headings (detect lines starting with #)
         if line.startswith('## '):
             flush_list()
             content = line[3:].strip()
-            story.append(Paragraph(markdown_to_rl_html(content), heading2_style))
+            # Remove any trailing colon or punctuation from heading
+            content = re.sub(r'[:;]*$', '', content)
+            story.append(Paragraph(format_inline(content), heading2_style))
+            story.append(Spacer(1, 0.05 * inch))
             i += 1
             continue
         elif line.startswith('### '):
             flush_list()
             content = line[4:].strip()
-            story.append(Paragraph(markdown_to_rl_html(content), heading3_style))
+            content = re.sub(r'[:;]*$', '', content)
+            story.append(Paragraph(format_inline(content), heading3_style))
+            story.append(Spacer(1, 0.05 * inch))
             i += 1
             continue
         elif line.startswith('# '):
             flush_list()
             content = line[2:].strip()
-            story.append(Paragraph(markdown_to_rl_html(content), heading1_style))
+            content = re.sub(r'[:;]*$', '', content)
+            story.append(Paragraph(format_inline(content), heading1_style))
+            story.append(Spacer(1, 0.05 * inch))
             i += 1
             continue
 
-        # Detect bullets and numbered lists
+        # Bullet lists: starts with - or *
         bullet_match = re.match(r'^[\*\-]\s+(.+)', line)
+        # Numbered list: starts with digit and dot
         number_match = re.match(r'^(\d+)\.\s+(.+)', line)
+
         if bullet_match:
             if not in_list or list_type != 'bullet':
                 flush_list()
                 in_list = True
                 list_type = 'bullet'
                 list_items = []
-            list_items.append(markdown_to_rl_html(bullet_match.group(1)))
+            list_items.append(bullet_match.group(1))
             i += 1
             continue
         elif number_match:
@@ -197,15 +238,35 @@ def generate_pdf_with_reportlab(kpis, insights_text, filters):
                 in_list = True
                 list_type = 'number'
                 list_items = []
-            list_items.append(markdown_to_rl_html(number_match.group(2)))
+            list_items.append(number_match.group(2))
             i += 1
             continue
 
-        # Regular paragraph
-        flush_list()
-        # Handle bold/italic in paragraph
-        story.append(Paragraph(markdown_to_rl_html(line), normal_style))
+        # Plain paragraph (could be multi-line)
+        # Collect lines until we hit an empty line or a heading/list marker
+        para_lines = [line]
         i += 1
+        while i < len(lines):
+            next_line = lines[i].strip()
+            # If next line is empty, heading, or list marker, break
+            if (not next_line or
+                next_line.startswith('#') or
+                re.match(r'^[\*\-]\s+', next_line) or
+                re.match(r'^(\d+)\.\s+', next_line)):
+                break
+            para_lines.append(next_line)
+            i += 1
+
+        # Join and format
+        para_text = ' '.join(para_lines)
+        # Check if it's a sub-heading like "Positive Trends:" or "Negative Trends:"
+        if re.match(r'^[A-Z][a-z]+ [A-Z][a-z]+:', para_text) or re.match(r'^[A-Z][a-z]+:', para_text):
+            # Treat as a bold label
+            story.append(Paragraph(format_inline(para_text), label_style))
+        else:
+            story.append(Paragraph(format_inline(para_text), normal_style))
+        # Add a small spacer after paragraph
+        story.append(Spacer(1, 0.05 * inch))
 
     # Flush any remaining list
     flush_list()
@@ -222,51 +283,22 @@ def generate_pdf_with_reportlab(kpis, insights_text, filters):
 # Main entry point for route
 # ------------------------------
 def generate_pdf_from_data(kpis, insights_html, filters):
-    """Generate PDF from structured data (preferred)."""
+    """Generate PDF from structured data."""
     try:
-        # Convert insights HTML to plain text (markdown-ish) but we'll keep markdown formatting
-        # Actually we want to keep markdown, so we don't strip markdown here.
-        # We'll pass insights_html directly as a string containing markdown (not HTML).
-        # But insights_html contains HTML generated by renderMarkdown in the frontend.
-        # We need to convert HTML to markdown or plain text with structure.
-        # However, the insights_html from frontend is already HTML with <h1>, <h2>, <ul>, <li>.
-        # Since we have markdown-like content originally, we could keep it as markdown.
-        # For simplicity, we'll extract the text content and then parse as markdown.
-        # But we lost the markdown. Let's instead parse the HTML to extract structure.
-        # Better: in the frontend, we already have the raw markdown before conversion.
-        # We could send the raw markdown as well, but we don't.
-        # For now, we'll use the plain text version but we'll try to preserve headings by looking for patterns.
-        # Let's convert HTML to plain text but keep heading markers.
-        # This is a temporary workaround.
-        # In a real solution, you would pass the raw markdown from the backend.
-        # Since we don't have that, we'll extract headings from HTML.
-        # We'll use regex to find <h1>, <h2>, etc. and convert to markdown.
-        # We'll then parse the markdown as before.
-        import html2text
-        # Convert HTML to markdown using html2text
-        h = html2text.HTML2Text()
-        h.ignore_links = False
-        markdown_text = h.handle(insights_html)
-        # Now markdown_text contains markdown
-        # But html2text may not be installed. Let's add it.
-        # Alternatively, we can just use plain text without structure as fallback.
-        # For now, we'll use the existing strip function and then parse.
-        # We'll try to detect headings in the plain text.
-        # Let's just use the stripped text and then split by "## " etc.
-        # Actually we can use the original insights_text which was generated as markdown.
-        # But we don't have it. We only have the HTML version.
-        # We'll send the raw markdown from the backend to the frontend, and the frontend sends it back for PDF.
-        # That's the proper fix.
-        # For now, we'll work with what we have: insights_html is HTML.
-        # We'll convert it to markdown using html2text (if available) else fallback to plain text.
-        try:
-            import html2text
+        # Convert HTML to markdown
+        if HAS_HTML2TEXT:
             h = html2text.HTML2Text()
             h.ignore_links = False
+            h.ignore_images = True
+            h.body_width = 0  # no wrapping
+            h.skip_internal_links = True
             markdown_text = h.handle(insights_html)
-        except ImportError:
-            # fallback: strip tags and hope for the best
-            markdown_text = strip_html_and_markdown(insights_html)
+        else:
+            # Fallback: strip HTML and try to infer structure
+            text = strip_html_tags(insights_html)
+            # Remove extra whitespace
+            lines = [line.strip() for line in text.splitlines() if line.strip()]
+            markdown_text = '\n'.join(lines)
         return generate_pdf_with_reportlab(kpis, markdown_text, filters)
     except Exception as e:
         logger.error(f"PDF generation failed: {e}")

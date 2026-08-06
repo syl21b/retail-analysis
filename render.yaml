@@ -6,13 +6,17 @@ services:
     rootDir: dashboard
     plan: free
     region: oregon
-    preBuild:
-    commands:
-    - apt-get update
-    - apt-get install -y libcairo2 libpango-1.0-0 libgdk-pixbuf2.0-0 libffi-dev shared-mime-info
+
+    preBuild: |
+      apt-get update
+      apt-get install -y libcairo2 libpango-1.0-0 libgdk-pixbuf2.0-0 libffi-dev shared-mime-info
+
     buildCommand: |
+      pip install --upgrade pip
       pip install -r requirements.txt
+
     startCommand: gunicorn dashboard.app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 300
+
     envVars:
       - key: PYTHON_VERSION
         value: 3.13.5
@@ -34,7 +38,7 @@ services:
         value: INFO
       - key: RATELIMIT_AI
         value: 20
-      - key: RATELIMIT_NLQåç
+      - key: RATELIMIT_NLQ
         value: 50
       - key: RATELIMIT_SIMULATE
         value: 30
