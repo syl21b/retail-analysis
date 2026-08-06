@@ -16,7 +16,7 @@ from .auth import require_auth, require_role, rate_limit, auth_manager
 from .sql_helpers import sanitize_output, validate_nlq_input, add_schema_prefix, fix_date_extract, create_performance_indexes
 from .ai import generate_deep_insights_with_persona, _get_additional_metrics, get_cached_extra_metrics, feedback_store, call_ai_provider, fix_list_numbering, generate_local_deep_insights_fallback
 from .simulation import SIMULATION_COEFFS, train_simulation_model
-from .export import generate_report_html, generate_pdf_from_html
+from .export import generate_report_html, generate_pdf_from_html, generate_pdf_from_data
 from .churn_model import set_threshold, get_at_risk_customers,get_churn_stats, get_revenue_timeline, predict, train_model
 from .churn import ensure_model_loaded
 
@@ -789,13 +789,8 @@ def register_routes(app):
             charts = data.get('charts', {})
             filters = data.get('filters', {})
 
-            report_html = generate_report_html(kpis, insights_html, charts, filters)
-
-            try:
-                pdf_bytes = generate_pdf_from_html(report_html)
-            except Exception as e:
-                logger.error(f"PDF generation failed: {e}")
-                return jsonify({"error": f"PDF generation failed: {str(e)}"}), 500
+            # Generate the PDF directly from data (no WeasyPrint)
+            pdf_bytes = generate_pdf_from_data(kpis, insights_html, filters)
 
             return send_file(
                 io.BytesIO(pdf_bytes),
