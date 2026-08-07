@@ -29,8 +29,8 @@ def clean_markdown(text):
     text = text.replace('■', '')
     # Fix escaped dots: 5\. -> 5.
     text = re.sub(r'(\d+)\\\.', r'\1.', text)
-    # Replace Data Point: with **Data Point:**
-    text = re.sub(r'Data\s+Point:', '**Data Point:**', text, flags=re.IGNORECASE)
+    # Replace __Data Point:__ with **Data Point:**
+    text = re.sub(r'__Data\s+Point:__', '**Data Point:**', text, flags=re.IGNORECASE)
     # Remove horizontal rules
     text = re.sub(r'^\s*---\s*$', '', text, flags=re.MULTILINE)
     # Collapse multiple blank lines
@@ -42,7 +42,7 @@ def format_inline(text):
     """Convert **bold** and *italic* to ReportLab tags."""
     text = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', text)
     text = re.sub(r'\*(.+?)\*', r'<i>\1</i>', text)
-    text = re.sub(r'(.+?)', r'<b>\1</b>', text)
+    text = re.sub(r'__(.+?)__', r'<b>\1</b>', text)
     text = re.sub(r'_(.+?)_', r'<i>\1</i>', text)
     return text
 
@@ -178,7 +178,7 @@ def generate_pdf_with_reportlab(kpis, insights_markdown, filters):
             list_indent = 0
 
     def get_heading_level(line):
-        """Detect if line is a major section (2) or sub‑section (3)."""
+        """Detect if line is a major section (2) or sub-section (3)."""
         if re.match(r'^\d+\.\s+[A-Z]', line):
             return 2
         if re.match(r'^(Short-term|Long-term)\s*\(', line, re.IGNORECASE):
@@ -207,7 +207,7 @@ def generate_pdf_with_reportlab(kpis, insights_markdown, filters):
             i += 1
             continue
 
-        # ---- 2. Sub‑headings (e.g., "Revenue Performance:") ----
+        # ---- 2. Sub-headings (e.g., "Revenue Performance:") ----
         if re.match(r'^[A-Z][a-z]+\s+[A-Z][a-z]+:', line) or re.match(r'^[A-Z][a-z]+:', line):
             flush_list()
             story.append(Paragraph(format_inline(line), label_style))
@@ -238,9 +238,9 @@ def generate_pdf_with_reportlab(kpis, insights_markdown, filters):
             continue
 
         # ---- 4. "Data Point:" lines (bold label) ----
-        if re.match(r'^\*\*Data\s+Point:\*\*', line, re.IGNORECASE) or re.match(r'^Data\s+Point:', line, re.IGNORECASE):
+        if re.match(r'^\*\*Data\s+Point:\*\*', line, re.IGNORECASE) or re.match(r'^__Data\s+Point:__', line, re.IGNORECASE):
             content = re.sub(r'^\*\*Data\s+Point:\*\*\s*', '', line, flags=re.IGNORECASE)
-            content = re.sub(r'^Data\s+Point:\s*', '', content, flags=re.IGNORECASE)
+            content = re.sub(r'^__Data\s+Point:__\s*', '', content, flags=re.IGNORECASE)
             if list_items:
                 list_items.append(f"  - **Data Point:** {content}")
             else:
@@ -258,7 +258,7 @@ def generate_pdf_with_reportlab(kpis, insights_markdown, filters):
                 re.match(r'^[\*\-]\s+', next_line) or
                 re.match(r'^(\d+)\.\s+', next_line) or
                 re.match(r'^\*\*Data\s+Point:\*\*', next_line, re.IGNORECASE) or
-                re.match(r'^Data\s+Point:', next_line, re.IGNORECASE) or
+                re.match(r'^__Data\s+Point:__', next_line, re.IGNORECASE) or
                 re.match(r'^[A-Z][a-z]+\s+[A-Z][a-z]+:', next_line) or
                 re.match(r'^[A-Z][a-z]+:', next_line)):
                 break
