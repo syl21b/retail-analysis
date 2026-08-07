@@ -94,12 +94,12 @@ PERSONA_TEMPLATES = {
     "conservative_cfo": """
 You are a **Conservative CFO** with 20+ years of experience in financial risk management and cost control.  
 Your primary concern is protecting the company's bottom line, ensuring operational efficiency, and mitigating financial risks.  
-You are cautious, data‑driven, and skeptical of bold investments without clear ROI.  
-Your language is formal, precise, and numbers‑focused.
+You are cautious, data-driven, and skeptical of bold investments without clear ROI.  
+Your language is formal, precise, and numbers-focused.
 
 When analyzing the data, you must:
 - Highlight any revenue declines, margin erosion, or unexpected costs.
-- Emphasize cost‑saving opportunities and efficiency gains.
+- Emphasize cost-saving opportunities and efficiency gains.
 - Warn against aggressive spending or expansion without solid returns.
 - Recommend conservative strategies such as cost reduction, debt management, and cash preservation.
 
@@ -108,19 +108,19 @@ Write a concise, actionable business report with these sections:
 ## 1. Key Metrics & Filters
 ## 2. Deep Dive (Revenue, Retention, Operations)
 ## 3. Root Causes (from a financial risk perspective)
-## 4. Actionable Recommendations (Short-term, Long-term) – focus on cost control and risk mitigation
-## 5. Expected Business Impact – quantify savings or risk reduction
+## 4. Actionable Recommendations (Short-term, Long-term) - focus on cost control and risk mitigation
+## 5. Expected Business Impact - quantify savings or risk reduction
 
 Make sure to cover ALL sections. Do not truncate your response.
 """,
     "growth_cmo": """
 You are an **Aggressive Growth CMO** with a track record of scaling businesses through innovative marketing and customer acquisition.  
-You are optimistic, forward‑looking, and prioritize top‑line revenue growth, market share, and brand awareness.  
+You are optimistic, forward-looking, and prioritize top-line revenue growth, market share, and brand awareness.  
 You love bold moves, experimentation, and rapid iteration.
 
 When analyzing the data, you must:
 - Focus on revenue growth opportunities, untapped markets, and customer expansion.
-- Highlight high‑potential segments, product lines, or geographies.
+- Highlight high-potential segments, product lines, or geographies.
 - Recommend aggressive marketing campaigns, partnerships, and customer retention programs.
 - Be enthusiastic about new initiatives, even if they involve some risk.
 
@@ -129,15 +129,15 @@ Write a concise, actionable business report with these sections:
 ## 1. Key Metrics & Filters
 ## 2. Deep Dive (Revenue, Retention, Operations)
 ## 3. Root Causes (from a growth and acquisition perspective)
-## 4. Actionable Recommendations (Short-term, Long-term) – focus on scaling, acquisition, and loyalty
-## 5. Expected Business Impact – project revenue uplift and market share gains
+## 4. Actionable Recommendations (Short-term, Long-term) - focus on scaling, acquisition, and loyalty
+## 5. Expected Business Impact - project revenue uplift and market share gains
 
 Make sure to cover ALL sections. Do not truncate your response.
 """,
     "balanced_analyst": """
 You are a **Balanced Business Analyst** who weighs both risks and opportunities objectively.  
-You are pragmatic, data‑driven, and strive to provide a 360‑degree view of the business.  
-You avoid extremes and favor evidence‑based, sustainable strategies.
+You are pragmatic, data-driven, and strive to provide a 360-degree view of the business.  
+You avoid extremes and favor evidence-based, sustainable strategies.
 
 When analyzing the data, you must:
 - Present both positive and negative trends equally.
@@ -150,8 +150,8 @@ Write a concise, actionable business report with these sections:
 ## 1. Key Metrics & Filters
 ## 2. Deep Dive (Revenue, Retention, Operations)
 ## 3. Root Causes (balanced perspective)
-## 4. Actionable Recommendations (Short-term, Long-term) – pragmatic and data‑backed
-## 5. Expected Business Impact – realistic outcomes
+## 4. Actionable Recommendations (Short-term, Long-term) - pragmatic and data-backed
+## 5. Expected Business Impact - realistic outcomes
 
 Make sure to cover ALL sections. Do not truncate your response.
 """
@@ -311,7 +311,7 @@ def generate_local_deep_insights_fallback(kpis, filters, daily_revenue, monthly_
     top_payment = extra_metrics.get('top_payment_method', 'N/A')
 
     report = []
-    report.append("# 📊 Retail Analytics – Deep Business Report (AI Fallback)\n")
+    report.append("# 📊 Retail Analytics - Deep Business Report (AI Fallback)\n")
     report.append("## Executive Summary\n")
     if repeat_rate < 30:
         report.append(f"⚠️ **Critical**: Only {repeat_rate:.1f}% repeat buyers. Retention is a major risk.\n")
@@ -320,13 +320,13 @@ def generate_local_deep_insights_fallback(kpis, filters, daily_revenue, monthly_
     if anomalies:
         report.append(f"📉 **{len(anomalies)} revenue anomaly days** (>20% drop).\n")
     if high_risk:
-        report.append(f"💎 **{len(high_risk)} high‑value customers at risk** of churn.\n")
+        report.append(f"💎 **{len(high_risk)} high-value customers at risk** of churn.\n")
     report.append(f"Overall: ${total_rev:,.0f} revenue from {total_orders:,} orders, AOV ${aov:,.0f}.\n")
     report.append("## 1. Key Metrics & Filters\n")
     date_filter = filters.get('dateRange', {})
     report.append(f"- **Filters**: Date {date_filter.get('min','any')} → {date_filter.get('max','any')}, City {filters.get('selectedCity','any')}, Category {filters.get('selectedCategory','any')}\n")
-    report.append(f"- **AOV**: ${aov:,.0f} – " + ("low, consider bundling." if aov < 50 else "healthy.") + "\n")
-    report.append(f"- **Repeat Rate**: {repeat_rate:.1f}% – " + ("needs immediate action." if repeat_rate < 30 else "good, aim for 40%+.") + "\n")
+    report.append(f"- **AOV**: ${aov:,.0f} - " + ("low, consider bundling." if aov < 50 else "healthy.") + "\n")
+    report.append(f"- **Repeat Rate**: {repeat_rate:.1f}% - " + ("needs immediate action." if repeat_rate < 30 else "good, aim for 40%+.") + "\n")
     report.append("## 2. Deep Dive\n")
     report.append("### Revenue & Growth\n")
     if top_cities:
@@ -342,39 +342,39 @@ def generate_local_deep_insights_fallback(kpis, filters, daily_revenue, monthly_
         report.append(f"- Top 5 CLV: ${avg_top_clv:,.0f} avg.\n")
     if high_risk:
         high_risk_total = sum(to_float(c.get('monetary', 0)) for c in high_risk)
-        report.append(f"- High‑risk VIPs: {len(high_risk)} customers, total ${high_risk_total:,.0f} at stake.\n")
+        report.append(f"- High-risk VIPs: {len(high_risk)} customers, total ${high_risk_total:,.0f} at stake.\n")
     report.append("\n### Operations & Risk\n")
     report.append(f"- Order Status Distribution: {status_summary}\n")
     report.append(f"- Top payment method: {top_payment}.\n")
     report.append("\n## 3. Root Causes\n")
     if repeat_rate < 30:
-        report.append("- Low repeat rate → weak post‑purchase engagement, no loyalty program.\n")
+        report.append("- Low repeat rate → weak post-purchase engagement, no loyalty program.\n")
     if anomalies:
         report.append("- Revenue drops → ended promotions, stockouts, or technical issues.\n")
     if high_risk:
-        report.append("- High‑value churn risk → lack of VIP treatment or relevant offers.\n")
+        report.append("- High-value churn risk → lack of VIP treatment or relevant offers.\n")
     report.append("\n## 4. Actionable Recommendations\n")
-    report.append("### Short‑Term (30 days)\n")
+    report.append("### Short-Term (30 days)\n")
     if repeat_rate < 30:
-        report.append("1. Launch win‑back email with 15% off for one‑time buyers.\n")
+        report.append("1. Launch win-back email with 15% off for one-time buyers.\n")
     if aov < 75:
         report.append("2. Create product bundles to increase AOV by 20%.\n")
     if anomalies:
         report.append("3. Set up daily revenue anomaly alerts (Slack/email).\n")
     if high_risk:
-        report.append(f"4. Personalised VIP discount codes to top {min(5, len(high_risk))} at‑risk customers.\n")
+        report.append(f"4. Personalised VIP discount codes to top {min(5, len(high_risk))} at-risk customers.\n")
     if not any([repeat_rate < 30, aov < 75, anomalies, high_risk]):
         report.append("1. Run A/B test on checkout page.\n")
         report.append("2. Introduce referral program.\n")
-    report.append("\n### Long‑Term (6‑12 months)\n")
+    report.append("\n### Long-Term (6-12 months)\n")
     report.append("- Tiered loyalty program to raise repeat rate to 45%.\n")
-    report.append("- Predictive churn model for automated re‑engagement.\n")
+    report.append("- Predictive churn model for automated re-engagement.\n")
     if top_cities:
         report.append(f"- Expand product assortment in {top_cities[0].get('city', 'top city')}.\n")
     report.append("\n## 5. Expected Business Impact\n")
-    report.append("1. **Re‑engage VIPs** → recover 20‑30% of lost revenue from high‑risk customers.\n")
-    report.append("2. **Loyalty program pilot** → +5‑10% repeat purchase rate within 6 months.\n")
-    report.append("3. **Fix fulfillment delays** → reduce cancellations by 1‑2%.\n")
+    report.append("1. **Re-engage VIPs** → recover 20-30% of lost revenue from high-risk customers.\n")
+    report.append("2. **Loyalty program pilot** → +5-10% repeat purchase rate within 6 months.\n")
+    report.append("3. **Fix fulfillment delays** → reduce cancellations by 1-2%.\n")
     report.append("\n---\n*Local analysis based on available data.*")
     return "\n".join(report)
 
