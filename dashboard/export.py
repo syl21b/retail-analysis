@@ -87,18 +87,17 @@ def generate_pdf_with_reportlab(kpis, insights_markdown, filters):
     label_style = ParagraphStyle('LabelStyle', parent=normal_style,
                                  fontName='Helvetica-Bold',
                                  textColor=colors.darkblue)
-    # For sub‑bullets (e.g., "Data Point:")
     sub_bullet_style = ParagraphStyle('SubBulletStyle', parent=bullet_style,
                                       leftIndent=40, bulletIndent=0)
 
     story = []
 
     # --- Cover Page ---
-    story.append(Paragraph("📊 Retail Pulse - Executive Report", title_style))
+    story.append(Paragraph("📊 Retail Pulse – Executive Report", title_style))
     story.append(Spacer(1, 0.1 * inch))
     story.append(Paragraph(f"Generated on {datetime.now().strftime('%B %d, %Y')}", normal_style))
     story.append(Spacer(1, 0.2 * inch))
-    story.append(Paragraph("Confidential - For internal use only", normal_style))
+    story.append(Paragraph("Confidential – For internal use only", normal_style))
     story.append(Spacer(1, 0.5 * inch))
     story.append(PageBreak())
 
@@ -133,7 +132,6 @@ def generate_pdf_with_reportlab(kpis, insights_markdown, filters):
         ['AOV', f'${avg_order_value:,.2f}']
     ]
 
-    # Create a 2x2 table (2 rows, 2 columns)
     kpi_table = Table(kpi_data, colWidths=[2.5*inch, 2.5*inch])
     kpi_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,-1), colors.beige),
@@ -156,13 +154,12 @@ def generate_pdf_with_reportlab(kpis, insights_markdown, filters):
 
     # Clean and preprocess markdown
     clean_md = clean_markdown(insights_markdown)
-    # Remove all leading '#' markers (we detect headings by pattern)
     clean_md = re.sub(r'^#+\s+', '', clean_md, flags=re.MULTILINE)
 
     lines = clean_md.splitlines()
     i = 0
     in_list = False
-    list_type = None          # 'bullet' or 'number'
+    list_type = None
     list_items = []
     list_indent = 0
 
@@ -182,10 +179,8 @@ def generate_pdf_with_reportlab(kpis, insights_markdown, filters):
 
     def get_heading_level(line):
         """Detect if line is a major section (2) or sub‑section (3)."""
-        # Major sections: "1. Key Metrics & Filters", etc.
         if re.match(r'^\d+\.\s+[A-Z]', line):
             return 2
-        # Sub-sections: "Short-term", "Long-term"
         if re.match(r'^(Short-term|Long-term)\s*\(', line, re.IGNORECASE):
             return 3
         return 0
@@ -203,8 +198,8 @@ def generate_pdf_with_reportlab(kpis, insights_markdown, filters):
         if h_level:
             flush_list()
             if h_level == 2:
-                # Remove numbering prefix
-                content = re.sub(r'^\d+\.\s+', '', line)
+                # FIX: keep the full line including the number prefix
+                content = line  # was: re.sub(r'^\d+\.\s+', '', line)
                 story.append(Paragraph(format_inline(content), heading2_style))
             else:
                 story.append(Paragraph(format_inline(line), heading3_style))
@@ -247,7 +242,6 @@ def generate_pdf_with_reportlab(kpis, insights_markdown, filters):
             content = re.sub(r'^\*\*Data\s+Point:\*\*\s*', '', line, flags=re.IGNORECASE)
             content = re.sub(r'^__Data\s+Point:__\s*', '', content, flags=re.IGNORECASE)
             if list_items:
-                # Add as a sub‑bullet indented
                 list_items.append(f"  - **Data Point:** {content}")
             else:
                 story.append(Paragraph(f"<b>Data Point:</b> {format_inline(content)}", normal_style))
@@ -259,7 +253,6 @@ def generate_pdf_with_reportlab(kpis, insights_markdown, filters):
         i += 1
         while i < len(lines):
             next_line = lines[i].strip()
-            # Break if next line is empty, heading, list marker, or Data Point
             if (not next_line or
                 get_heading_level(next_line) or
                 re.match(r'^[\*\-]\s+', next_line) or
@@ -276,17 +269,15 @@ def generate_pdf_with_reportlab(kpis, insights_markdown, filters):
         story.append(Paragraph(format_inline(para_text), normal_style))
         story.append(Spacer(1, 0.05 * inch))
 
-    # Flush any remaining list
     flush_list()
 
     # --- Footer ---
     story.append(Spacer(1, 0.5 * inch))
-    story.append(Paragraph("Confidential - For internal use only", normal_style))
+    story.append(Paragraph("Confidential – For internal use only", normal_style))
 
     doc.build(story)
     buffer.seek(0)
     return buffer.getvalue()
-
 
 # ----------------------------------------------------------------------
 # 3. Entry point for route
