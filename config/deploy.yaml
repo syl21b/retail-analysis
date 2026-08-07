@@ -1,39 +1,44 @@
-# render.yaml
 services:
-  # FastAPI Backend Service
   - type: web
-    name: retail-analytics-api
+    name: enterprise-bi-dashboard
     runtime: python
-    repo: https://github.com/yourusername/retail-analytics  # Replace with your repo
+    repo: https://github.com/syl21b/retail-analysis
+    rootDir: dashboard
     plan: free
+    region: oregon
+
+    preBuild: |
+      apt-get update
+      apt-get install -y libcairo2 libpango-1.0-0 libgdk-pixbuf2.0-0 libffi-dev shared-mime-info
+
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+
+    startCommand: gunicorn dashboard.app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 300
+
     envVars:
-      - key: DATABASE_URL
-        value: postgresql://neondb_owner:npg_4vjDeG0qHypE@ep-twilight-dawn-ankobhm8-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require
       - key: PYTHON_VERSION
-        value: 3.11.0
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn dashboard.api:app --host 0.0.0.0 --port 10000
-
-  # Streamlit Dashboard
-  - type: web
-    name: retail-analytics-dashboard
-    runtime: python
-    repo: https://github.com/yourusername/retail-analytics
-    plan: free
-    envVars:
-      - key: API_URL
-        value: https://retail-analytics-api.onrender.com
-    buildCommand: pip install -r requirements.txt
-    startCommand: streamlit run dashboard/app.py --server.port 10000 --server.address 0.0.0.0
-
-  # Cron Job for Daily ETL (Runs at 2 AM every day)
-  - type: cron
-    name: retail-etl-cron
-    runtime: python
-    repo: https://github.com/yourusername/retail-analytics
-    schedule: "0 2 * * *"  # 2 AM daily
-    envVars:
+        value: 3.13.5
       - key: DATABASE_URL
-        value: postgresql://neondb_owner:npg_4vjDeG0qHypE@ep-twilight-dawn-ankobhm8-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require
-    buildCommand: pip install -r requirements.txt
-    startCommand: python run_etl_pipeline.py
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        value: https://enterprise-bi-dashboard.onrender.com,http://localhost:5000
+      - key: DISABLE_AUTH
+        value: true
+      - key: FLASK_DEBUG
+        value: False
+      - key: LOG_LEVEL
+        value: INFO
+      - key: RATELIMIT_AI
+        value: 20
+      - key: RATELIMIT_NLQ
+        value: 50
+      - key: RATELIMIT_SIMULATE
+        value: 30
