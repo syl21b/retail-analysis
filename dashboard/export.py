@@ -94,11 +94,11 @@ def generate_pdf_with_reportlab(kpis, insights_markdown, filters):
     story = []
 
     # --- Cover Page ---
-    story.append(Paragraph("📊 Retail Pulse – Executive Report", title_style))
+    story.append(Paragraph("📊 Retail Pulse - Executive Report", title_style))
     story.append(Spacer(1, 0.1 * inch))
     story.append(Paragraph(f"Generated on {datetime.now().strftime('%B %d, %Y')}", normal_style))
     story.append(Spacer(1, 0.2 * inch))
-    story.append(Paragraph("Confidential – For internal use only", normal_style))
+    story.append(Paragraph("Confidential - For internal use only", normal_style))
     story.append(Spacer(1, 0.5 * inch))
     story.append(PageBreak())
 
@@ -281,7 +281,7 @@ def generate_pdf_with_reportlab(kpis, insights_markdown, filters):
 
     # --- Footer ---
     story.append(Spacer(1, 0.5 * inch))
-    story.append(Paragraph("Confidential – For internal use only", normal_style))
+    story.append(Paragraph("Confidential - For internal use only", normal_style))
 
     doc.build(story)
     buffer.seek(0)
